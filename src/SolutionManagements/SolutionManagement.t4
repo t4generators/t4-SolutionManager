@@ -35,6 +35,10 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
     static ILookup<string, KeyValuePair<string, BaseInfo>> _indexeclasses;
     static StringBuilder _generationEnvironment;
 
+	/// <summary>
+	/// initialize the solution managemeent.
+	/// Note : the script attribute "hostspecific" must be "true"
+	/// </summary>
 	public static void InitializeSolution(IServiceProvider host, StringBuilder generationEnvironment)
 	{
 
@@ -105,7 +109,10 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 
     }
 
-    public static NodeProject GetProjectByName(string fullpathItem)
+    /// <summary>
+	/// return the project for the full path project name specified
+    /// </summary>
+	public static NodeProject GetProjectByName(string fullpathItem)
     {
 
         foreach(KeyValuePair<string, NodeProject> item in _projects)
@@ -115,6 +122,9 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
         return null;
     }
 
+	/// <summary>
+	/// return all script objects from parsable code
+	/// </summary>
     public static IEnumerable<BaseInfo> GetObjects()
     {
         
@@ -123,6 +133,9 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 
     }
 
+	/// <summary>
+	/// return all object from parsable code that inherit from the specidied object
+	/// <summary>
     public static IEnumerable<BaseInfo> GetObjectsInheritFrom(string fullname)
     {
         foreach(KeyValuePair<string, BaseInfo> k in _classes)
@@ -142,7 +155,9 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
         }
     }
 
-
+	/// <summary>
+	/// return the class of the specified object 
+	/// </summary>
     public static IEnumerable<BaseInfo> ResolveType(TypeInfo type)
     {
 
@@ -166,6 +181,9 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 	{
 
 		
+		/// <summary>
+		/// 
+		/// </summary>
 		public static bool HasCsharpFile(NodeItem item)
 		{
 			if (item.KindItem == KindItem.File)
@@ -175,6 +193,9 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 		}
 
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public static bool HasVbFile(NodeItem item)
 		{
 			if (item.KindItem == KindItem.File)
@@ -187,12 +208,19 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 
 		#region Path
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public static bool IsPath(EnvDTE.ProjectItem source, string path)
 		{        
 			string path2 = string.Join(@"\", GetPath(source));            
 			return String.Equals(path, path2);        
 		}
 
+
+		/// <summary>
+		/// 
+		/// </summary>
 		public static IEnumerable<string> GetPath(EnvDTE.ProjectItem source)
 		{
 
@@ -221,6 +249,10 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 			return l;
 		}
 
+
+		/// <summary>
+		/// 
+		/// </summary>
 		public static IEnumerable<string> GetPath(EnvDTE.Project source)
 		{
 			List<string> l = new List<string>();
@@ -256,6 +288,10 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 
 		#region Getfiles
 
+
+		/// <summary>
+		/// 
+		/// </summary>
 		public static IEnumerable<EnvDTE.ProjectItem> GetFiles(EnvDTE.ProjectItems source)
 		{
 
@@ -265,6 +301,10 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 			
 		}
 
+
+		/// <summary>
+		/// 
+		/// </summary>
 		public static IEnumerable<EnvDTE.ProjectItem> GetFiles(EnvDTE.ProjectItem source)
 		{
 
@@ -275,6 +315,10 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 					yield return item2;   
 		}
 
+
+		/// <summary>
+		/// 
+		/// </summary>
 		public static IEnumerable<EnvDTE.ProjectItem> GetFiles(EnvDTE.Project source)
 		{
 
@@ -294,6 +338,10 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 
 		#endregion
 
+
+		/// <summary>
+		/// 
+		/// </summary>
 		public static string GetNamespace(EnvDTE.ProjectItem source)
 		{
 
@@ -322,6 +370,10 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 
 		}
 
+
+		/// <summary>
+		/// 
+		/// </summary>
 		public static NodeItem CreateNodeItem(EnvDTE.ProjectItem s)
 		{
 
@@ -346,18 +398,32 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 	}
 
 
+
+	/// <summary>
+	/// 
+	/// </summary>
 	public abstract class NodeItemBase
 	{
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public NodeItemBase()
 		{
 
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public abstract KindItem KindItem { get; }
 
 	}
 
+
+	/// <summary>
+	/// 
+	/// </summary>
 	public enum KindItem
 	{
 		Solution,
@@ -367,12 +433,22 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 		VirtualFolder,
 	}
 
+
+	/// <summary>
+	/// 
+	/// </summary>
 	[System.Diagnostics.DebuggerDisplay("{Name}")]
 	public abstract class NodeSolutionItem : NodeItemBase
 	{
 
+		/// <summary>
+		/// 
+		/// </summary>
 		protected EnvDTE.Project project;
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public NodeSolutionItem()
 			: base()
 		{
@@ -380,7 +456,14 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 		}
 
 
+		/// <summary>
+		/// 
+		/// </summary>
 		protected Dictionary<string, NodeItemProperty> _properties = null;
+
+		/// <summary>
+		/// 
+		/// </summary>
 		protected INodeProperty<T> FindProperty<T>(string p)
 		{
 			if (_properties == null)
@@ -393,8 +476,16 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 
 		}
 
+
+		/// <summary>
+		/// 
+		/// </summary>
 		public Dictionary<string, NodeItemProperty> Properties { get { return _properties; } }
 
+
+		/// <summary>
+		/// 
+		/// </summary>
 		protected virtual void BuildProperties()
 		{
 			_properties = new Dictionary<string, NodeItemProperty>();
@@ -410,12 +501,20 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 			}
 		}
 
+
+		/// <summary>
+		/// 
+		/// </summary>
 		public NodeSolutionItem(EnvDTE.Project project)
 			: base()
 		{
 			this.project = project;
 		}
 
+
+		/// <summary>
+		/// 
+		/// </summary>
 		public virtual IEnumerable<T> GetItem<T>() 
 			where T : NodeSolutionItem
 		{
@@ -423,6 +522,9 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 			yield return item;
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public virtual IEnumerable<T> GetItem<T>(Func<T, bool> filter) 
 			where T : NodeSolutionItem
 		{
@@ -466,6 +568,10 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 
 		}
 
+
+		/// <summary>
+		/// 
+		/// </summary>
 		public virtual string Kind
 		{
 			get
@@ -475,6 +581,9 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 		}
 
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public virtual string Name
 		{
 			get
@@ -487,23 +596,43 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 			}
 		}
 
+
+		/// <summary>
+		/// 
+		/// </summary>
 		public virtual DateTime GetLastAccessTime { get { return File.GetLastAccessTime(this.project.FullName); } }
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public virtual DateTime GetCreationTime { get { return File.GetCreationTime (this.project.FullName); } }
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public virtual DateTime GetLastWriteTime { get { return File.GetLastWriteTime (this.project.FullName); } }
 
 	}
 
+
+	/// <summary>
+	/// 
+	/// </summary>
     [System.Diagnostics.DebuggerDisplay("{FullName}")]
 	public class NodeVirtualFolder : NodeSolutionItem
 	{
 		
+		/// <summary>
+		/// 
+		/// </summary>
 		public NodeVirtualFolder(EnvDTE.Project project) : base(project)
 		{
 			
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public virtual string FullName
 		{
 			get
@@ -512,10 +641,17 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 			}
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public override KindItem KindItem { get { return KindItem.VirtualFolder; } }
 
 	}
 
+
+	/// <summary>
+	/// 
+	/// </summary>
     [System.Diagnostics.DebuggerDisplay("{Name}")]
 	public class NodeSolution : NodeSolutionItem
 	{
@@ -523,6 +659,9 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 		private EnvDTE.Solution solution;
 		EnvDTE.DTE dte;
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public NodeSolution (EnvDTE.DTE dte) : base() 
 		{
 			this.dte = dte;
@@ -530,7 +669,10 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 			this.BuildProperties();
 		}
 
-                
+
+		/// <summary>
+		/// 
+		/// </summary>
         public string ResolvePath(string path)
         {
         
@@ -549,56 +691,96 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 
         }
 
+
+		/// <summary>
+		/// 
+		/// </summary>
 		public override KindItem KindItem { get { return KindItem.Solution; } }
 
+
+		/// <summary>
+		/// 
+		/// </summary>
 		public override string Name
 		{
 			get { return FindProperty<string>("Name").Value; }
 			set { FindProperty<string>("Name").Value = value; }
 		}
 
+
+		/// <summary>
+		/// 
+		/// </summary>
 		public string ExtenderCATID
 		{
 			get { return FindProperty<string>("ExtenderCATID").Value; }
 			set { FindProperty<string>("ExtenderCATID").Value = value; }
 		}          
 
+
+		/// <summary>
+		/// 
+		/// </summary>
 		public string ProjectDependencies
 		{
 			get { return FindProperty<string>("ProjectDependencies").Value; }
 			set { FindProperty<string>("ProjectDependencies").Value = value; }
 		}          
 
+
+		/// <summary>
+		/// 
+		/// </summary>
 		public string Extender
 		{
 			get { return FindProperty<string>("Extender").Value; }
 			set { FindProperty<string>("Extender").Value = value; }
 		}       
 
+
+		/// <summary>
+		/// 
+		/// </summary>
 		public string ActiveConfig
 		{
 			get { return FindProperty<string>("ActiveConfig").Value; }
 			set { FindProperty<string>("ActiveConfig").Value = value; }
 		}
 			
+
+		/// <summary>
+		/// 
+		/// </summary>
 		public string Path
 		{
 			get { return FindProperty<string>("Path").Value; }
 			set { FindProperty<string>("Path").Value = value; }
 		}
 
+
+		/// <summary>
+		/// 
+		/// </summary>
 		public string ExtenderNames
 		{
 			get { return FindProperty<string>("ExtenderNames").Value; }
 			set { FindProperty<string>("ExtenderNames").Value = value; }
 		}
 			
+
+		/// <summary>
+		/// 
+		/// </summary>
 		public string Description
 		{
 			get { return FindProperty<string>("Description").Value; }
 			set { FindProperty<string>("Description").Value = value; }
 		}
 
+
+		/// <summary>
+		/// 
+		/// </summary>
 		public string StartupProject
 		{
 			get { return FindProperty<string>("StartupProject").Value; }
@@ -606,8 +788,15 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 		}
 
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public EnvDTE.DTE GetDTE { get { return dte; } }
 	   
+
+		/// <summary>
+		/// 
+		/// </summary>
 		public IEnumerable<NodeProject> Projects
 		{
 			get
@@ -616,11 +805,19 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 			}
 		}
 
+
+		/// <summary>
+		/// 
+		/// </summary>
 		public IEnumerable<NodeProject> GetProjects(Func<NodeProject, bool> filter)
 		{
 			return GetItem<NodeProject>(filter);
 		}
-		
+	
+	
+		/// <summary>
+		/// 
+		/// </summary>
 		public override IEnumerable<T> GetItem<T>(Func<T, bool> filter)
 		{
 
@@ -654,6 +851,9 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 		}
 
 
+		/// <summary>
+		/// 
+		/// </summary>
 		protected override void BuildProperties()
 		{
 			_properties = new Dictionary<string, NodeItemProperty>();
@@ -665,6 +865,9 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 
 	}
 
+	/// <summary>
+	/// 
+	/// </summary>
     [System.Diagnostics.DebuggerDisplay("{Name}")]
 	public class NodeItemProperty
 	{ 
@@ -673,7 +876,10 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 		private EnvDTE.Property property;
 		private EnvDTE.Properties properties;
 
-		public NodeItemProperty(object o, string name)
+		/// <summary>
+		/// 
+		/// </summary>
+ 		public NodeItemProperty(object o, string name)
 		{
 			Name = name;
 
@@ -706,25 +912,44 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 
 		}
 
-		public EnvDTE.Property PropertyObject { get { return undefine != null ? property : SetValue(); } }
+		/// <summary>
+		/// 
+		/// </summary>
+ 		public EnvDTE.Property PropertyObject { get { return undefine != null ? property : SetValue(); } }
 
-		public string Name { get; private set; }
+		/// <summary>
+		/// 
+		/// </summary>
+ 		public string Name { get; private set; }
 
-		private bool Undefine { get { return undefine != null ? (bool)undefine : (PropertyObject == null); } }
+		/// <summary>
+		/// 
+		/// </summary>
+ 		private bool Undefine { get { return undefine != null ? (bool)undefine : (PropertyObject == null); } }
 
 	}
 
+	/// <summary>
+	/// 
+	/// </summary>
     [System.Diagnostics.DebuggerDisplay("{Value}")]
 	public class GenericNodeProperty<T> : INodeProperty<T>
 	{
 
 		NodeItemProperty _instance;
-		public GenericNodeProperty(NodeItemProperty item)
+
+		/// <summary>
+		/// 
+		/// </summary>
+ 		public GenericNodeProperty(NodeItemProperty item)
 		{
 			this._instance = item;
 		}
 
-		public T Value
+		/// <summary>
+		/// 
+		/// </summary>
+ 		public T Value
 		{
 			get 
 			{
@@ -742,32 +967,50 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 	}
 
 	[System.Diagnostics.DebuggerDisplay("{Name}: {Value}")]
-	public class NodeProperty<T> : NodeItemProperty, INodeProperty<T>
+	/// <summary>
+	/// 
+	/// </summary>
+ 	public class NodeProperty<T> : NodeItemProperty, INodeProperty<T>
 	{
 
-		public NodeProperty(object o, string name)
+		/// <summary>
+		/// 
+		/// </summary>
+ 		public NodeProperty(object o, string name)
 			: base(o, name)
 		{
 		
 		}
 
-		public T Value
+		/// <summary>
+		/// 
+		/// </summary>
+ 		public T Value
 		{
 			get { return PropertyObject != null ? (T)PropertyObject.Value : default(T); }
 			set { PropertyObject.Value = value; }
 		}
 
-		public static implicit operator T(NodeProperty<T> property) { return property.Value; }
+		/// <summary>
+		/// 
+		/// </summary>
+ 		public static implicit operator T(NodeProperty<T> property) { return property.Value; }
 
 	}
 
-	public interface INodeProperty<T>
+	/// <summary>
+	/// 
+	/// </summary>
+ 	public interface INodeProperty<T>
 	{
 
 		T Value { get; set; }
 
 	}
 
+	/// <summary>
+	/// 
+	/// </summary>
     [System.Diagnostics.DebuggerDisplay("{Name}")]
 	public class NodeProject : NodeSolutionItem
 	{
@@ -779,7 +1022,10 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 
 		}
 
-        public NodeItemFolder GetFolder(string path)
+		/// <summary>
+		/// 
+		/// </summary>
+         public NodeItemFolder GetFolder(string path)
         {
             
             string p = path.Replace("/", @"\");
@@ -792,7 +1038,10 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 
         }
 
-        public NodeItemFolder GetFolder(string[] paths)
+		/// <summary>
+		/// 
+		/// </summary>
+         public NodeItemFolder GetFolder(string[] paths)
         {
 
             NodeItemFolder node = null;
@@ -804,7 +1053,7 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
                 string n = paths[i];
 
                 if (node == null)
-                    node = this.GetItem<NodeItemFolder>(c => c.Name == n).FirstOrDefault();
+                    node = this.GetItem<NodeItemFolder>(c => c.Name.ToLower() == n.ToLower()).FirstOrDefault();
                 else
                     node = node.GetFolder(n);
 
@@ -817,7 +1066,7 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 
                     this.project.ProjectItems.AddFromDirectory(dir.FullName);
 
-                    node = this.GetItem<NodeItemFolder>(c => c.Name == n)
+                    node = this.GetItem<NodeItemFolder>(c => c.Name.ToLower() == n.ToLower())
                                .FirstOrDefault();
 
                     if (node == null)
@@ -833,635 +1082,962 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 
         }
 
-        public CodeTypeRef CreateCodeTypeRef(string typeFullname)
+		/// <summary>
+		/// 
+		/// </summary>
+         public CodeTypeRef CreateCodeTypeRef(string typeFullname)
         {
             return this.project.CodeModel.CreateCodeTypeRef(typeFullname);
         }
 
+ 		/// <summary>
+		/// 
+		/// </summary>
         public EnvDTE.CodeType CodeTypeFromFullName(string typeFullname)
         {
             return this.project.CodeModel.CodeTypeFromFullName(typeFullname);
         }
 
-		public override DateTime GetLastAccessTime { get { return File.GetLastAccessTime(this.project.FullName); } }
+		/// <summary>
+		/// 
+		/// </summary>
+ 		public override DateTime GetLastAccessTime { get { return File.GetLastAccessTime(this.project.FullName); } }
 
-		public override DateTime GetCreationTime { get { return File.GetCreationTime (this.project.FullName); } }
+		/// <summary>
+		/// 
+		/// </summary>
+ 		public override DateTime GetCreationTime { get { return File.GetCreationTime (this.project.FullName); } }
 
-		public override DateTime GetLastWriteTime { get { return File.GetLastWriteTime (this.project.FullName); } }
+		/// <summary>
+		/// 
+		/// </summary>
+ 		public override DateTime GetLastWriteTime { get { return File.GetLastWriteTime (this.project.FullName); } }
 
-		public override KindItem KindItem { get { return KindItem.Project; } }
+		/// <summary>
+		/// 
+		/// </summary>
+ 		public override KindItem KindItem { get { return KindItem.Project; } }
 
-		public string AspNetDebugging
+		/// <summary>
+		/// 
+		/// </summary>
+ 		public string AspNetDebugging
 		{
 			get { return FindProperty<string>("WebApplication.AspNetDebugging").Value; }
 			set { FindProperty<string>("WebApplication.AspNetDebugging").Value = value; }
 		}
 
-		public string AspnetCompilerIISMetabasePath
+		/// <summary>
+		/// 
+		/// </summary>
+ 		public string AspnetCompilerIISMetabasePath
 		{
 			get { return FindProperty<string>("WebApplication.AspnetCompilerIISMetabasePath").Value; }
 			set { FindProperty<string>("WebApplication.AspnetCompilerIISMetabasePath").Value = value; }
 		}
 
-		public string OutputTypeEx
+		/// <summary>
+		/// 
+		/// </summary>
+ 		public string OutputTypeEx
 		{
 			get { return FindProperty<string>("OutputTypeEx").Value; }
 			set { FindProperty<string>("OutputTypeEx").Value = value; }
 		}
 
-		public string TargetFrameworkMoniker
+		/// <summary>
+		/// 
+		/// </summary>
+ 		public string TargetFrameworkMoniker
 		{
 			get { return FindProperty<string>("TargetFrameworkMoniker").Value; }
 			set { FindProperty<string>("TargetFrameworkMoniker").Value = value; }
 		}
 
-		public string ComVisible
+		/// <summary>
+		/// 
+		/// </summary>
+ 		public string ComVisible
 		{
 			get { return FindProperty<string>("ComVisible").Value; }
 			set { FindProperty<string>("ComVisible").Value = value; }
 		}
 
-		public string EnableSecurityDebugging
+		/// <summary>
+		/// 
+		/// </summary>
+ 		public string EnableSecurityDebugging
 		{
 			get { return FindProperty<string>("EnableSecurityDebugging").Value; }
 			set { FindProperty<string>("EnableSecurityDebugging").Value = value; }
 		}
 
-		public string OptionCompare
+		/// <summary>
+		/// 
+		/// </summary>
+ 		public string OptionCompare
 		{
 			get { return FindProperty<string>("OptionCompare").Value; }
 			set { FindProperty<string>("OptionCompare").Value = value; }
 		}
 
-		public string StartupObject
+		/// <summary>
+		/// 
+		/// </summary>
+ 		public string StartupObject
 		{
 			get { return FindProperty<string>("StartupObject").Value; }
 			set { FindProperty<string>("StartupObject").Value = value; }
 		}
 
-		public string SSLEnabled
+		/// <summary>
+		/// 
+		/// </summary>
+ 		public string SSLEnabled
 		{
 			get { return FindProperty<string>("WebApplication.SSLEnabled").Value; }
 			set { FindProperty<string>("WebApplication.SSLEnabled").Value = value; }
 		}
 
-		public string UseIIS
+		/// <summary>
+		/// 
+		/// </summary>
+ 		public string UseIIS
 		{
 			get { return FindProperty<string>("WebApplication.UseIIS").Value; }
 			set { FindProperty<string>("WebApplication.UseIIS").Value = value; }
 		}
 
-		public string ManifestCertificateThumbprint
+		/// <summary>
+		/// 
+		/// </summary>
+ 		public string ManifestCertificateThumbprint
 		{
 			get { return FindProperty<string>("ManifestCertificateThumbprint").Value; }
 			set { FindProperty<string>("ManifestCertificateThumbprint").Value = value; }
 		}
 
-		public string Trademark
+		/// <summary>
+		/// 
+		/// </summary>
+ 		public string Trademark
 		{
 			get { return FindProperty<string>("Trademark").Value; }
 			set { FindProperty<string>("Trademark").Value = value; }
 		}
 
-		public string Title
+		/// <summary>
+		/// 
+		/// </summary>
+ 		public string Title
 		{
 			get { return FindProperty<string>("Title").Value; }
 			set { FindProperty<string>("Title").Value = value; }
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public string StartExternalUrl
 		{
 			get { return FindProperty<string>("WebApplication.StartExternalUrl").Value; }
 			set { FindProperty<string>("WebApplication.StartExternalUrl").Value = value; }
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public string IISUrl
 		{
 			get { return FindProperty<string>("WebApplication.IISUrl").Value; }
 			set { FindProperty<string>("WebApplication.IISUrl").Value = value; }
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public string AssemblyOriginatorKeyFileType
 		{
 			get { return FindProperty<string>("AssemblyOriginatorKeyFileType").Value; }
 			set { FindProperty<string>("AssemblyOriginatorKeyFileType").Value = value; }
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public string FileName
 		{
 			get { return FindProperty<string>("FileName").Value; }
 			set { FindProperty<string>("FileName").Value = value; }
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public string WebServer
 		{
 			get { return FindProperty<string>("WebServer").Value; }
 			set { FindProperty<string>("WebServer").Value = value; }
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public string AssemblyOriginatorKeyMode
 		{
 			get { return FindProperty<string>("AssemblyOriginatorKeyMode").Value; }
 			set { FindProperty<string>("AssemblyOriginatorKeyMode").Value = value; }
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public string AssemblyKeyContainerName
 		{
 			get { return FindProperty<string>("AssemblyKeyContainerName").Value; }
 			set { FindProperty<string>("AssemblyKeyContainerName").Value = value; }
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public string WindowsAuthenticationEnabled
 		{
 			get { return FindProperty<string>("WebApplication.WindowsAuthenticationEnabled").Value; }
 			set { FindProperty<string>("WebApplication.WindowsAuthenticationEnabled").Value = value; }
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public string SecureUrl
 		{
 			get { return FindProperty<string>("WebApplication.SecureUrl").Value; }
 			set { FindProperty<string>("WebApplication.SecureUrl").Value = value; }
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public string DevelopmentServerCommandLine
 		{
 			get { return FindProperty<string>("WebApplication.DevelopmentServerCommandLine").Value; }
 			set { FindProperty<string>("WebApplication.DevelopmentServerCommandLine").Value = value; }
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public string SQLDebugging
 		{
 			get { return FindProperty<string>("WebApplication.SQLDebugging").Value; }
 			set { FindProperty<string>("WebApplication.SQLDebugging").Value = value; }
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public string StartPageUrl
 		{
 			get { return FindProperty<string>("WebApplication.StartPageUrl").Value; }
 			set { FindProperty<string>("WebApplication.StartPageUrl").Value = value; }
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public string DefaultServerDirectoryListing
 		{
 			get { return FindProperty<string>("WebApplication.DefaultServerDirectoryListing").Value; }
 			set { FindProperty<string>("WebApplication.DefaultServerDirectoryListing").Value = value; }
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public string DevelopmentServerVPath
 		{
 			get { return FindProperty<string>("WebApplication.DevelopmentServerVPath").Value; }
 			set { FindProperty<string>("WebApplication.DevelopmentServerVPath").Value = value; }
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public string DevelopmentServerPort
 		{
 			get { return FindProperty<string>("WebApplication.DevelopmentServerPort").Value; }
 			set { FindProperty<string>("WebApplication.DevelopmentServerPort").Value = value; }
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public string ProjectType
 		{
 			get { return FindProperty<string>("ProjectType").Value; }
 			set { FindProperty<string>("ProjectType").Value = value; }
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public string ReferencePath
 		{
 			get { return FindProperty<string>("ReferencePath").Value; }
 			set { FindProperty<string>("ReferencePath").Value = value; }
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public string IsUsingIISExpress
 		{
 			get { return FindProperty<string>("WebApplication.IsUsingIISExpress").Value; }
 			set { FindProperty<string>("WebApplication.IsUsingIISExpress").Value = value; }
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public string PreBuildEvent
 		{
 			get { return FindProperty<string>("PreBuildEvent").Value; }
 			set { FindProperty<string>("PreBuildEvent").Value = value; }
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public string AnonymousAuthenticationEnabled
 		{
 			get { return FindProperty<string>("WebApplication.AnonymousAuthenticationEnabled").Value; }
 			set { FindProperty<string>("WebApplication.AnonymousAuthenticationEnabled").Value = value; }
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public string SilverlightDebugging
 		{
 			get { return FindProperty<string>("WebApplication.SilverlightDebugging").Value; }
 			set { FindProperty<string>("WebApplication.SilverlightDebugging").Value = value; }
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public string StartCmdLineArguments
 		{
 			get { return FindProperty<string>("WebApplication.StartCmdLineArguments").Value; }
 			set { FindProperty<string>("WebApplication.StartCmdLineArguments").Value = value; }
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public string Copyright
 		{
 			get { return FindProperty<string>("Copyright").Value; }
 			set { FindProperty<string>("Copyright").Value = value; }
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public string ApplicationIcon
 		{
 			get { return FindProperty<string>("ApplicationIcon").Value; }
 			set { FindProperty<string>("ApplicationIcon").Value = value; }
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public string CurrentDebugUrl
 		{
 			get { return FindProperty<string>("WebApplication.CurrentDebugUrl").Value; }
 			set { FindProperty<string>("WebApplication.CurrentDebugUrl").Value = value; }
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public string ExcludedPermissions
 		{
 			get { return FindProperty<string>("ExcludedPermissions").Value; }
 			set { FindProperty<string>("ExcludedPermissions").Value = value; }
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public string RunPostBuildEvent
 		{
 			get { return FindProperty<string>("RunPostBuildEvent").Value; }
 			set { FindProperty<string>("RunPostBuildEvent").Value = value; }
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public string DefaultTargetSchema
 		{
 			get { return FindProperty<string>("DefaultTargetSchema").Value; }
 			set { FindProperty<string>("DefaultTargetSchema").Value = value; }
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public string RootNamespace
 		{
 			get { return FindProperty<string>("RootNamespace").Value; }
 			set { FindProperty<string>("RootNamespace").Value = value; }
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public string IsUsingCustomServer
 		{
 			get { return FindProperty<string>("WebApplication.IsUsingCustomServer").Value; }
 			set { FindProperty<string>("WebApplication.IsUsingCustomServer").Value = value; }
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public string ManifestTimestampUrl
 		{
 			get { return FindProperty<string>("ManifestTimestampUrl").Value; }
 			set { FindProperty<string>("ManifestTimestampUrl").Value = value; }
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public string ManifestKeyFile
 		{
 			get { return FindProperty<string>("ManifestKeyFile").Value; }
 			set { FindProperty<string>("ManifestKeyFile").Value = value; }
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public string DebugSecurityZoneURL
 		{
 			get { return FindProperty<string>("DebugSecurityZoneURL").Value; }
 			set { FindProperty<string>("DebugSecurityZoneURL").Value = value; }
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public string Product
 		{
 			get { return FindProperty<string>("Product").Value; }
 			set { FindProperty<string>("Product").Value = value; }
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public string PostBuildEvent
 		{
 			get { return FindProperty<string>("PostBuildEvent").Value; }
 			set { FindProperty<string>("PostBuildEvent").Value = value; }
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public string OptionStrict
 		{
 			get { return FindProperty<string>("OptionStrict").Value; }
 			set { FindProperty<string>("OptionStrict").Value = value; }
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public string DefaultHTMLPageLayout
 		{
 			get { return FindProperty<string>("DefaultHTMLPageLayout").Value; }
 			set { FindProperty<string>("DefaultHTMLPageLayout").Value = value; }
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public string DelaySign
 		{
 			get { return FindProperty<string>("DelaySign").Value; }
 			set { FindProperty<string>("DelaySign").Value = value; }
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public string OutputType
 		{
 			get { return FindProperty<string>("OutputType").Value; }
 			set { FindProperty<string>("OutputType").Value = value; }
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public string StartWorkingDirectory
 		{
 			get { return FindProperty<string>("WebApplication.StartWorkingDirectory").Value; }
 			set { FindProperty<string>("WebApplication.StartWorkingDirectory").Value = value; }
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public string DebugStartAction
 		{
 			get { return FindProperty<string>("WebApplication.DebugStartAction").Value; }
 			set { FindProperty<string>("WebApplication.DebugStartAction").Value = value; }
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public string NeutralResourcesLanguage
 		{
 			get { return FindProperty<string>("NeutralResourcesLanguage").Value; }
 			set { FindProperty<string>("NeutralResourcesLanguage").Value = value; }
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public string OptionExplicit
 		{
 			get { return FindProperty<string>("OptionExplicit").Value; }
 			set { FindProperty<string>("OptionExplicit").Value = value; }
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public string OutputFileName
 		{
 			get { return FindProperty<string>("OutputFileName").Value; }
 			set { FindProperty<string>("OutputFileName").Value = value; }
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public string ServerExtensionsVersion
 		{
 			get { return FindProperty<string>("ServerExtensionsVersion").Value; }
 			set { FindProperty<string>("ServerExtensionsVersion").Value = value; }
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public string NonSecureUrl
 		{
 			get { return FindProperty<string>("WebApplication.NonSecureUrl").Value; }
 			set { FindProperty<string>("WebApplication.NonSecureUrl").Value = value; }
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public new string ToString
 		{
 			get { return FindProperty<string>("WebApplication.ToString").Value; }
 			set { FindProperty<string>("WebApplication.ToString").Value = value; }
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public string AssemblyGuid
 		{
 			get { return FindProperty<string>("AssemblyGuid").Value; }
 			set { FindProperty<string>("AssemblyGuid").Value = value; }
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public string GenerateManifests
 		{
 			get { return FindProperty<string>("GenerateManifests").Value; }
 			set { FindProperty<string>("GenerateManifests").Value = value; }
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public string AssemblyVersion
 		{
 			get { return FindProperty<string>("AssemblyVersion").Value; }
 			set { FindProperty<string>("AssemblyVersion").Value = value; }
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public string Win32ResourceFile
 		{
 			get { return FindProperty<string>("Win32ResourceFile").Value; }
 			set { FindProperty<string>("Win32ResourceFile").Value = value; }
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public string Description
 		{
 			get { return FindProperty<string>("Description").Value; }
 			set { FindProperty<string>("Description").Value = value; }
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public string URL
 		{
 			get { return FindProperty<string>("URL").Value; }
 			set { FindProperty<string>("URL").Value = value; }
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public string DefaultClientScript
 		{
 			get { return FindProperty<string>("DefaultClientScript").Value; }
 			set { FindProperty<string>("DefaultClientScript").Value = value; }
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public string NativeDebugging
 		{
 			get { return FindProperty<string>("WebApplication.NativeDebugging").Value; }
 			set { FindProperty<string>("WebApplication.NativeDebugging").Value = value; }
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public string TargetFramework
 		{
 			get { return FindProperty<string>("TargetFramework").Value; }
 			set { FindProperty<string>("TargetFramework").Value = value; }
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public string SignManifests
 		{
 			get { return FindProperty<string>("SignManifests").Value; }
 			set { FindProperty<string>("SignManifests").Value = value; }
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public string OfflineURL
 		{
 			get { return FindProperty<string>("OfflineURL").Value; }
 			set { FindProperty<string>("OfflineURL").Value = value; }
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public string WebServerVersion
 		{
 			get { return FindProperty<string>("WebServerVersion").Value; }
 			set { FindProperty<string>("WebServerVersion").Value = value; }
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public string Publish
 		{
 			get { return FindProperty<string>("Publish").Value; }
 			set { FindProperty<string>("Publish").Value = value; }
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public string AssemblyType
 		{
 			get { return FindProperty<string>("AssemblyType").Value; }
 			set { FindProperty<string>("AssemblyType").Value = value; }
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public string FullPath
 		{
 			get { return FindProperty<string>("FullPath").Value; }
 			set { FindProperty<string>("FullPath").Value = value; }
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public string WebAccessMethod
 		{
 			get { return FindProperty<string>("WebAccessMethod").Value; }
 			set { FindProperty<string>("WebAccessMethod").Value = value; }
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public string UseIISExpress
 		{
 			get { return FindProperty<string>("WebApplication.UseIISExpress").Value; }
 			set { FindProperty<string>("WebApplication.UseIISExpress").Value = value; }
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public string BrowseURL
 		{
 			get { return FindProperty<string>("WebApplication.BrowseURL").Value; }
 			set { FindProperty<string>("WebApplication.BrowseURL").Value = value; }
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public string NTLMAuthentication
 		{
 			get { return FindProperty<string>("WebApplication.NTLMAuthentication").Value; }
 			set { FindProperty<string>("WebApplication.NTLMAuthentication").Value = value; }
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public string OverrideIISAppRootUrl
 		{
 			get { return FindProperty<string>("WebApplication.OverrideIISAppRootUrl").Value; }
 			set { FindProperty<string>("WebApplication.OverrideIISAppRootUrl").Value = value; }
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public string OpenedURL
 		{
 			get { return FindProperty<string>("WebApplication.OpenedURL").Value; }
 			set { FindProperty<string>("WebApplication.OpenedURL").Value = value; }
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public string AssemblyKeyProviderName
 		{
 			get { return FindProperty<string>("AssemblyKeyProviderName").Value; }
 			set { FindProperty<string>("AssemblyKeyProviderName").Value = value; }
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public string TypeComplianceDiagnostics
 		{
 			get { return FindProperty<string>("TypeComplianceDiagnostics").Value; }
 			set { FindProperty<string>("TypeComplianceDiagnostics").Value = value; }
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public string Company
 		{
 			get { return FindProperty<string>("Company").Value; }
 			set { FindProperty<string>("Company").Value = value; }
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public string ActiveFileSharePath
 		{
 			get { return FindProperty<string>("ActiveFileSharePath").Value; }
 			set { FindProperty<string>("ActiveFileSharePath").Value = value; }
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public string AssemblyOriginatorKeyFile
 		{
 			get { return FindProperty<string>("AssemblyOriginatorKeyFile").Value; }
 			set { FindProperty<string>("AssemblyOriginatorKeyFile").Value = value; }
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public string StartWebServerOnDebug
 		{
 			get { return FindProperty<string>("WebApplication.StartWebServerOnDebug").Value; }
 			set { FindProperty<string>("WebApplication.StartWebServerOnDebug").Value = value; }
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public string AutoAssignPort
 		{
 			get { return FindProperty<string>("WebApplication.AutoAssignPort").Value; }
 			set { FindProperty<string>("WebApplication.AutoAssignPort").Value = value; }
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public string ApplicationManifest
 		{
 			get { return FindProperty<string>("ApplicationManifest").Value; }
 			set { FindProperty<string>("ApplicationManifest").Value = value; }
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public string AssemblyFileVersion
 		{
 			get { return FindProperty<string>("AssemblyFileVersion").Value; }
 			set { FindProperty<string>("AssemblyFileVersion").Value = value; }
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public string AspnetVersion
 		{
 			get { return FindProperty<string>("AspnetVersion").Value; }
 			set { FindProperty<string>("AspnetVersion").Value = value; }
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public string FileSharePath
 		{
 			get { return FindProperty<string>("FileSharePath").Value; }
 			set { FindProperty<string>("FileSharePath").Value = value; }
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public string AssemblyName
 		{
 			get { return FindProperty<string>("AssemblyName").Value; }
 			set { FindProperty<string>("AssemblyName").Value = value; }
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public string EditAndContinue
 		{
 			get { return FindProperty<string>("WebApplication.EditAndContinue").Value; }
 			set { FindProperty<string>("WebApplication.EditAndContinue").Value = value; }
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public string ServerDirectoryListing
 		{
 			get { return FindProperty<string>("WebApplication.ServerDirectoryListing").Value; }
 			set { FindProperty<string>("WebApplication.ServerDirectoryListing").Value = value; }
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public virtual string LocalPath
 		{
             get { return new FileInfo(this.project.FileName).Directory.FullName; }
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public string DefaultNamespace
 		{
 			get { return FindProperty<string>("DefaultNamespace").Value; }
 			set { FindProperty<string>("DefaultNamespace").Value = value; }
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public string LinkRepair
 		{
 			get { return FindProperty<string>("LinkRepair").Value; }
 			set { FindProperty<string>("LinkRepair").Value = value; }
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public string StartExternalProgram
 		{
 			get { return FindProperty<string>("WebApplication.StartExternalProgram").Value; }
 			set { FindProperty<string>("WebApplication.StartExternalProgram").Value = value; }
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public string IISAppRootUrl
 		{
 			get { return FindProperty<string>("WebApplication.IISAppRootUrl").Value; }
 			set { FindProperty<string>("WebApplication.IISAppRootUrl").Value = value; }
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public string TargetZone
 		{
 			get { return FindProperty<string>("TargetZone").Value; }
 			set { FindProperty<string>("TargetZone").Value = value; }
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public string SignAssembly
 		{
 			get { return FindProperty<string>("SignAssembly").Value; }
 			set { FindProperty<string>("SignAssembly").Value = value; }
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public EnvDTE.Project Source
 		{
 			get 
@@ -1470,6 +2046,9 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 			}
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public virtual string FullName
 		{
 			get
@@ -1480,17 +2059,30 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 
 	}
 
+
+	/// <summary>
+	/// 
+	/// </summary>
     [System.Diagnostics.DebuggerDisplay("{Name}")]
 	public class NodeItemFolder : NodeItem
 	{
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public NodeItemFolder(EnvDTE.ProjectItem s) : base(s)
 		{
                     
 		}
+		/// <summary>
+		/// 
+		/// </summary>
 
 		public override KindItem KindItem { get { return KindItem.Folder; } }
 
+		/// <summary>
+		/// 
+		/// </summary>
         public NodeItemFolder GetFolder(string path)
         {
             
@@ -1504,6 +2096,9 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 
         }
 
+		/// <summary>
+		/// 
+		/// </summary>
         public NodeItemFolder GetFolder(string[] paths)
         {
 
@@ -1515,7 +2110,7 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 
                 string n = paths[i];
 
-                node = this.GetItem<NodeItemFolder>(c => c.Name == n).FirstOrDefault();
+                node = this.GetItem<NodeItemFolder>(c => c.Name.ToLower() == n.ToLower()).FirstOrDefault();
 
                 if (node == null)
                 {
@@ -1527,7 +2122,7 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 
                     this.s.ProjectItems.AddFromDirectory(dir.FullName);
 
-                    node = this.GetItem<NodeItemFolder>(c => c.Name == n).FirstOrDefault();
+                    node = this.GetItem<NodeItemFolder>(c => c.Name.ToLower() == n.ToLower()).FirstOrDefault();
 
                     if (node == null)
                         throw new Exception(String.Format("{0} can't be resolved in ", n, n2));
@@ -1544,6 +2139,9 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 
 	}
 
+	/// <summary>
+	/// 
+	/// </summary>
     [System.Diagnostics.DebuggerDisplay("{Name}")]
 	public class NodeItem : NodeSolutionItem
 	{
@@ -1552,6 +2150,9 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 		private List<BaseInfo> classes;
         private string path;
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public NodeItem(EnvDTE.ProjectItem s) : base()
 		{
 
@@ -1591,6 +2192,9 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 			  
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
         public EnvDTE.ProjectItem ProjectItem
         {
             get
@@ -1599,15 +2203,30 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
             }
         }
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public override DateTime GetLastAccessTime { get { return File.GetLastAccessTime(this.Filename); } }
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public override DateTime GetCreationTime { get { return File.GetCreationTime (this.Filename); } }
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public override DateTime GetLastWriteTime { get { return File.GetLastWriteTime (this.Filename); } }
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public override KindItem KindItem { get { return KindItem.File; } }
 
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public string WebReferenceInterface
 		{
 			get { return FindProperty<string>("WebReferenceInterface").Value; }
@@ -1615,6 +2234,9 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 		}
 			
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public string WebReference
 		{
 			get { return FindProperty<string>("WebReference").Value; }
@@ -1622,6 +2244,9 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 		}
 			
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public string URL
 		{
 			get { return FindProperty<string>("URL").Value; }
@@ -1629,6 +2254,9 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 		}
 			
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public string UrlBehavior
 		{
 			get { return FindProperty<string>("UrlBehavior").Value; }
@@ -1636,11 +2264,17 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 		}
 			
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public string Filename
 		{
 			get { return this.path; }
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public string LocalPath
 		{
 			get { return FindProperty<string>("LocalPath").Value; }
@@ -1648,6 +2282,9 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 		}
 			
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public string DefaultNamespace
 		{
 			get { return FindProperty<string>("DefaultNamespace").Value; }
@@ -1655,6 +2292,9 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 		}
 			
 
+		/// <summary>
+		/// 
+		/// </summary>
 		protected override void BuildProperties()
 		{
 
@@ -1672,6 +2312,9 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 			}
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public override IEnumerable<T> GetItem<T>(Func<T, bool> filter)
 		{
 
@@ -1751,6 +2394,9 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 		}
 
 		
+		/// <summary>
+		/// 
+		/// </summary>
 		public IEnumerable<EnvDTE.CodeNamespace> GetNamespaceItems()
 		{
 
@@ -1763,28 +2409,46 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 		
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public override string Kind { get { return s.Kind; } }
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public override string Name        
 		{       
 			get { return s.Name; }
 			set { s.Name = value; }
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public string Name2 { get { return s.FileNames[0]; } }
 
 		
 	}
 
+	/// <summary>
+	/// 
+	/// </summary>
     [System.Diagnostics.DebuggerDisplay("{FullName}")]
 	public class NodeFolderSolution : NodeSolutionItem
 	{
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public NodeFolderSolution(EnvDTE.Project project) : base(project)
 		{
 			
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public virtual string FullName
 		{
 			get
@@ -1793,6 +2457,9 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 			}
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public override KindItem KindItem { get { return KindItem.Folder; } }
 
 	}
@@ -1804,10 +2471,17 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 	// -----------------------------------------------------------------------------------
 	// -----------------------------------------------------------------------------------
 
+	/// <summary>
+	/// 
+	/// </summary>
 	public class ObjectFactory
 	{
 
 		private static ObjectFactory _instance; 
+
+		/// <summary>
+		/// 
+		/// </summary>
 		public static ObjectFactory Instance
 		{
 
@@ -1824,79 +2498,127 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public virtual bool AcceptInterface(CodeInterface2 c)
 		{	
 			return true;
 		}
 
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public virtual bool AcceptClass(CodeClass2 c)
 		{	
 			return true;
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public virtual bool AcceptEnum(CodeEnum e)
 		{	
 			return true;
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
         public NodeProject DefaultProject { get; set; }
 
+		/// <summary>
+		/// 
+		/// </summary>
         public virtual TypeInfo CreateType(CodeTypeRef type)
         {
             return new TypeInfo(type);
         }
 
+		/// <summary>
+		/// 
+		/// </summary>
         public virtual EnumInfo CreateEnum(NodeItem parent, CodeEnum item)
 		{
 			return new EnumInfo(parent, item);
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
         public virtual CodeFieldInfo CreateEnumValue(EnumInfo parent, CodeElement item, TypeInfo type)
         {
             return new CodeFieldInfo(parent, item, type);
         }
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public virtual ClassInfo CreateClass(NodeItem parent, CodeClass2 item)
 		{
 			return new ClassInfo(parent, item);
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public virtual InterfaceInfo CreateInterface(NodeItem parent, CodeInterface2 item)
 		{
 			return new InterfaceInfo(parent, item);
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public virtual AttributeInfo CreateAttribute(CodeAttribute2 item)
 		{
 			return new AttributeInfo(item);
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public virtual CodeFunctionInfo CreateMethod(BaseInfo parent, CodeFunction2 item)
 		{
 			return new CodeFunctionInfo(parent, item);
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public virtual AttributeArgumentInfo CreateAttributeArgument(EnvDTE80.CodeAttributeArgument item)
 		{
 			return new AttributeArgumentInfo(item);
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public virtual MethodParamInfo CreatParameter(CodeFunctionInfo parent, CodeParameter2 item, string parameterComment)
 		{
 			return new MethodParamInfo(parent, item, parameterComment);
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public virtual CodePropertyInfo CreateProperty(BaseInfo parent, CodeProperty2 item)
 		{
 			return new CodePropertyInfo(parent, item);
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public virtual CodeEventInfo CreateEvent(BaseInfo parent, EnvDTE80.CodeEvent item)
 		{
 			return new CodeEventInfo(parent, item);
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public static IEnumerable<AttributeInfo> GetAttributes(IEnumerable<AttributeInfo> attributes, string attributeType)
 		{
 
@@ -1910,6 +2632,9 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public static List<AttributeInfo> GetAttributes(CodeClass2 type)
 		{
 			
@@ -1929,6 +2654,9 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public static List<AttributeInfo> GetAttributes(CodeElements attributes)
 		{
 			List<AttributeInfo> _result = new List<AttributeInfo>();
@@ -1947,6 +2675,9 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 			return _result;
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public static CMAccess Convert(EnvDTE.vsCMAccess item)
 		{
 
@@ -1978,10 +2709,16 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 	}
 
 
+		/// <summary>
+		/// 
+		/// </summary>
     [System.Diagnostics.DebuggerDisplay("{Namespace}.{Name}")]
     public class InterfaceInfo : BaseInfo
 	{
 	
+		/// <summary>
+		/// 
+		/// </summary>
 		public InterfaceInfo(NodeItem parent, CodeInterface2 item)
 			: base(null, item as CodeElement2)
 		{
@@ -2008,30 +2745,58 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		protected readonly CodeInterface2 item;
+
 		private List<CodeFunctionInfo> _methods;
 		private List<CodePropertyInfo> _properties;
 		private List<CodeEventInfo> _events;
 		private List<AttributeInfo> _attributes;
 		private ClassInfo _base;
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public NodeItem Parent { get; private set; }
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public CMAccess Access { get; private set; }
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public string Namespace { get; private set; }
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public bool IsAbstract { get; private set; }
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public bool IsGeneric { get; private set; }
 		
+		/// <summary>
+		/// 
+		/// </summary>
 		public bool IsShared { get; private set; }
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public bool IsDerivedFrom(string fullName)
 		{
 			return this.item.IsDerivedFrom[fullName];
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public ClassInfo GetBase()
 		{
 
@@ -2045,6 +2810,9 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public IEnumerable<CodeFunctionInfo> GetMethods()
 		{
 
@@ -2084,6 +2852,9 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 		}
 
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public IEnumerable<CodePropertyInfo> GetProperties()
 		{
 
@@ -2122,6 +2893,9 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public IEnumerable<CodeEventInfo> GetEvents()
 		{
 
@@ -2161,6 +2935,9 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public IEnumerable<AttributeInfo> Attributes 
 		{
 			get
@@ -2183,71 +2960,113 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 			}
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		protected virtual bool AcceptAncestor(string _namespace, string name)
 		{
 			return true;
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		protected IEnumerable<AttributeInfo> GetAttributes(string attributeType)
 		{
 			return ObjectFactory.GetAttributes(Attributes, attributeType).ToList();
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		protected virtual bool AcceptEvent(EnvDTE80.CodeEvent e)
 		{
 			return true;
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		protected bool IsPublic(EnvDTE.vsCMAccess a)
 		{
 			return a == EnvDTE.vsCMAccess.vsCMAccessPublic;
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		protected bool IsPrivate(EnvDTE.vsCMAccess a)
 		{
 			return a == EnvDTE.vsCMAccess.vsCMAccessPrivate;
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		protected bool IsProtected(EnvDTE.vsCMAccess a)
 		{
 			return ( a & EnvDTE.vsCMAccess.vsCMAccessProtected) == EnvDTE.vsCMAccess.vsCMAccessProtected;
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		protected bool IsFamily(EnvDTE.vsCMAccess a)
 		{
 			return (a & EnvDTE.vsCMAccess.vsCMAccessProject) == EnvDTE.vsCMAccess.vsCMAccessProject;
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		protected bool IsFamilyOrProtected(EnvDTE.vsCMAccess a)
 		{
 			return (a & EnvDTE.vsCMAccess.vsCMAccessProjectOrProtected) == EnvDTE.vsCMAccess.vsCMAccessProjectOrProtected;
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		protected virtual void InitializeEvents(List<CodeEventInfo> events)
 		{
 
 		}
 		
+		/// <summary>
+		/// 
+		/// </summary>
 		protected virtual bool AcceptMethod(CodeFunction2 method)
 		{
 			return method.FunctionKind == vsCMFunction.vsCMFunctionFunction;
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		protected virtual void InitializeMethods(List<CodeFunctionInfo> methods)
 		{
 
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		protected virtual bool AcceptProperty(CodeProperty2 property)
 		{
 			return true;
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		protected virtual void InitializeProperties(List<CodePropertyInfo> properties)
 		{
 
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		protected virtual void InitializeAttributes(List<AttributeInfo> attributes)
 		{
 
@@ -2256,6 +3075,9 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 
 	}
 
+	/// <summary>
+	/// 
+	/// </summary>
     [System.Diagnostics.DebuggerDisplay("{FullName}")]
     public class EnumInfo : BaseInfo
     {
@@ -2264,6 +3086,9 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
         private List<CodeFieldInfo> _fields;
         private TypeInfo type = null;
 
+		/// <summary>
+		/// 
+		/// </summary>
         public EnumInfo(NodeItem parent, CodeEnum item)
             : base(null, item as CodeElement2)
         {
@@ -2276,6 +3101,9 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 
         } 
 
+		/// <summary>
+		/// 
+		/// </summary>
         public IEnumerable<CodeFieldInfo> GetFields()
         {
 
@@ -2300,6 +3128,9 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
             
         }
 
+		/// <summary>
+		/// 
+		/// </summary>
         public virtual void InitializeFields(List<CodeFieldInfo> fields)
         {
 
@@ -2307,10 +3138,16 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 
     }
 
+	/// <summary>
+	/// 
+	/// </summary>
     [System.Diagnostics.DebuggerDisplay("{FullName}")]
 	public class ClassInfo : BaseInfo
 	{
 
+		/// <summary>
+		/// 
+		/// </summary>
 	    protected ClassInfo(BaseInfo parent, CodeElement2 item)
             : base(parent, item)
 		{
@@ -2318,6 +3155,9 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 
 		}
 	
+		/// <summary>
+		/// 
+		/// </summary>
 		public ClassInfo(NodeItem parent, CodeClass2 item)
 			: base(null, item as CodeElement2)
 		{
@@ -2349,30 +3189,58 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 		}
 
 
+		/// <summary>
+		/// 
+		/// </summary>
 		protected readonly CodeClass2 item;
+
 		private List<CodeFunctionInfo> _methods;
 		private List<CodePropertyInfo> _properties;
 		private List<CodeEventInfo> _events;
 		private List<AttributeInfo> _attributes;
 		private ClassInfo _base;
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public NodeItem Parent { get; private set; }
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public CMAccess Access { get; private set; }
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public string Namespace { get; private set; }
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public bool IsAbstract { get; private set; }
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public bool IsGeneric { get; private set; }
 		
+		/// <summary>
+		/// 
+		/// </summary>
 		public bool IsShared { get; private set; }
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public bool IsDerivedFrom(string fullName)
 		{
 			return this.item.IsDerivedFrom[fullName];
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public ClassInfo GetBase()
 		{
 
@@ -2386,6 +3254,9 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public IEnumerable<CodeFunctionInfo> GetMethods()
 		{
 
@@ -2425,6 +3296,9 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 		}
 
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public IEnumerable<CodePropertyInfo> GetProperties()
 		{
 
@@ -2463,6 +3337,9 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public IEnumerable<CodeEventInfo> GetEvents()
 		{
 
@@ -2502,6 +3379,9 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public IEnumerable<AttributeInfo> Attributes 
 		{
 			get
@@ -2524,71 +3404,113 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 			}
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		protected virtual bool AcceptAncestor(string _namespace, string name)
 		{
 			return true;
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		protected IEnumerable<AttributeInfo> GetAttributes(string attributeType)
 		{
 			return ObjectFactory.GetAttributes(Attributes, attributeType).ToList();
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		protected virtual bool AcceptEvent(EnvDTE80.CodeEvent e)
 		{
 			return true;
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		protected bool IsPublic(EnvDTE.vsCMAccess a)
 		{
 			return a == EnvDTE.vsCMAccess.vsCMAccessPublic;
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		protected bool IsPrivate(EnvDTE.vsCMAccess a)
 		{
 			return a == EnvDTE.vsCMAccess.vsCMAccessPrivate;
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		protected bool IsProtected(EnvDTE.vsCMAccess a)
 		{
 			return ( a & EnvDTE.vsCMAccess.vsCMAccessProtected) == EnvDTE.vsCMAccess.vsCMAccessProtected;
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		protected bool IsFamily(EnvDTE.vsCMAccess a)
 		{
 			return (a & EnvDTE.vsCMAccess.vsCMAccessProject) == EnvDTE.vsCMAccess.vsCMAccessProject;
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		protected bool IsFamilyOrProtected(EnvDTE.vsCMAccess a)
 		{
 			return (a & EnvDTE.vsCMAccess.vsCMAccessProjectOrProtected) == EnvDTE.vsCMAccess.vsCMAccessProjectOrProtected;
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		protected virtual void InitializeEvents(List<CodeEventInfo> events)
 		{
 
 		}
 		
+		/// <summary>
+		/// 
+		/// </summary>
 		protected virtual bool AcceptMethod(CodeFunction2 method)
 		{
 			return method.FunctionKind == vsCMFunction.vsCMFunctionFunction;
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		protected virtual void InitializeMethods(List<CodeFunctionInfo> methods)
 		{
 
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		protected virtual bool AcceptProperty(CodeProperty2 property)
 		{
 			return true;
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		protected virtual void InitializeProperties(List<CodePropertyInfo> properties)
 		{
 
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		protected virtual void InitializeAttributes(List<AttributeInfo> attributes)
 		{
 
@@ -2597,6 +3519,9 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 
 	}
 
+	/// <summary>
+	/// 
+	/// </summary>
 	public enum CMAccess
 	{
 		AssemblyOrFamily,
@@ -2609,19 +3534,33 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 		WithEvents,
 	}
 
+
+	/// <summary>
+	/// 
+	/// </summary>
     [System.Diagnostics.DebuggerDisplay("{FullName}")]
 	public class AttributeInfo
 	{
 
 		private CodeAttribute2 _attr;
 		private List<AttributeArgumentInfo> _arguments;
+
+		/// <summary>
+		/// 
+		/// </summary>
 		public AttributeInfo(CodeAttribute2 attribute)
 		{
 			this._attr = attribute;
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public string FullName { get { return _attr.FullName; } }
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public IEnumerable<AttributeArgumentInfo> Arguments
 		{
 			get
@@ -2638,6 +3577,9 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 			}
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
         public string GetValue(string name)
         {
 
@@ -2674,11 +3616,18 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 
 	}
 
+	/// <summary>
+	/// 
+	/// </summary>
     [System.Diagnostics.DebuggerDisplay("{Name}")]
 	public class AttributeArgumentInfo
 	{
 
 		private EnvDTE80.CodeAttributeArgument item;
+
+		/// <summary>
+		/// 
+		/// </summary>
 		public AttributeArgumentInfo(EnvDTE80.CodeAttributeArgument item)
 		{
 
@@ -2688,15 +3637,30 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public string Name { get; private set; } 
+
+		/// <summary>
+		/// 
+		/// </summary>
 		public string Value { get; private set; } 
 
 	}
 
+
+	/// <summary>
+	/// 
+	/// </summary>
     [System.Diagnostics.DebuggerDisplay("{FullName}")]
 	public class BaseInfo
 	{
 
+
+		/// <summary>
+		/// 
+		/// </summary>
 		public BaseInfo(BaseInfo parent, CodeElement2 item)
 		{
 			this.Name = item.Name;
@@ -2706,34 +3670,89 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
             this.Source = item; 
 		}
 		
+		/// <summary>
+		/// 
+		/// </summary>
         protected CodeElement2 Source { get; private set;}
+
+		/// <summary>
+		/// 
+		/// </summary>
 		public string Name { get ; private set; }
+
+		/// <summary>
+		/// 
+		/// </summary>
 		public string Summary { get; protected set; }
+
+		/// <summary>
+		/// 
+		/// </summary>
 		public string FullName { get; private set; }
+
+		/// <summary>
+		/// 
+		/// </summary>
 		public bool IsCodeType { get; private set; }
+
+		/// <summary>
+		/// 
+		/// </summary>
 		public BaseInfo Root { get; private set; }
 
-        public bool IsEnum { get; protected set; }
-        public bool IsInterface { get; protected set; }  
+
+        /// <summary>
+		/// 
+		/// </summary>
+		public bool IsEnum { get; protected set; }
+        
+		
+		/// <summary>
+		/// 
+		/// </summary>
+		public bool IsInterface { get; protected set; }  
+
+		/// <summary>
+		/// 
+		/// </summary>
         public bool IsClass { get; protected set; }  
 
 	}
 
+
+	/// <summary>
+	/// 
+	/// </summary>
 	public abstract class CodeMemberInfo : BaseInfo
 	{
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public CodeMemberInfo(BaseInfo parent, CodeElement2 item)
 			: base (parent, item)
 		{
 			Parent = parent;
 		}
 		
+		/// <summary>
+		/// 
+		/// </summary>
 		public abstract TypeInfo Type { get; }
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public CMAccess Access { get; protected set; }
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public BaseInfo Parent { get; private set; }
 
+		/// <summary>
+		/// 
+		/// </summary>
 		protected virtual void InitializeAttributes(List<AttributeInfo> attributes)
 		{
 
@@ -2741,6 +3760,9 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 
 	}
 
+	/// <summary>
+	/// 
+	/// </summary>
     [System.Diagnostics.DebuggerDisplay("event {FullName}")]
 	public class CodeEventInfo : CodeMemberInfo
 	{
@@ -2749,6 +3771,9 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 		private TypeInfo _returnType;
 		private IEnumerable<AttributeInfo> _attributes;
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public CodeEventInfo(BaseInfo parent, EnvDTE80.CodeEvent item)
 			: base(parent, item as CodeElement2)
 		{
@@ -2756,6 +3781,9 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 			this.Access = ObjectFactory.Convert(this._item.Access);
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public override TypeInfo Type
 		{
 			get
@@ -2766,6 +3794,9 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 			}
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public IEnumerable<AttributeInfo> Attributes 
 		{
 			get
@@ -2788,22 +3819,34 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 			}
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		protected IEnumerable<AttributeInfo> GetAttributes(string attributeType)
 		{
 			return ObjectFactory.GetAttributes(Attributes, attributeType).ToList();
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		protected AttributeInfo GetAttribute(string attributeType)
 		{
 			return ObjectFactory.GetAttributes(Attributes, attributeType).FirstOrDefault();
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		protected void ForAttributes(string attributeType, Action<AttributeInfo> act)
 		{
 			foreach(AttributeInfo attr in ObjectFactory.GetAttributes(Attributes, attributeType))
 				act(attr);
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		protected string GetArgumentFromAttribute(string attributeType, string argumentName)
 		{
 			AttributeInfo attr = ObjectFactory.GetAttributes(Attributes, attributeType).FirstOrDefault();
@@ -2816,6 +3859,9 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 			return string.Empty;
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		protected string GetArgumentFromAttribute(string attributeType, int indexArgument)
 		{
 			AttributeInfo attr = ObjectFactory.GetAttributes(Attributes, attributeType).FirstOrDefault();
@@ -2830,13 +3876,19 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 
 	}
 
-    [System.Diagnostics.DebuggerDisplay("field {FullName}")]
+    /// <summary>
+	/// 
+	/// </summary>
+	[System.Diagnostics.DebuggerDisplay("field {FullName}")]
     public class CodeFieldInfo : CodeMemberInfo
     {
 
 		private CodeElement _item;
         private TypeInfo _type;
 
+		/// <summary>
+		/// 
+		/// </summary>
         public CodeFieldInfo(BaseInfo parent, CodeElement item, TypeInfo type)
             : base(parent, item as CodeElement2)
         {
@@ -2845,17 +3897,23 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
             this._type = type;
         }
 
+ 		/// <summary>
+		/// 
+		/// </summary>
         public override TypeInfo Type 
         { 
             get
             {
                 return _type;
             }
-        }
-    
+        }    
 
     }
 
+
+	/// <summary>
+	/// 
+	/// </summary>
     [System.Diagnostics.DebuggerDisplay("property {FullName}")]
 	public class CodePropertyInfo : CodeMemberInfo
 	{
@@ -2864,6 +3922,9 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 		private TypeInfo _returnType;
 		private IEnumerable<AttributeInfo> _attributes;
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public CodePropertyInfo(BaseInfo parent, CodeProperty2 item)
 			: base(parent, item as CodeElement2)
 		{
@@ -2871,6 +3932,9 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 			this.Access = ObjectFactory.Convert(this._item.Access);
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public override TypeInfo Type
 		{
 			get
@@ -2880,6 +3944,9 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 				return _returnType;
 			}
 		}
+		/// <summary>
+		/// 
+		/// </summary>
 
 		public IEnumerable<AttributeInfo> Attributes 
 		{
@@ -2904,22 +3971,34 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 		}
 
 
+		/// <summary>
+		/// 
+		/// </summary>
 		protected IEnumerable<AttributeInfo> GetAttributes(string attributeType)
 		{
 			return ObjectFactory.GetAttributes(Attributes, attributeType).ToList();
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		protected AttributeInfo GetAttribute(string attributeType)
 		{
 			return ObjectFactory.GetAttributes(Attributes, attributeType).FirstOrDefault();
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		protected void ForAttributes(string attributeType, Action<AttributeInfo> act)
 		{
 			foreach(AttributeInfo attr in ObjectFactory.GetAttributes(Attributes, attributeType))
 				act(attr);
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		protected string GetArgumentFromAttribute(string attributeType, string argumentName)
 		{
 			AttributeInfo attr = ObjectFactory.GetAttributes(Attributes, attributeType).FirstOrDefault();
@@ -2932,6 +4011,9 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 			return string.Empty;
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		protected string GetArgumentFromAttribute(string attributeType, int indexArgument)
 		{
 			AttributeInfo attr = ObjectFactory.GetAttributes(Attributes, attributeType).FirstOrDefault();
@@ -2947,6 +4029,9 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 	}
 
 
+	/// <summary>
+	/// 
+	/// </summary>
     [System.Diagnostics.DebuggerDisplay("Method {FullName}")]
 	public class CodeFunctionInfo : CodeMemberInfo
 	{
@@ -2958,6 +4043,9 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 		private IEnumerable<MethodParamInfo> _parameters;
 		private IEnumerable<AttributeInfo> _attributes;
 			
+		/// <summary>
+		/// 
+		/// </summary>
 		public CodeFunctionInfo(BaseInfo parent, CodeFunction2 method)
 			: base(parent, method as CodeElement2)
 		{
@@ -3013,6 +4101,9 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 			}
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public override TypeInfo Type
 		{
 			get
@@ -3023,6 +4114,9 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 			}
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public IEnumerable<AttributeInfo> Attributes 
 		{
 			get
@@ -3046,22 +4140,34 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 		}
 
 
+		/// <summary>
+		/// 
+		/// </summary>
 		protected IEnumerable<AttributeInfo> GetAttributes(string attributeType)
 		{
 			return ObjectFactory.GetAttributes(Attributes, attributeType).ToList();
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		protected AttributeInfo GetAttribute(string attributeType)
 		{
 			return ObjectFactory.GetAttributes(Attributes, attributeType).FirstOrDefault();
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		protected void ForAttributes(string attributeType, Action<AttributeInfo> act)
 		{
 			foreach(AttributeInfo attr in ObjectFactory.GetAttributes(Attributes, attributeType))
 				act(attr);
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		protected string GetArgumentFromAttribute(string attributeType, string argumentName)
 		{
 			AttributeInfo attr = ObjectFactory.GetAttributes(Attributes, attributeType).FirstOrDefault();
@@ -3074,6 +4180,9 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 			return string.Empty;
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		protected string GetArgumentFromAttribute(string attributeType, int indexArgument)
 		{
 			AttributeInfo attr = ObjectFactory.GetAttributes(Attributes, attributeType).FirstOrDefault();
@@ -3086,6 +4195,9 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 			return string.Empty;
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public IEnumerable<MethodParamInfo> Parameters 
 		{ 
 			get 
@@ -3166,6 +4278,10 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 			//}
 		//}
 //
+
+		/// <summary>
+		/// 
+		/// </summary>
 		public override bool Equals(object obj)
 		{
 
@@ -3176,6 +4292,9 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 			return obj != null && _signature == ((CodeFunctionInfo)obj)._signature;
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public override string ToString()
 		{
 
@@ -3183,6 +4302,9 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public override int GetHashCode()
 		{
 
@@ -3199,6 +4321,9 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 
 
     [System.Diagnostics.DebuggerDisplay("parameter {Name}")]
+	/// <summary>
+	/// 
+	/// </summary>
 	public class MethodParamInfo
 	{
 
@@ -3206,6 +4331,9 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 		private CodeParameter2 item;
 		private CodeFunctionInfo parent;
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public MethodParamInfo(CodeFunctionInfo parent, CodeParameter2 item, string comment)
 		{
 			this.parent = parent;
@@ -3216,11 +4344,29 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 			DefaultValue = item.DefaultValue;
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public string Name { get; private set; }
+
+		/// <summary>
+		/// 
+		/// </summary>
 		public TypeInfo Type { get; private set; }
+
+		/// <summary>
+		/// 
+		/// </summary>
 		public string DefaultValue { get; set; }
+
+		/// <summary>
+		/// 
+		/// </summary>
 		public string Comment { get; private set; }
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public IEnumerable<AttributeInfo> Attributes 
 		{
 			get
@@ -3243,27 +4389,42 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 			}
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		protected virtual void InitializeAttributes(List<AttributeInfo> attributes)
 		{
 
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		protected IEnumerable<AttributeInfo> GetAttributes(string attributeType)
 		{
 			return ObjectFactory.GetAttributes(Attributes, attributeType).ToList();
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		protected AttributeInfo GetAttribute(string attributeType)
 		{
 			return ObjectFactory.GetAttributes(Attributes, attributeType).FirstOrDefault();
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		protected void ForAttributes(string attributeType, Action<AttributeInfo> act)
 		{
 			foreach(AttributeInfo attr in ObjectFactory.GetAttributes(Attributes, attributeType))
 				act(attr);
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		protected string GetArgumentFromAttribute(string attributeType, string argumentName)
 		{
 			AttributeInfo attr = ObjectFactory.GetAttributes(Attributes, attributeType).FirstOrDefault();
@@ -3276,6 +4437,9 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 			return string.Empty;
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		protected string GetArgumentFromAttribute(string attributeType, int indexArgument)
 		{
 			AttributeInfo attr = ObjectFactory.GetAttributes(Attributes, attributeType).FirstOrDefault();
@@ -3291,6 +4455,9 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 	}
 
 
+	/// <summary>
+	/// 
+	/// </summary>
     [System.Diagnostics.DebuggerDisplay("{ClassName}")]
 	public class TypeInfo
 	{
@@ -3310,12 +4477,18 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public TypeInfo(CodeTypeRef type)
         {
 
             Set(type);
         }
 
+		/// <summary>
+		/// 
+		/// </summary>
         private void Set(CodeTypeRef type)
         {
 
@@ -3380,7 +4553,6 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 
             }
 
-
 			int i = 0;
 			Parse(Name, this, ref i);
             DispatchType();
@@ -3388,6 +4560,9 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 
         }
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public CodeTypeRef Source
 		{
 			get
@@ -3401,6 +4576,9 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
         public IEnumerable<CodeFunctionInfo> Methods()
         {
 
@@ -3420,6 +4598,9 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 
         }
 
+		/// <summary>
+		/// 
+		/// </summary>
         public IEnumerable<CodePropertyInfo> Properties()
         {
 
@@ -3438,6 +4619,9 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
             
         }
 
+		/// <summary>
+		/// 
+		/// </summary>
         public IEnumerable<CodeEventInfo> Events()
         {
 
@@ -3457,6 +4641,9 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
             
         }
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public BaseInfo ClassRef
 		{
 			get
@@ -3471,12 +4658,18 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 		}
 
  
+		/// <summary>
+		/// 
+		/// </summary>
 		public static TypeInfo Create(CodeTypeRef type)
 		{
 			TypeInfo t = ObjectFactory.Instance.CreateType(type);
 			return t;
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
         protected virtual void DispatchType()
         {
 
@@ -3499,11 +4692,17 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 
         }
 
+		/// <summary>
+		/// 
+		/// </summary>
         protected virtual void OnCreated()
         {
 
         }
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public bool IsDerivedFrom(string type)
 		{
 
@@ -3693,22 +4892,60 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 			this._list.Add(t2);
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
         public bool IsNullable { get; set; }
+
+		/// <summary>
+		/// 
+		/// </summary>
 		public string Name { get; private set; }
+
+		/// <summary>
+		/// 
+		/// </summary>
         public string KindType { get; set; }
+
+		/// <summary>
+		/// 
+		/// </summary>
         public bool IsVoid { get; private set; }
+
+		/// <summary>
+		/// 
+		/// </summary>
         public bool IsClass { get; private set; }
+
+		/// <summary>
+		/// 
+		/// </summary>
         public bool IsEnumerable { get; private set; }
-        public bool IsGeneric { get { return this.ElementItems.Any(); } }
+
+        /// <summary>
+		/// 
+		/// </summary>
+		public bool IsGeneric { get { return this.ElementItems.Any(); } }
+		
+		/// <summary>
+		/// 
+		/// </summary>
 		public string AsFullName 
-        { get 
+        { 
+			get 
             { 
                 return this.type.AsFullName; 
             } 
         }
 		
+		/// <summary>
+		/// 
+		/// </summary>
         public int Rank { get { return _rank; } }
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public string ClassName
 		{
 			get
@@ -3722,6 +4959,9 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 			}
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public bool ContainsType(string type)
 		{
 			if (Name == type)
@@ -3737,8 +4977,14 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public IEnumerable<TypeInfo> ElementItems { get { return this._list; } }
 
+		/// <summary>
+		/// 
+		/// </summary>
 	    public IEnumerable<AttributeInfo> Attributes 
 		{
 			get
@@ -3790,6 +5036,9 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 			return string.Empty;
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public override string ToString()
 		{
 
@@ -3837,6 +5086,9 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 
     // Manager.tt from Damien Guard: http://damieng.com/blog/2009/11/06/multiple-outputs-from-t4-made-easy-revisited
 
+	/// <summary>
+	/// 
+	/// </summary>
     public class Block
     {
         public String Name;
@@ -3861,6 +5113,9 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
         protected EnvDTE.ProjectItem templateProjectItem;
         protected EnvDTE.Project ContainingProject;
 
+		/// <summary>
+		/// 
+		/// </summary>
         public static Manager Create(ITextTemplatingEngineHost host, StringBuilder template)
         {
 
@@ -3869,11 +5124,17 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
                 : new Manager(host, template);
         }
 
+		/// <summary>
+		/// 
+		/// </summary>
         public virtual bool FileOkToWrite(String fileName)
         {
             return true;
         }
 
+		/// <summary>
+		/// 
+		/// </summary>
         public Block StartNewFile(String name)
         {
             if (name == null)
@@ -3882,6 +5143,9 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
             return CurrentBlock;
         }
 
+		/// <summary>
+		/// 
+		/// </summary>
         public Block StartNewFile(String name, NodeItemFolder folder)
         {
             if (name == null)
@@ -3891,21 +5155,33 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
             return CurrentBlock;
         }
 
+		/// <summary>
+		/// 
+		/// </summary>
         public EnvDTE.Project GetCurrentProject()
         {
             return ContainingProject;
         }
 
+		/// <summary>
+		/// 
+		/// </summary>
         public void StartFooter()
         {
             CurrentBlock = footer;
         }
 
+		/// <summary>
+		/// 
+		/// </summary>
         public void StartHeader()
         {
             CurrentBlock = header;
         }
 
+		/// <summary>
+		/// 
+		/// </summary>
         public void EndBlock()
         {
             if (CurrentBlock == null)
@@ -3916,6 +5192,9 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
             currentBlock = null;
         }
 
+		/// <summary>
+		/// 
+		/// </summary>
         public virtual void Process(bool split)
         {
             if (split)
@@ -3950,12 +5229,18 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
                 File.WriteAllText(fileName, content);
         }
 
+		/// <summary>
+		/// 
+		/// </summary>
         public virtual String GetCustomToolNamespace(String fileName)
         {
             return null;
         }
 
-        public virtual String DefaultProjectNamespace
+		/// <summary>
+		/// 
+		/// </summary>
+		public virtual String DefaultProjectNamespace
         {
             get { return null; }
         }
@@ -3990,6 +5275,9 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
             private Action<Func<FileInfo, bool>, IEnumerable<Block>> projectSyncAction;
             private IVsQueryEditQuerySave2 queryEditSave;
 
+			/// <summary>
+			/// 
+			/// </summary>
             public override String DefaultProjectNamespace
             {
                 get
@@ -3998,17 +5286,26 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
                 }
             }
 
+			/// <summary>
+			/// 
+			/// </summary>
             public override String GetCustomToolNamespace(string fileName)
             {
                 return dte.Solution.FindProjectItem(fileName).Properties.Item("CustomToolNamespace").Value.ToString();
             }
 
+			/// <summary>
+			/// 
+			/// </summary>
             public override void Process(bool split)
             {
                 base.Process(split);
                 projectSyncAction.EndInvoke(projectSyncAction.BeginInvoke(filterToDelete, generatedFileNames, null, null));
             }
 
+			/// <summary>
+			/// 
+			/// </summary>
             public override bool FileOkToWrite(String fileName)
             {
                 CheckoutFileIfRequired(fileName);
@@ -4100,19 +5397,27 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 //   End of Manager.tt
 
 
-    public static ManagerScope StartManager()
+    /// <summary>
+	/// 
+	/// </summary>
+	public static ManagerScope StartManager()
     {
         ManagerScope m = new ManagerScope();
         return m;
     }
     
-    // Manager class records the various blocks so it can split them up
-
+    
+	/// <summary>
+	/// Manager class records the various blocks so it can split them up
+	/// </summary>
     public class ManagerScope : IDisposable
     {
 
         private static Manager manager;
 
+		/// <summary>
+		/// constructor
+		/// </summary>
         public ManagerScope()
         {
             manager = Manager.Create(serviceProvider as ITextTemplatingEngineHost, _generationEnvironment); 
@@ -4126,31 +5431,49 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 
         }
 
+		/// <summary>
+		/// 
+		/// </summary>
         public IDisposable StartHeader()
         {
             return new HeaderScope(manager);
         }
 
-        public IDisposable StartFooter()
+		/// <summary>
+		/// 
+		/// </summary>
+		public IDisposable StartFooter()
         {
             return new FooterScope(manager);
         }
 
+		/// <summary>
+		/// 
+		/// </summary>
         public void Dispose()
         {
             manager.Process(true);
         }
 
+		/// <summary>
+		/// 
+		/// </summary>
         public IDisposable NewFile(string filename)
         {
             return new ScriptFileScope(manager, filename);
         }
 
+		/// <summary>
+		/// 
+		/// </summary>
         public IDisposable NewFile(string filename, NodeItemFolder folder)
         {
             return new ScriptFileScope(manager, filename, folder);
         }
 
+		/// <summary>
+		/// 
+		/// </summary>
         public NodeProject GetCurrentProject()
         {
             var p = manager.GetCurrentProject();
@@ -4159,6 +5482,9 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
             return prj;
         }
 
+		/// <summary>
+		/// 
+		/// </summary>
         public NodeProject GetProject(string projectName)
         {
             var sln = Solution();
