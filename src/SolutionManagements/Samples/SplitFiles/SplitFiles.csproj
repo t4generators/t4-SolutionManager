@@ -42,6 +42,10 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="SplitFilesScript3.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>SplitFilesScript3.txt</LastGenOutput>
+    </Content>
     <Content Include="SplitFilesScript2.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>SplitFilesScript2.txt</LastGenOutput>
@@ -50,12 +54,6 @@
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>SplitFilesScript.txt</LastGenOutput>
     </Content>
-    <Content Include="SplitFilesScript2.txt">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>SplitFilesScript2.tt</DependentUpon>
-    </Content>
-    <Content Include="targetFolder\Test.generated.txt" />
   </ItemGroup>
   <ItemGroup>
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />

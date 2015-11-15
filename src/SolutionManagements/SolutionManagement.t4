@@ -529,7 +529,11 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 			where T : NodeSolutionItem
 		{
 
+			if (project == null)
+                yield break;
+
 			var items = project.ProjectItems;
+
 			if (items != null)
 			{
 				foreach (EnvDTE.ProjectItem s in project.ProjectItems)
@@ -539,14 +543,17 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 
 					EnvDTE.Project proj = s.SubProject as EnvDTE.Project;
 
-					if (proj != null)
+					if (proj != null /* && !string.IsNullOrEmpty(proj.FullName) */)
 						fld = new NodeProject(proj);
 
-					else if (s.Kind == "{66A26720-8FB5-11D2-AA7E-00C04F688DDE}")
-						fld = new NodeFolderSolution(s as EnvDTE.Project);
+                    else if (s.Kind == "{66A26720-8FB5-11D2-AA7E-00C04F688DDE}" && proj != null)
+                        fld = new NodeFolderSolution(s as EnvDTE.Project);
 
-					else if (s.Kind == "{EA6618E8-6E24-4528-94BE-6889FE16485C}")
-						fld = new NodeVirtualFolder(s as EnvDTE.Project);
+                    else if (s.Kind == "{66A26722-8FB5-11D2-AA7E-00C04F688DDE}" && proj !=null)
+                        fld = new NodeFolderSolution(s as EnvDTE.Project);
+
+                    else if (s.Kind == "{EA6618E8-6E24-4528-94BE-6889FE16485C}" && proj != null)
+                        fld = new NodeVirtualFolder(s as EnvDTE.Project);
 
 					else
 						fld = Helper.CreateNodeItem(s);
@@ -631,7 +638,7 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 		}
 
 		/// <summary>
-		/// 
+		/// return the fullname of the virtual filder
 		/// </summary>
 		public virtual string FullName
 		{
@@ -642,7 +649,7 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 		}
 
 		/// <summary>
-		/// 
+		/// Kind item
 		/// </summary>
 		public override KindItem KindItem { get { return KindItem.VirtualFolder; } }
 
@@ -657,10 +664,10 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 	{
 
 		private EnvDTE.Solution solution;
-		EnvDTE.DTE dte;
+		private EnvDTE.DTE dte;
 
 		/// <summary>
-		/// 
+		/// constructor
 		/// </summary>
 		public NodeSolution (EnvDTE.DTE dte) : base() 
 		{
@@ -671,7 +678,7 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 
 
 		/// <summary>
-		/// 
+		/// return the fullname of the specified path
 		/// </summary>
         public string ResolvePath(string path)
         {
@@ -693,13 +700,13 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 
 
 		/// <summary>
-		/// 
+		/// Kind item
 		/// </summary>
 		public override KindItem KindItem { get { return KindItem.Solution; } }
 
 
 		/// <summary>
-		/// 
+		/// return the name of the solution
 		/// </summary>
 		public override string Name
 		{
@@ -795,7 +802,7 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 	   
 
 		/// <summary>
-		/// 
+		/// return the list of project of the solution
 		/// </summary>
 		public IEnumerable<NodeProject> Projects
 		{
@@ -816,40 +823,43 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 	
 	
 		/// <summary>
-		/// 
+		/// parser for iterate items of the solution
 		/// </summary>
-		public override IEnumerable<T> GetItem<T>(Func<T, bool> filter)
-		{
+       public override IEnumerable<T> GetItem<T>(Func<T, bool> filter)
+        {
 
-			var prjs = this.solution.Projects;
-			if (prjs != null)
-			{
-				foreach (EnvDTE.Project project in prjs)
-				{
+            var prjs = this.solution.Projects;
 
-					NodeSolutionItem fld = null;
+            if (prjs != null)
+            {
+                foreach (EnvDTE.Project project in prjs)
+                {
 
-					if (project.Kind == "{66A26720-8FB5-11D2-AA7E-00C04F688DDE}" || project.Kind == "{66A26720-8FB5-11D2-AA7E-00C04F688DDE}")
-						fld = new NodeFolderSolution(project);
+                    NodeSolutionItem fld = null;
 
-					else if (project.Kind == "{EA6618E8-6E24-4528-94BE-6889FE16485C}")
-						fld = new NodeVirtualFolder(project);
+                    if (project.Kind == "{66A26720-8FB5-11D2-AA7E-00C04F688DDE}")
+                        fld = new NodeFolderSolution(project);
 
-					else
-						fld = new NodeProject(project);
+                    else if (project.Kind == "{66A26720-8FB5-11D2-AA7E-00C04F688DDE}")  // is not the same that last test
+                        fld = new NodeFolderSolution(project);
 
-					var f = fld as T;
-					if (f != null)
-						if (filter == null || filter(f))
-							yield return f;
+                    else if (project.Kind == "{EA6618E8-6E24-4528-94BE-6889FE16485C}")
+                        fld = new NodeVirtualFolder(project);
 
-					foreach (T item in fld.GetItem<T>(filter))
-						yield return item;
+                    else
+                        fld = new NodeProject(project);
 
-				}
-			}
-		}
+                    var f = fld as T;
+                    if (f != null)
+                        if (filter == null || filter(f))
+                            yield return f;
 
+                    foreach (T item in fld.GetItem<T>(filter))
+                        yield return item;
+
+                }
+            }
+        }
 
 		/// <summary>
 		/// 
@@ -1021,6 +1031,16 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 							  
 
 		}
+
+		/// <summary>
+		/// add a new file in the folder
+		/// </summary>
+		public void AddFile(string filename)
+        {
+
+            this.project.ProjectItems.AddFromFile(filename);
+
+        }
 
 		/// <summary>
 		/// 
@@ -2446,8 +2466,20 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 			
 		}
 
+        /// <summary>
+        /// Adds the file in the folder.
+        /// </summary>
+        /// <param name="filename">The filename.</param>
+        public void AddFile(string filename)
+        {
+            
+			//var file = Path.GetFileName(filename);
+            this.project.ProjectItems.AddFromFile(filename);
+
+        }
+
 		/// <summary>
-		/// 
+		/// return the fullname of the file
 		/// </summary>
 		public virtual string FullName
 		{
@@ -2458,7 +2490,7 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 		}
 
 		/// <summary>
-		/// 
+		/// Kind item
 		/// </summary>
 		public override KindItem KindItem { get { return KindItem.Folder; } }
 
