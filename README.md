@@ -14,17 +14,13 @@ manages multi file generation with multi folder target. List the files from solu
 
 	// initialize the split file manager. 
 	using(ManagerScope _manager = StartManager())
-  {  
+	{  
 		// create a new file called 'test.generated.txt' located under the script T4.
 		using (_manager.NewFile("Test.txt"))
-    {
-      
+		{
 			WriteLine("Test");
-      
 		}
-
-  }
-
- #>
+  	}
+#>
 
 ```
