@@ -2,7 +2,11 @@
 manages multi file generation with multi folder target. List the files from solution. Parse the code C#, Visual Basic, and all .NET languages integrated into Visual Studio.
 
 
-## split the generation in many files
+[![Gitter](https://badges.gitter.im/Join Chat.svg)](https://gitter.im/gaelgael5/t4generators?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
+## Solution parser
+
+### split the generation in many files
 ```c#
 
 <#@ template debug="false" hostspecific="true" language="C#" #>
@@ -25,7 +29,7 @@ manages multi file generation with multi folder target. List the files from solu
 
 ```
 
-## generate the files in a specific folder
+### generate files in a specific folder
 ```c#
 
 <#@ template debug="false" hostspecific="true" language="C#" #>
@@ -60,7 +64,7 @@ manages multi file generation with multi folder target. List the files from solu
 
 ```
 
-## Manipulate the solution
+### Manipulate the solution
 ```c#
 
 	// get a reference to the solution

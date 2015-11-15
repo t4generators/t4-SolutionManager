@@ -58,11 +58,14 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 
     }
 
+	
+	/// <summary>
+	/// return the solution instance 
+	/// </summary>
 	public static NodeSolution Solution()
 	{
 		return _sln;
 	}
-
 
 	static void ComputeClasses()
     {
@@ -219,7 +222,7 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 
 
 		/// <summary>
-		/// 
+		/// return the files of the project item
 		/// </summary>
 		public static IEnumerable<string> GetPath(EnvDTE.ProjectItem source)
 		{
@@ -251,7 +254,7 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 
 
 		/// <summary>
-		/// 
+		/// return the files of the project item
 		/// </summary>
 		public static IEnumerable<string> GetPath(EnvDTE.Project source)
 		{
@@ -290,7 +293,7 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 
 
 		/// <summary>
-		/// 
+		/// return the files of the project item
 		/// </summary>
 		public static IEnumerable<EnvDTE.ProjectItem> GetFiles(EnvDTE.ProjectItems source)
 		{
@@ -303,7 +306,7 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 
 
 		/// <summary>
-		/// 
+		/// return the files of the project item
 		/// </summary>
 		public static IEnumerable<EnvDTE.ProjectItem> GetFiles(EnvDTE.ProjectItem source)
 		{
@@ -317,7 +320,7 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 
 
 		/// <summary>
-		/// 
+		/// return the files of the project item
 		/// </summary>
 		public static IEnumerable<EnvDTE.ProjectItem> GetFiles(EnvDTE.Project source)
 		{
@@ -406,7 +409,7 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 	{
 
 		/// <summary>
-		/// 
+		/// constructor
 		/// </summary>
 		public NodeItemBase()
 		{
@@ -414,7 +417,7 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 		}
 
 		/// <summary>
-		/// 
+		/// Kind item
 		/// </summary>
 		public abstract KindItem KindItem { get; }
 
@@ -422,7 +425,7 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 
 
 	/// <summary>
-	/// 
+	/// kind item
 	/// </summary>
 	public enum KindItem
 	{
@@ -435,19 +438,16 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 
 
 	/// <summary>
-	/// 
+	/// solution object base 
 	/// </summary>
 	[System.Diagnostics.DebuggerDisplay("{Name}")]
 	public abstract class NodeSolutionItem : NodeItemBase
 	{
 
-		/// <summary>
-		/// 
-		/// </summary>
 		protected EnvDTE.Project project;
 
 		/// <summary>
-		/// 
+		/// constructor
 		/// </summary>
 		public NodeSolutionItem()
 			: base()
@@ -494,14 +494,13 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 
 
 		/// <summary>
-		/// 
+		/// constructor
 		/// </summary>
 		public NodeSolutionItem(EnvDTE.Project project)
 			: base()
 		{
 			this.project = project;
 		}
-
 
 		/// <summary>
 		/// parser for iterate items of the solution
@@ -566,9 +565,8 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 
 		}
 
-
 		/// <summary>
-		/// 
+		/// return the kind of the object
 		/// </summary>
 		public virtual string Kind
 		{
@@ -578,9 +576,8 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 			}
 		}
 
-
 		/// <summary>
-		/// 
+		/// get or set the name of the project
 		/// </summary>
 		public virtual string Name
 		{
@@ -594,19 +591,18 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 			}
 		}
 
-
 		/// <summary>
-		/// 
+		/// return the last datetime access
 		/// </summary>
 		public virtual DateTime GetLastAccessTime { get { return File.GetLastAccessTime(this.project.FullName); } }
 
 		/// <summary>
-		/// 
+		/// return the datetime creation 
 		/// </summary>
 		public virtual DateTime GetCreationTime { get { return File.GetCreationTime (this.project.FullName); } }
 
 		/// <summary>
-		/// 
+		/// return the last datetime write access
 		/// </summary>
 		public virtual DateTime GetLastWriteTime { get { return File.GetLastWriteTime (this.project.FullName); } }
 
@@ -614,14 +610,14 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 
 
 	/// <summary>
-	/// 
+	/// virtual folder
 	/// </summary>
     [System.Diagnostics.DebuggerDisplay("{FullName}")]
 	public class NodeVirtualFolder : NodeSolutionItem
 	{
 		
 		/// <summary>
-		/// 
+		/// constructor
 		/// </summary>
 		public NodeVirtualFolder(EnvDTE.Project project) : base(project)
 		{
@@ -646,9 +642,8 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 
 	}
 
-
 	/// <summary>
-	/// 
+	/// solution
 	/// </summary>
     [System.Diagnostics.DebuggerDisplay("{Name}")]
 	public class NodeSolution : NodeSolutionItem
@@ -787,7 +782,7 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 
 
 		/// <summary>
-		/// 
+		/// return the root object com
 		/// </summary>
 		public EnvDTE.DTE GetDTE { get { return dte; } }
 	   
@@ -805,7 +800,7 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 
 
 		/// <summary>
-		/// 
+		/// return the list of the projects
 		/// </summary>
 		public IEnumerable<NodeProject> GetProjects(Func<NodeProject, bool> filter)
 		{
@@ -816,8 +811,8 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 		/// <summary>
 		/// parser for iterate items of the solution
 		/// </summary>
-       public override IEnumerable<T> GetItem<T>(Func<T, bool> filter)
-        {
+		public override IEnumerable<T> GetItem<T>(Func<T, bool> filter)
+		{
 
             var prjs = this.solution.Projects;
 
@@ -852,9 +847,6 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
             }
         }
 
-		/// <summary>
-		/// 
-		/// </summary>
 		protected override void BuildProperties()
 		{
 			_properties = new Dictionary<string, NodeItemProperty>();
@@ -867,7 +859,7 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 	}
 
 	/// <summary>
-	/// 
+	/// property
 	/// </summary>
     [System.Diagnostics.DebuggerDisplay("{Name}")]
 	public class NodeItemProperty
@@ -878,7 +870,7 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 		private EnvDTE.Properties properties;
 
 		/// <summary>
-		/// 
+		/// constructor
 		/// </summary>
  		public NodeItemProperty(object o, string name)
 		{
@@ -914,24 +906,24 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 		}
 
 		/// <summary>
-		/// 
+		/// return the source com object of the property
 		/// </summary>
  		public EnvDTE.Property PropertyObject { get { return undefine != null ? property : SetValue(); } }
 
 		/// <summary>
-		/// 
+		/// return the name of the property
 		/// </summary>
  		public string Name { get; private set; }
 
 		/// <summary>
-		/// 
+		/// return true if the source com obect is null
 		/// </summary>
  		private bool Undefine { get { return undefine != null ? (bool)undefine : (PropertyObject == null); } }
 
 	}
 
 	/// <summary>
-	/// 
+	/// typed property
 	/// </summary>
     [System.Diagnostics.DebuggerDisplay("{Value}")]
 	public class GenericNodeProperty<T> : INodeProperty<T>
@@ -948,7 +940,7 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 		}
 
 		/// <summary>
-		/// 
+		/// return the value of the property
 		/// </summary>
  		public T Value
 		{
@@ -967,10 +959,11 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 
 	}
 
-	[System.Diagnostics.DebuggerDisplay("{Name}: {Value}")]
+
 	/// <summary>
-	/// 
-	/// </summary>
+	/// property
+	/// </summary>	
+	[System.Diagnostics.DebuggerDisplay("{Name}: {Value}")]
  	public class NodeProperty<T> : NodeItemProperty, INodeProperty<T>
 	{
 
@@ -1000,7 +993,7 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 	}
 
 	/// <summary>
-	/// 
+	/// Property
 	/// </summary>
  	public interface INodeProperty<T>
 	{
@@ -1010,12 +1003,15 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 	}
 
 	/// <summary>
-	/// 
+	/// project
 	/// </summary>
     [System.Diagnostics.DebuggerDisplay("{Name}")]
 	public class NodeProject : NodeSolutionItem
 	{
 
+		/// <summary>
+		/// constructor 
+		/// </summary>
 		public NodeProject(EnvDTE.Project project) 
 			: base(project)
 		{
@@ -1037,7 +1033,7 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 		/// resolve the folder path and return the last folder.
 		/// if a part is missing. it is created 
 		/// </summary>
-         public NodeItemFolder GetFolder(string path)
+        public NodeItemFolder GetFolder(string path)
         {
             
             string p = path.Replace("/", @"\");
@@ -1104,7 +1100,7 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
         }
 
  		/// <summary>
-		/// 
+		/// return the codetype from the type fullname
 		/// </summary>
         public EnvDTE.CodeType CodeTypeFromFullName(string typeFullname)
         {
@@ -1112,22 +1108,22 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
         }
 
 		/// <summary>
-		/// 
+		/// return the datetime of the last access 
 		/// </summary>
  		public override DateTime GetLastAccessTime { get { return File.GetLastAccessTime(this.project.FullName); } }
 
 		/// <summary>
-		/// 
+		/// return the creation datetime 
 		/// </summary>
  		public override DateTime GetCreationTime { get { return File.GetCreationTime (this.project.FullName); } }
 
 		/// <summary>
-		/// 
+		/// return the datatime of the last write access
 		/// </summary>
  		public override DateTime GetLastWriteTime { get { return File.GetLastWriteTime (this.project.FullName); } }
 
 		/// <summary>
-		/// 
+		/// return kind item
 		/// </summary>
  		public override KindItem KindItem { get { return KindItem.Project; } }
 
@@ -1960,7 +1956,7 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 		}
 
 		/// <summary>
-		/// 
+		/// return the name of the assembly
 		/// </summary>
 		public string AssemblyName
 		{
@@ -1987,7 +1983,7 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 		}
 
 		/// <summary>
-		/// 
+		/// return directory full name
 		/// </summary>
 		public virtual string LocalPath
 		{
@@ -1995,7 +1991,7 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 		}
 
 		/// <summary>
-		/// 
+		/// return the default namespace
 		/// </summary>
 		public string DefaultNamespace
 		{
@@ -2049,7 +2045,7 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 		}
 
 		/// <summary>
-		/// 
+		/// return the reference object com
 		/// </summary>
 		public EnvDTE.Project Source
 		{
@@ -2060,7 +2056,7 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 		}
 
 		/// <summary>
-		/// 
+		/// full filename
 		/// </summary>
 		public virtual string FullName
 		{
@@ -2074,7 +2070,7 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 
 
 	/// <summary>
-	/// 
+	/// item folder
 	/// </summary>
     [System.Diagnostics.DebuggerDisplay("{Name}")]
 	public class NodeItemFolder : NodeItem
@@ -2094,7 +2090,7 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 		public override KindItem KindItem { get { return KindItem.Folder; } }
 
 		/// <summary>
-		/// resolve the folder path and return the last folder.
+		/// resolve the folder path and return the last folder of the path.
 		/// if a part is missing. it is created
 		/// </summary>
         public NodeItemFolder GetFolder(string path)
@@ -2111,7 +2107,7 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
         }
 
 		/// <summary>
-		/// resolve the folder path and return the last folder.
+		/// resolve the folder path and return the last folder of the array.
 		/// if a part is missing. it is created0
 		/// </summary>
         public NodeItemFolder GetFolder(string[] paths)
@@ -2154,8 +2150,9 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 
 	}
 
+
 	/// <summary>
-	/// 
+	/// file item
 	/// </summary>
     [System.Diagnostics.DebuggerDisplay("{Name}")]
 	public class NodeItem : NodeSolutionItem
@@ -2166,7 +2163,7 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
         private string path;
 
 		/// <summary>
-		/// 
+		/// constructor
 		/// </summary>
 		public NodeItem(EnvDTE.ProjectItem s) : base()
 		{
@@ -2208,7 +2205,7 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 		}
 
 		/// <summary>
-		/// 
+		/// reference the com object file.
 		/// </summary>
         public EnvDTE.ProjectItem ProjectItem
         {
@@ -2219,25 +2216,24 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
         }
 
 		/// <summary>
-		/// 
+		/// return the last access time
 		/// </summary>
 		public override DateTime GetLastAccessTime { get { return File.GetLastAccessTime(this.Filename); } }
 
 		/// <summary>
-		/// 
+		/// return the creation date time
 		/// </summary>
 		public override DateTime GetCreationTime { get { return File.GetCreationTime (this.Filename); } }
 
 		/// <summary>
-		/// 
+		/// return the last date time write access
 		/// </summary>
 		public override DateTime GetLastWriteTime { get { return File.GetLastWriteTime (this.Filename); } }
 
 		/// <summary>
-		/// 
+		/// Kind item
 		/// </summary>
 		public override KindItem KindItem { get { return KindItem.File; } }
-
 
 		/// <summary>
 		/// 
@@ -2278,9 +2274,8 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 			set { FindProperty<string>("UrlBehavior").Value = value; }
 		}
 			
-
 		/// <summary>
-		/// 
+		/// filename
 		/// </summary>
 		public string Filename
 		{
@@ -2288,7 +2283,7 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 		}
 
 		/// <summary>
-		/// 
+		/// ful filename
 		/// </summary>
 		public string LocalPath
 		{
@@ -2296,9 +2291,8 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 			set { FindProperty<string>("LocalPath").Value = value; }
 		}
 			
-
 		/// <summary>
-		/// 
+		/// default namespace
 		/// </summary>
 		public string DefaultNamespace
 		{
@@ -2306,10 +2300,6 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 			set { FindProperty<string>("DefaultNamespace").Value = value; }
 		}
 			
-
-		/// <summary>
-		/// 
-		/// </summary>
 		protected override void BuildProperties()
 		{
 
@@ -2407,10 +2397,9 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 			return classes;
 		
 		}
-
 		
 		/// <summary>
-		/// 
+		/// return the namespaces list in the file
 		/// </summary>
 		public IEnumerable<EnvDTE.CodeNamespace> GetNamespaceItems()
 		{
@@ -2425,36 +2414,35 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 		}
 
 		/// <summary>
-		/// 
+		/// Kind item
 		/// </summary>
 		public override string Kind { get { return s.Kind; } }
 
 		/// <summary>
-		/// 
+		/// Name of the file in visual studio
 		/// </summary>
-		public override string Name        
+		public override string Name
 		{       
 			get { return s.Name; }
 			set { s.Name = value; }
 		}
 
 		/// <summary>
-		/// 
+		/// Name of the filename
 		/// </summary>
 		public string Name2 { get { return s.FileNames[0]; } }
-
 		
 	}
 
 	/// <summary>
-	/// 
+	/// folder solution
 	/// </summary>
     [System.Diagnostics.DebuggerDisplay("{FullName}")]
 	public class NodeFolderSolution : NodeSolutionItem
 	{
 
 		/// <summary>
-		/// 
+		/// constructor
 		/// </summary>
 		public NodeFolderSolution(EnvDTE.Project project) : base(project)
 		{
