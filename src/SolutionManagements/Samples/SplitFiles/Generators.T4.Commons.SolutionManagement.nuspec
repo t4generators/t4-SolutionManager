@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package>
+
+  <metadata xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
+    <version>1.0</version>
+    <authors>Devtm</authors>
+    <owners>Devtm</owners>
+    <id>Devtm.Generators.T4.Commons.SolutionManagement</id>
+    <title />
+    <projectUrl>https://github.com/t4generators/t4-SolutionManager</projectUrl>
+    
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>provide solution management for generate multi files and parser C#/VB for discovery object code</description>
+
+    <dependencies>
+    </dependencies>
+
+    <frameworkAssemblies>
+    </frameworkAssemblies>
+
+  </metadata>
+
+  <files>
+    <file src="..\..\SolutionManagement.t4" target="content\Generators\T4\Commons\SolutionManagement.t4" />
+  </files>
+
+
+</package>

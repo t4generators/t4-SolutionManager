@@ -1,10 +1,10 @@
 # t4-SolutionManager
 
-[![Gitter](https://badges.gitter.im/Join Chat.svg)](https://gitter.im/gaelgael5/t4generators?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge) [![Build status](https://ci.appveyor.com/api/projects/status/miuedx7p06tbhdk1?svg=true)]
+[![Gitter](https://badges.gitter.im/Join Chat.svg)](https://gitter.im/gaelgael5/t4generators?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge) ![Build status](https://ci.appveyor.com/api/projects/status/miuedx7p06tbhdk1?svg=true)
 
-
-
-manages multi file generation with multi folder target. List the files from solution. Parse the code C#, Visual Basic, and all .NET languages integrated into Visual Studio.
+* Manages multi file generation with multi folder target.
+* List the files from solution. 
+* Parse the code C#, Visual Basic, and all .NET languages integrated into Visual Studio.
 
 ## Solution parser
 
