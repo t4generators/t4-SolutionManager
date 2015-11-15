@@ -69,7 +69,7 @@ manages multi file generation with multi folder target. List the files from solu
 	// get the project called 'SplitFiles'
 	var prj = sln.GetProjects(c => c.Name == "SplitFiles").FirstOrDefault();
 
-	// add a file to the solution
+	// add a file in the solution
 	prj.AddFile("filename.txt");
 
 ```

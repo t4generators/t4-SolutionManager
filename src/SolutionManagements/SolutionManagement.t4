@@ -456,14 +456,8 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 		}
 
 
-		/// <summary>
-		/// 
-		/// </summary>
 		protected Dictionary<string, NodeItemProperty> _properties = null;
 
-		/// <summary>
-		/// 
-		/// </summary>
 		protected INodeProperty<T> FindProperty<T>(string p)
 		{
 			if (_properties == null)
@@ -478,14 +472,11 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 
 
 		/// <summary>
-		/// 
+		/// return the list of properties
 		/// </summary>
 		public Dictionary<string, NodeItemProperty> Properties { get { return _properties; } }
 
 
-		/// <summary>
-		/// 
-		/// </summary>
 		protected virtual void BuildProperties()
 		{
 			_properties = new Dictionary<string, NodeItemProperty>();
@@ -513,7 +504,7 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 
 
 		/// <summary>
-		/// 
+		/// parser for iterate items of the solution
 		/// </summary>
 		public virtual IEnumerable<T> GetItem<T>() 
 			where T : NodeSolutionItem
@@ -523,7 +514,7 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 		}
 
 		/// <summary>
-		/// 
+		/// parser for iterate items of the solution
 		/// </summary>
 		public virtual IEnumerable<T> GetItem<T>(Func<T, bool> filter) 
 			where T : NodeSolutionItem
@@ -1043,7 +1034,8 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
         }
 
 		/// <summary>
-		/// 
+		/// resolve the folder path and return the last folder.
+		/// if a part is missing. it is created 
 		/// </summary>
          public NodeItemFolder GetFolder(string path)
         {
@@ -1059,7 +1051,8 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
         }
 
 		/// <summary>
-		/// 
+		/// resolve the folder path and return the last folder.
+		/// if a part is missing. it is created
 		/// </summary>
          public NodeItemFolder GetFolder(string[] paths)
         {
@@ -2088,20 +2081,21 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 	{
 
 		/// <summary>
-		/// 
+		/// constructor
 		/// </summary>
 		public NodeItemFolder(EnvDTE.ProjectItem s) : base(s)
 		{
                     
 		}
-		/// <summary>
-		/// 
-		/// </summary>
 
+		/// <summary>
+		/// kind item
+		/// </summary>
 		public override KindItem KindItem { get { return KindItem.Folder; } }
 
 		/// <summary>
-		/// 
+		/// resolve the folder path and return the last folder.
+		/// if a part is missing. it is created
 		/// </summary>
         public NodeItemFolder GetFolder(string path)
         {
@@ -2117,7 +2111,8 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
         }
 
 		/// <summary>
-		/// 
+		/// resolve the folder path and return the last folder.
+		/// if a part is missing. it is created0
 		/// </summary>
         public NodeItemFolder GetFolder(string[] paths)
         {
@@ -2333,7 +2328,7 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 		}
 
 		/// <summary>
-		/// 
+		/// parser for iterate items of the solution
 		/// </summary>
 		public override IEnumerable<T> GetItem<T>(Func<T, bool> filter)
 		{
