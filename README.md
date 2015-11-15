@@ -1,8 +1,6 @@
 # t4-SolutionManager
 
-[![Gitter](https://badges.gitter.im/Join Chat.svg)](https://gitter.im/gaelgael5/t4generators?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
-
-Dev build: [![Build status](https://ci.appveyor.com/api/projects/status/miuedx7p06tbhdk1?svg=true)]
+[![Gitter](https://badges.gitter.im/Join Chat.svg)](https://gitter.im/gaelgael5/t4generators?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge) [![Build status](https://ci.appveyor.com/api/projects/status/miuedx7p06tbhdk1?svg=true)]
 
 
 
