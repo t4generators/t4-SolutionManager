@@ -1,7 +1,6 @@
 # t4-SolutionManager
 manages multi file generation with multi folder target. List the files from solution. Parse the code C#, Visual Basic, and all .NET languages integrated into Visual Studio.
 
-
 [![Gitter](https://badges.gitter.im/Join Chat.svg)](https://gitter.im/gaelgael5/t4generators?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 ## Solution parser
