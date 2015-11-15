@@ -8,7 +8,7 @@ manages multi file generation with multi folder target. List the files from solu
 <#@ template debug="false" hostspecific="true" language="C#" #>
 <#@ assembly name="System.Core" #>
 <#@ output extension=".txt" #>
-<#@ include file="..\..\SolutionManagement.t4" #>
+<#@ include file="..\..\SolutionManagement.t4" /* reference the file include */ #>
 
 <# 
 
