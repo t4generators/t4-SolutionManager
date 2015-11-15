@@ -5,7 +5,6 @@ VisualStudioVersion = 12.0.40629.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionManagements", "SolutionManagements", "{0440B56A-0F5B-49EF-AF93-5ECB9375C6A7}"
 	ProjectSection(SolutionItems) = preProject
-		SolutionManagements\Generators.T4.Commons.SolutionManagement.nuspec = SolutionManagements\Generators.T4.Commons.SolutionManagement.nuspec
 		SolutionManagements\SolutionManagement.t4 = SolutionManagements\SolutionManagement.t4
 	EndProjectSection
 EndProject
