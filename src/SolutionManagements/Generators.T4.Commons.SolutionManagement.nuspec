@@ -7,7 +7,8 @@
     <owners>Devtm</owners>
     <id>Devtm.Generators.T4.Commons.SolutionManagement</id>
     <title />
-
+    <projectUrl>https://github.com/t4generators/t4-SolutionManager</projectUrl>
+    
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>provide solution management for generate multi files and parser C#/VB for discovery object code</description>
 
@@ -20,7 +21,7 @@
   </metadata>
 
   <files>
-    <file src="Generators\T4\Commons\SolutionManagement.t4" target="content\Generators\T4\Commons\SolutionManagement.t4" />
+    <file src="SolutionManagement.t4" target="content\Generators\T4\Commons\SolutionManagement.t4" />
   </files>
 
 
