@@ -39,9 +39,27 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Classes\MyClass1.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="SplitFilesScript4.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>SplitFilesScript4.txt</LastGenOutput>
+    </Content>
+    <Content Include="SplitFilesScript6.txt">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>SplitFilesScript6.t4</DependentUpon>
+    </Content>
+    <None Include="SplitFilesScript6.t4">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>SplitFilesScript6.txt</LastGenOutput>
+    </None>
+    <None Include="SplitFilesScript5.t4">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>SplitFilesScript51.txt</LastGenOutput>
+    </None>
     <Content Include="SplitFilesScript3.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>SplitFilesScript3.txt</LastGenOutput>
@@ -59,7 +77,9 @@
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Generators.T4.Commons.SolutionManagement.nuspec" />
+    <None Include="Generators.T4.Commons.SolutionManagement.nuspec">
+      <SubType>Designer</SubType>
+    </None>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

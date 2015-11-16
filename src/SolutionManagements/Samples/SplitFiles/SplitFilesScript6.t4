@@ -1,0 +1,45 @@
+﻿<#@ template debug="true" hostspecific="true" language="C#" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ output extension=".txt" #>
+<#@ include file="..\..\SolutionManagement.t4" #>
+
+<# 
+
+	// get a reference to solution
+	NodeSolution sln = Solution();
+
+	// get all object of type NodeItem (working file *.cs, *.vb, ...)
+	List<NodeItem> list = sln.GetItem<NodeItem>().ToList();
+
+	foreach(NodeItem item in list)
+	{
+
+		// parse the list of code objects from 
+		foreach(BaseInfo obj in item.GetClassItems())
+		{
+			
+			ClassInfo cls = obj as ClassInfo;
+
+			if (cls != null)
+			{
+				WriteLine("class : " + cls.Name);
+
+                foreach (AttributeInfo attr in cls.Attributes)
+                {
+		 
+					WriteLine("\tattribute : " + attr.FullName);
+                    foreach (AttributeArgumentInfo arg in attr.Arguments)
+						WriteLine("\t\t" + (arg.Name  + " "  + arg.Value).Trim());
+
+                }
+
+			}
+
+		}
+
+	}
+
+
+ #>

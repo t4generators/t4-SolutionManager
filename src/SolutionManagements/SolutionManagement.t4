@@ -403,7 +403,7 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 
 
 	/// <summary>
-	/// 
+	/// base
 	/// </summary>
 	public abstract class NodeItemBase
 	{
@@ -642,6 +642,7 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 
 	}
 
+
 	/// <summary>
 	/// solution
 	/// </summary>
@@ -858,6 +859,7 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 
 	}
 
+
 	/// <summary>
 	/// property
 	/// </summary>
@@ -921,6 +923,7 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
  		private bool Undefine { get { return undefine != null ? (bool)undefine : (PropertyObject == null); } }
 
 	}
+
 
 	/// <summary>
 	/// typed property
@@ -992,6 +995,7 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 
 	}
 
+
 	/// <summary>
 	/// Property
 	/// </summary>
@@ -1001,6 +1005,7 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 		T Value { get; set; }
 
 	}
+
 
 	/// <summary>
 	/// project
@@ -2487,7 +2492,8 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 	// -----------------------------------------------------------------------------------
 
 	/// <summary>
-	/// 
+	/// code parser object factory.
+	///you can override the methods for customize the object results.
 	/// </summary>
 	public class ObjectFactory
 	{
@@ -2916,7 +2922,7 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 
 			if (_events == null)
 			{
-
+				
 				_events = new  List<CodeEventInfo>();
 
 				CodeInterface2 i = item;
@@ -2924,7 +2930,7 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 				while(i != null) 
 				{
 								 
-					var _members = item.Members.OfType<EnvDTE80.CodeEvent>()
+					var _members = i.Members.OfType<EnvDTE80.CodeEvent>()
 							.Where(f => AcceptEvent(f))
 							.Select(c => ObjectFactory.Instance.CreateEvent(this, c))
 							.Where(d => d != null)
@@ -3189,10 +3195,12 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 			this.IsGeneric = this.item.IsGeneric;
 			this.Namespace = item.Namespace.FullName;
 
+
+			this.DocComment = this.item.DocComment;
+
             
 			//this.item.Children
 			//this.item.DerivedTypes
-			//this.item.DocComment
 			//this.item.ImplementedInterfaces
 			//this.item.InfoLocation
 			//this.item.InheritanceKind
@@ -3215,6 +3223,7 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 		private List<AttributeInfo> _attributes;
 		private ClassInfo _base;
 
+		public string DocComment { get; private set; }
 		/// <summary>
 		/// 
 		/// </summary>
@@ -3226,17 +3235,17 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 		public CMAccess Access { get; private set; }
 
 		/// <summary>
-		/// 
+		/// Namespace
 		/// </summary>
 		public string Namespace { get; private set; }
 
 		/// <summary>
-		/// 
+		/// Is abstract
 		/// </summary>
 		public bool IsAbstract { get; private set; }
 
 		/// <summary>
-		/// 
+		/// Is generic
 		/// </summary>
 		public bool IsGeneric { get; private set; }
 		
@@ -3246,7 +3255,7 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 		public bool IsShared { get; private set; }
 
 		/// <summary>
-		/// 
+		/// return true if the class is derived from
 		/// </summary>
 		public bool IsDerivedFrom(string fullName)
 		{
@@ -3254,7 +3263,7 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 		}
 
 		/// <summary>
-		/// 
+		/// return the class base
 		/// </summary>
 		public ClassInfo GetBase()
 		{
@@ -3368,7 +3377,7 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 				while(i != null) 
 				{
 								 
-					var _members = item.Members.OfType<EnvDTE80.CodeEvent>()
+					var _members = i.Members.OfType<EnvDTE80.CodeEvent>()
 							.Where(f => AcceptEvent(f))
 							.Select(c => ObjectFactory.Instance.CreateEvent(this, c))
 							.Where(d => d != null)
@@ -3927,7 +3936,7 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 
 
 	/// <summary>
-	/// 
+	/// Property of class
 	/// </summary>
     [System.Diagnostics.DebuggerDisplay("property {FullName}")]
 	public class CodePropertyInfo : CodeMemberInfo
@@ -3938,7 +3947,7 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 		private IEnumerable<AttributeInfo> _attributes;
 
 		/// <summary>
-		/// 
+		/// constructor
 		/// </summary>
 		public CodePropertyInfo(BaseInfo parent, CodeProperty2 item)
 			: base(parent, item as CodeElement2)
@@ -4689,7 +4698,7 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
         {
 
 
-            if (this.project == null)
+            if (this.project == null && ObjectFactory.Instance.DefaultProject != null)
             {
                 this.project = ObjectFactory.Instance.DefaultProject.Source;
             }
