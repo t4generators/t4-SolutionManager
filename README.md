@@ -8,18 +8,17 @@
 * Parse the code C#, Visual Basic, and all .NET languages integrated into Visual Studio.
 
 
-## Getting started
+# Getting started
 
-## Solution parser
+### Parsing solution
 
-### split the generation in many files
+#### Split the generation in many files
 ```c#
 
 <#@ template debug="false" hostspecific="true" language="C#" #>
 <#@ assembly name="System.Core" #>
 <#@ output extension=".txt" #>
 <#@ include file="..\..\SolutionManagement.t4" /* reference the file include */ #>
-
 <# 
 
 	// initialize the split file manager. 
@@ -35,7 +34,7 @@
 
 ```
 
-### generate files in a specific folder
+#### Generate files in a specific folder
 ```c#
 
 <#@ template debug="false" hostspecific="true" language="C#" #>
@@ -45,13 +44,10 @@
 <#@ import namespace="System.Collections.Generic" #>
 <#@ output extension=".txt" #>
 <#@ include file="..\..\SolutionManagement.t4" #>
-
 <# 
-
 	// initialize the split file manager. 
 	using(ManagerScope _manager = StartManager())
 	{  
-
 		// get the project that contains the script T4
 		var project = _manager.GetCurrentProject();
 
@@ -64,19 +60,16 @@
         	{
 			WriteLine("Test");
 		}
-
     }
 #>
 
 ```
 
-### Manipulate the solution
+#### Manipulate the solution
 ```c#
-
+...
 	// get a reference to the solution
 	var sln = Solution();
-
-
 
 	// get all object of type NodeFolderSolution (solution folder)
 	List<NodeFolderSolution> listSlnFolders = sln.GetItem<NodeFolderSolution>().ToList();
@@ -90,20 +83,18 @@
 	// get all object of type NodeItem (working file *.cs, *.vb, ...)
 	List<NodeItem> listFiles = sln.GetItem<NodeItem>().ToList();
 
-
-
 	// get the project called 'SplitFiles'
 	var prj = sln.GetProjects(c => c.Name == "SplitFiles").FirstOrDefault();
 
 	// add a file in the solution
 	prj.AddFile("filename.txt");
-
+...
 
 ```
 
-## Code parser
+### Code parser
 
-### parse the classes of the solution
+#### Parsing the classes of the solution
 
 ```c#
 
@@ -113,7 +104,6 @@
 <#@ import namespace="System.Collections.Generic" #>
 <#@ output extension=".txt" #>
 <#@ include file="..\..\SolutionManagement.t4" #>
-
 <# 
 
 	// get a reference to solution
@@ -135,9 +125,7 @@
 			{
 				WriteLine("class : " + cls.Name);
 				WriteLine("" + cls.DocComment);
-				
 				WriteLine("Methods : ");
-
 
 
 				// Parse methods
@@ -147,13 +135,11 @@
 					var t = m.Type.AsFullName.Trim();
 					if (string.IsNullOrEmpty(t))
 						t = "void";
-
 					Write("\t" + t + " " + m.Name);
-
 					Write("(");
 					bool f = false;
-                    foreach (MethodParamInfo p1 in m.Parameters)
-                    {
+					foreach (MethodParamInfo p1 in m.Parameters)
+                			{
 						if (f)
 							Write(", ");
 						Write(p1.Type.AsFullName + " " + p1.Name);
@@ -162,10 +148,7 @@
 					WriteLine(");");
 					
 					WriteLine("");
-				
 				}
-
-
 
 
 				// Parse proprerties
@@ -179,20 +162,15 @@
 				}
 
 
-
-
 				// Parse events
 				WriteLine("");
 				WriteLine("Events : ");
 				foreach(CodeEventInfo e in cls.GetEvents())
 				{
 					WriteLine("\t event " + e.Type.AsFullName  + " " + e.Name);
-
-
 				}
 
 			}
-
 
 		}
 
@@ -202,21 +180,10 @@
  #>
 ```
 
-
-
-## Parse attributes
+### Parse attributes
 
 ```c#
-
-<#@ template debug="true" hostspecific="true" language="C#" #>
-<#@ assembly name="System.Core" #>
-<#@ import namespace="System.Linq" #>
-<#@ import namespace="System.Collections.Generic" #>
-<#@ output extension=".txt" #>
-<#@ include file="..\..\SolutionManagement.t4" #>
-
-<# 
-
+...
 	// get a reference to solution
 	NodeSolution sln = Solution();
 
@@ -231,34 +198,23 @@
 		{
 			
 			ClassInfo cls = obj as ClassInfo;
-
+			
 			if (cls != null)
 			{
 				WriteLine("class : " + cls.Name);
-
-                foreach (AttributeInfo attr in cls.Attributes)
-                {
-		 
+				foreach (AttributeInfo attr in cls.Attributes)
+        			{
 					WriteLine("\tattribute : " + attr.FullName);
-                    foreach (AttributeArgumentInfo arg in attr.Arguments)
+                			foreach (AttributeArgumentInfo arg in attr.Arguments)
 						WriteLine("\t\t" + (arg.Name  + " "  + arg.Value).Trim());
-
-                }
-
+        			}
 			}
-
 		}
-
 	}
-
-
- #>
-
+...
  ```
 
-
-
-### Author
+#### Author
   **Gaël, Beard** 
   (gaelgael5@gmail.com)<br /> 
   Architect by pickup<br /> 
