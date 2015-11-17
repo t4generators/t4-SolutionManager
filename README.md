@@ -217,15 +217,6 @@
 ...
  ```
 
-#### Author
-  **Gaël, Beard** 
-  (gaelgael5@gmail.com)<br /> 
-  Architect by pickup<br /> 
-
-  Copyright 2015 <br /> 
-
- ```
-
 
  ### Parse interfaces
 
@@ -307,3 +298,12 @@
 	}
 
 ```
+
+
+
+#### Author
+  **Gaël, Beard** 
+  (gaelgael5@gmail.com)<br /> 
+  Architect by pickup<br /> 
+
+  Copyright 2015 <br /> 
