@@ -1,4 +1,0 @@
-﻿
-class : MyClass1
-	attribute : System.Diagnostics.DebuggerDisplayAttribute
-		"{ToString()}"

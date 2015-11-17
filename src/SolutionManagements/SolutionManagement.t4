@@ -398,8 +398,114 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 			return fld;
 
 		}
-	}
+	
+	
+		public static GenericArguments ParseGenericArguments(string type, string path, int absoluteCharOffset)
+        {
 
+			GenericArguments generics = new GenericArguments();
+			
+			var p = type.IndexOf('<');
+            System.Text.StringBuilder s = new System.Text.StringBuilder();
+			if (p > -1)
+            {
+				for (int i = p + 1; i < type.Length; i++)
+				{
+
+					deb:
+						var c = type[i];
+
+					switch (c)
+					{
+
+						case '>':
+						case ',':
+							generics.Add(s.ToString().Trim());
+							s.Clear();
+							break;
+
+						default:
+							s.Append(c);
+							break;
+					}
+
+				}
+            }
+
+
+			string txt = LoadText(path, absoluteCharOffset);
+			System.Text.RegularExpressions.MatchCollection matchs = r.Matches(txt);
+
+            foreach (System.Text.RegularExpressions.Match item in matchs)
+            {
+				string t = item.Value.Substring("where".Length).Trim();
+				GenericArgument gen = generics.Resolve(t);
+				if (gen != null)
+                {
+					t = txt.Substring(item.Index + item.Length + 1).Trim();
+					var m2 = r.Match(t);
+					if (m2.Success)
+						t = t.Substring(0, m2.Index);
+					var constraints = t.Split(',');
+                    foreach (string constraint in constraints)
+						gen.AddConstraint(constraint.Trim());
+                }
+			}
+
+			return generics;
+
+        }
+
+
+		private static string LoadText(string path, int absoluteCharOffset)
+        {
+
+			var file = new FileInfo (path);
+			byte[] arr = new byte[file.Length];
+
+            using(FileStream stream = file.OpenRead())
+				stream.Read(arr, 0, arr.Length);
+
+			System.Text.StringBuilder s = new StringBuilder(System.Text.Encoding.UTF8.GetString(arr).Replace("\n", ""));
+			StringBuilder s2 = new StringBuilder(s.Length - absoluteCharOffset);
+
+			char txt = (char)0;
+            for (int i = absoluteCharOffset; i < s.Length; i++)
+            {
+			
+				var c = s[i];
+
+				if (txt == (char)0)
+                {
+					if (c == '"' || c == '\'')
+					{
+						txt = c;
+						continue;
+					}
+
+					if (c == '{' || c== ';')
+						break;
+
+					s2.Append(c);
+
+                }
+				else if (c == txt)
+				{
+					txt = (char)0;
+					continue;
+				}
+
+			}	
+
+			return s2.ToString();
+
+        }
+
+		
+		private const string pattern = @"where\s[^:]*";
+		private static System.Text.RegularExpressions.Regex r = new System.Text.RegularExpressions.Regex(pattern);
+
+	}
 
 
 	/// <summary>
@@ -2346,8 +2452,32 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 
 		}
 
+
 		///<summary>
-		/// return the list of classes contains in the file.
+		/// return the list of object contains in the file.
+		///</summary>
+		public IEnumerable<BaseInfo> GetClassItems<T>(Func<T, bool> predicate)
+			where T : BaseInfo
+        {
+
+			return GetClassItems().OfType<T>().Where(predicate);
+
+        }
+
+
+		///<summary>
+		/// return the list of object contains in the file.
+		///</summary>
+		public IEnumerable<BaseInfo> GetClassItems<T>()
+			where T : BaseInfo
+        {
+
+			return GetClassItems().OfType<T>();
+
+        }
+
+		///<summary>
+		/// return the list of objects contains in the file.
 		///</summary>
 		public IEnumerable<BaseInfo> GetClassItems()
 		{
@@ -2766,9 +2896,6 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 
 		}
 
-		/// <summary>
-		/// 
-		/// </summary>
 		protected readonly CodeInterface2 item;
 
 		private List<CodeFunctionInfo> _methods;
@@ -2776,6 +2903,25 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 		private List<CodeEventInfo> _events;
 		private List<AttributeInfo> _attributes;
 		private ClassInfo _base;
+		private GenericArguments _genericArguments;
+
+		/// <summary>
+		/// List the generics arguments if the interface is generic 
+		/// </summary>
+		public GenericArguments GenericArguments
+        {
+			get
+			{
+				if (this._genericArguments == null)
+				{
+					if (this.IsGeneric)
+						this._genericArguments = Helper.ParseGenericArguments(this.item.FullName, this.Parent.LocalPath, this.item.StartPoint.AbsoluteCharOffset);
+					else
+						this._genericArguments = new GenericArguments();
+				}
+				return _genericArguments;
+            }
+        }
 
 		/// <summary>
 		/// 
@@ -3198,10 +3344,10 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 
 			this.DocComment = this.item.DocComment;
 
-            
+			CodeElements _interfaces = this.item.ImplementedInterfaces;
+
 			//this.item.Children
 			//this.item.DerivedTypes
-			//this.item.ImplementedInterfaces
 			//this.item.InfoLocation
 			//this.item.InheritanceKind
 			//this.item.Kind = vsCMElement.
@@ -3211,6 +3357,35 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 
 		}
 
+
+		private GenericArguments _genericArguments;
+		
+		/// <summary>
+		/// List the generics arguments if the class is generic 
+		/// </summary>
+		public GenericArguments GenericArguments 
+        {
+			get
+			{
+				if (this._genericArguments == null)
+				{
+					if (this.IsGeneric)
+						this._genericArguments = Helper.ParseGenericArguments(this.item.FullName, this.Parent.LocalPath, this.item.StartPoint.AbsoluteCharOffset);
+					else
+						this._genericArguments = new GenericArguments();
+				}
+				return _genericArguments;
+            }
+        }
+
+		/*
+		public TypeInfo Type
+        {
+			get
+            {
+					return new TypeInfo(
+            }
+        }*/
 
 		/// <summary>
 		/// 
@@ -3223,7 +3398,13 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 		private List<AttributeInfo> _attributes;
 		private ClassInfo _base;
 
+
+
+		/// <summary>
+		/// 
+		/// </summary>
 		public string DocComment { get; private set; }
+		
 		/// <summary>
 		/// 
 		/// </summary>
@@ -4081,7 +4262,8 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 			_item = method;
 			Summary = string.Empty;
 			_signature = method.Name;
-			
+			this.IsGeneric = method.IsGeneric;
+
 			try
 			{
 				BuildComment(_item.DocComment);
@@ -4125,8 +4307,46 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 			}
 		}
 
+		public bool IsGeneric { get; private set; }
+		
+
+		private GenericArguments _genericArguments;
+
 		/// <summary>
-		/// 
+		/// List the generics arguments if the method is generic 
+		/// </summary>
+		public GenericArguments GenericArguments 
+        {
+			get
+			{
+				if (this._genericArguments == null)
+				{
+					if (this.IsGeneric)
+                    {
+
+						string localPath = string.Empty;
+						ClassInfo cls = this.Parent as ClassInfo;
+						if (cls != null)
+							localPath = cls.Parent.LocalPath;
+						else
+						{
+							InterfaceInfo cls2 = this.Parent as InterfaceInfo;
+							if (cls2 != null)
+								localPath= cls2.Parent.LocalPath;
+                        }
+
+						this._genericArguments = Helper.ParseGenericArguments(this._item.FullName, localPath , this._item.StartPoint.AbsoluteCharOffset);
+					
+					}
+					else
+						this._genericArguments = new GenericArguments();
+				}
+				return _genericArguments;
+            }
+        }
+
+		/// <summary>
+		/// result type of the method
 		/// </summary>
 		public override TypeInfo Type
 		{
@@ -4139,7 +4359,7 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 		}
 
 		/// <summary>
-		/// 
+		/// Attributes of the method
 		/// </summary>
 		public IEnumerable<AttributeInfo> Attributes 
 		{
@@ -4163,35 +4383,22 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 			}
 		}
 
-
-		/// <summary>
-		/// 
-		/// </summary>
 		protected IEnumerable<AttributeInfo> GetAttributes(string attributeType)
 		{
 			return ObjectFactory.GetAttributes(Attributes, attributeType).ToList();
 		}
 
-		/// <summary>
-		/// 
-		/// </summary>
 		protected AttributeInfo GetAttribute(string attributeType)
 		{
 			return ObjectFactory.GetAttributes(Attributes, attributeType).FirstOrDefault();
 		}
 
-		/// <summary>
-		/// 
-		/// </summary>
 		protected void ForAttributes(string attributeType, Action<AttributeInfo> act)
 		{
 			foreach(AttributeInfo attr in ObjectFactory.GetAttributes(Attributes, attributeType))
 				act(attr);
 		}
 
-		/// <summary>
-		/// 
-		/// </summary>
 		protected string GetArgumentFromAttribute(string attributeType, string argumentName)
 		{
 			AttributeInfo attr = ObjectFactory.GetAttributes(Attributes, attributeType).FirstOrDefault();
@@ -4204,9 +4411,6 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 			return string.Empty;
 		}
 
-		/// <summary>
-		/// 
-		/// </summary>
 		protected string GetArgumentFromAttribute(string attributeType, int indexArgument)
 		{
 			AttributeInfo attr = ObjectFactory.GetAttributes(Attributes, attributeType).FirstOrDefault();
@@ -4220,7 +4424,7 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 		}
 
 		/// <summary>
-		/// 
+		/// Parameters of the method
 		/// </summary>
 		public IEnumerable<MethodParamInfo> Parameters 
 		{ 
@@ -4249,59 +4453,6 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 
 			} 
 		}
-
-		//public void WriteFormalParameters(bool first)
-		//{
-			//WriteFormalParameters(first, false);
-		//}
-
-		// Write out all the parameters as part of a method declaration
-		//public void WriteFormalParameters(bool first, bool includeDefaults)
-		//{
-			//foreach (var p in Parameters)
-			//{
-				//if (first)
-					//first = false;
-				//else
-					//TT.Write(", ");
-//
-				//TT.Write(p.Type + " " + p.Name);
-				//if(includeDefaults && !string.IsNullOrEmpty(p.DefaultValue))
-					//TT.Write(" = " + p.DefaultValue);
-			//}
-		//}
-//
-		//// Pass non-empty param values to make sure the ActionResult ctors don't complain
-		//// REVIEW: this is a bit dirty
-		//public void WriteNonEmptyParameterValues(bool first)
-		//{
-			//foreach (var p in Parameters)
-			//{
-				//if (first)
-					//first = false;
-				//else
-					//TT.Write(", ");
-//
-				//if(!string.IsNullOrEmpty(p.DefaultValue))
-					//TT.Write(p.DefaultValue);
-				//else
-				//{
-					//switch (p.Type)
-					//{
-						//case "string":
-							//TT.Write("\" \"");
-							//break;
-						//case "byte[]":
-							//TT.Write("new byte[0]");
-							//break;
-						//default:
-							//TT.Write("default(" + p.Type + ")");
-							//break;
-					//}
-				//}
-			//}
-		//}
-//
 
 		/// <summary>
 		/// 
@@ -4356,7 +4507,7 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 		private CodeFunctionInfo parent;
 
 		/// <summary>
-		/// 
+		/// constructor
 		/// </summary>
 		public MethodParamInfo(CodeFunctionInfo parent, CodeParameter2 item, string comment)
 		{
@@ -4369,27 +4520,27 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 		}
 
 		/// <summary>
-		/// 
+		/// name of the parameter
 		/// </summary>
 		public string Name { get; private set; }
 
 		/// <summary>
-		/// 
+		/// type of the parameter
 		/// </summary>
 		public TypeInfo Type { get; private set; }
 
 		/// <summary>
-		/// 
+		/// default value if not spécified in the arguments
 		/// </summary>
 		public string DefaultValue { get; set; }
 
 		/// <summary>
-		/// 
+		/// comment of the parameter
 		/// </summary>
 		public string Comment { get; private set; }
 
 		/// <summary>
-		/// 
+		/// Attributes of the parameter
 		/// </summary>
 		public IEnumerable<AttributeInfo> Attributes 
 		{
@@ -4413,42 +4564,27 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 			}
 		}
 
-		/// <summary>
-		/// 
-		/// </summary>
 		protected virtual void InitializeAttributes(List<AttributeInfo> attributes)
 		{
 
 		}
 
-		/// <summary>
-		/// 
-		/// </summary>
 		protected IEnumerable<AttributeInfo> GetAttributes(string attributeType)
 		{
 			return ObjectFactory.GetAttributes(Attributes, attributeType).ToList();
 		}
 
-		/// <summary>
-		/// 
-		/// </summary>
 		protected AttributeInfo GetAttribute(string attributeType)
 		{
 			return ObjectFactory.GetAttributes(Attributes, attributeType).FirstOrDefault();
 		}
 
-		/// <summary>
-		/// 
-		/// </summary>
 		protected void ForAttributes(string attributeType, Action<AttributeInfo> act)
 		{
 			foreach(AttributeInfo attr in ObjectFactory.GetAttributes(Attributes, attributeType))
 				act(attr);
 		}
 
-		/// <summary>
-		/// 
-		/// </summary>
 		protected string GetArgumentFromAttribute(string attributeType, string argumentName)
 		{
 			AttributeInfo attr = ObjectFactory.GetAttributes(Attributes, attributeType).FirstOrDefault();
@@ -4461,9 +4597,6 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 			return string.Empty;
 		}
 
-		/// <summary>
-		/// 
-		/// </summary>
 		protected string GetArgumentFromAttribute(string attributeType, int indexArgument)
 		{
 			AttributeInfo attr = ObjectFactory.GetAttributes(Attributes, attributeType).FirstOrDefault();
@@ -4480,7 +4613,7 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 
 
 	/// <summary>
-	/// 
+	/// type info reference
 	/// </summary>
     [System.Diagnostics.DebuggerDisplay("{ClassName}")]
 	public class TypeInfo
@@ -4566,9 +4699,11 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
             {
 
                 this.IsClass = (type.TypeKind == vsCMTypeRef.vsCMTypeRefCodeType);
-                if (!this.IsClass && type.TypeKind == vsCMTypeRef.vsCMTypeRefArray)
+                
+				if (!this.IsClass && type.TypeKind == vsCMTypeRef.vsCMTypeRefArray)
                     this.IsClass = (type.Rank > 0 && type.ElementType.TypeKind == vsCMTypeRef.vsCMTypeRefCodeType);
-                else
+
+                else if (!this.IsClass && type.TypeKind != vsCMTypeRef.vsCMTypeRefOther)
                     this.IsEnumerable = type.CodeType.get_IsDerivedFrom(typeof(System.Collections.IEnumerable).FullName);
 
                 if (type.TypeKind == vsCMTypeRef.vsCMTypeRefCodeType)
@@ -4582,6 +4717,25 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
             DispatchType();
             OnCreated();
 
+			/*
+			        vsCMTypeRefOther,
+					vsCMTypeRefCodeType,
+					vsCMTypeRefArray,
+					vsCMTypeRefVoid,
+					vsCMTypeRefPointer,
+					vsCMTypeRefString,
+					vsCMTypeRefObject,
+					vsCMTypeRefByte,
+					vsCMTypeRefChar,
+					vsCMTypeRefShort,
+					vsCMTypeRefInt,
+					vsCMTypeRefLong,
+					vsCMTypeRefFloat,
+					vsCMTypeRefDouble,
+					vsCMTypeRefDecimal,
+					vsCMTypeRefBool,
+					vsCMTypeRefVariant
+			*/
         }
 
 		/// <summary>
@@ -5102,6 +5256,126 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 
 	}
 
+	/// <summary>
+	/// collection of generic argument 
+	/// </summary>
+	public class GenericArguments : IEnumerable<GenericArgument>
+    {
+
+		private Dictionary<string, GenericArgument> _list;
+
+		/// <summary>
+		/// contructor
+		/// </summary>
+        public GenericArguments()
+        {
+			_list = new Dictionary<string, GenericArgument>();
+        }
+
+		/// <summary>
+		/// add an item
+		/// </summary>
+		public GenericArgument Add(string typeName)
+        {
+			var g = new GenericArgument(typeName);
+			_list.Add(typeName, g);
+			return g;
+        }
+
+		/// <summary>
+		/// resolve an item by typeName
+		/// </summary>
+		public GenericArgument Resolve(string typeName)
+        {
+			GenericArgument result;
+			_list.TryGetValue(typeName, out result);
+			return result;
+        }
+
+		
+		/// <summary>
+        /// Returns an enumerator that iterates through the collection.
+        /// </summary>
+        /// <returns>
+        /// An enumerator that can be used to iterate through the collection.
+        /// </returns>
+        /// <exception cref="System.NotImplementedException"></exception>
+        public IEnumerator<GenericArgument> GetEnumerator()
+        {
+			return this._list.Values.GetEnumerator();
+        }
+
+        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
+        {
+            return this._list.Values.GetEnumerator();
+        }
+
+	}
+
+	/// <summary>
+	/// generic argument informations
+	/// </summary>
+	public class GenericArgument
+    {
+
+		private List<string> _constraints;
+
+		/// <summary>
+		/// constructor
+		/// </summary>
+	    public GenericArgument(string typeName)
+        {
+			_constraints = new List<string>();
+			this.Name = typeName;
+        }
+
+
+		public bool HasConstraint { get; private set; }
+
+
+		/// <summary>
+		/// Add constraint
+		/// </summary>
+		public void AddConstraint(string constraint)
+        {
+			if(!string.IsNullOrEmpty(constraint))
+            {
+
+				HasConstraint = true;
+
+				if (constraint == "new()")
+					this.HasEmptyConstructor = true;
+			
+				else if (constraint == "new()")
+					this.IsClass = true;
+			
+				else
+					_constraints.Add(constraint);
+			}
+		}
+
+		/// <summary>
+		/// name of the generic
+		/// </summary>
+		public string Name { get; private set; }
+
+
+		/// <summary>
+		/// the type maust have an empty contructor accessible
+		/// </summary>
+		public bool HasEmptyConstructor { get; private set; }
+
+		/// <summary>
+		/// the type is a class
+		/// </summary>
+		public bool IsClass { get; private set; }
+
+		/// <summary>
+		/// list of contraints
+		/// </summary>
+		public IEnumerable<string> Constraints { get { return _constraints; } }
+
+    }
 
 
 

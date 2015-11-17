@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 namespace SplitFiles.Classes
 {
 
-
     /// <summary>
     /// MyComment for MyClass1 
     /// </summary>
@@ -29,6 +28,11 @@ namespace SplitFiles.Classes
         public string Property1 { get; set; }
 
         public event EventHandler MyEvent1;
+
+        public T Get<T>() where T : class
+        {
+            return default(T);
+        }
 
     }
 }

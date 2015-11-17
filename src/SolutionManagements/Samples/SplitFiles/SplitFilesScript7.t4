@@ -1,0 +1,55 @@
+﻿<#@ template debug="true" hostspecific="true" language="C#" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ output extension=".txt" #>
+<#@ include file="..\..\SolutionManagement.t4" #>
+
+<# 
+
+	// get a reference to solution
+	NodeSolution sln = Solution();
+
+	// get all object of type NodeItem (working file *.cs, *.vb, ...)
+	List<NodeItem> list = sln.GetItem<NodeItem>().ToList();
+
+	foreach(NodeItem item in list)
+	{
+
+		// parse the list of code objects from 
+		foreach(InterfaceInfo i in item.GetClassItems<InterfaceInfo>())
+		{
+
+				WriteLine("interfaces : " + i.Name);
+
+                // Parse methods
+				foreach(CodeFunctionInfo m in i.GetMethods())
+				{
+
+					var t = m.Type.AsFullName.Trim();
+					if (string.IsNullOrEmpty(t))
+						t = "void";
+
+					Write("\t" + t + " " + m.Name);
+
+					Write("(");
+					bool f = false;
+                    foreach (MethodParamInfo p1 in m.Parameters)
+                    {
+						if (f)
+							Write(", ");
+						Write(p1.Type.AsFullName + " " + p1.Name);
+						f = true;
+					}
+					WriteLine(");");
+					
+					WriteLine("");
+				
+				}
+
+		}
+
+	}
+
+
+ #>

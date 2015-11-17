@@ -203,7 +203,7 @@
 
 
 
-## Parse attributes
+### Parse attributes
 
 ```c#
 
@@ -254,3 +254,85 @@
  #>
 
  ```
+
+
+ ### Parse interfaces
+
+```c#
+
+ 	// get a reference to solution
+	NodeSolution sln = Solution();
+
+	// get all object of type NodeItem (working file *.cs, *.vb, ...)
+	List<NodeItem> list = sln.GetItem<NodeItem>().ToList();
+
+	foreach(NodeItem item in list)
+	{
+
+		// parse the list of code objects from 
+		foreach(InterfaceInfo i in item.GetClassItems<InterfaceInfo>())
+		{
+
+				WriteLine("interfaces : " + i.Name);
+
+                ...
+
+		}
+
+	}
+
+ ```
+
+ ### Parse generic arguments of the class
+
+ ```c#
+
+ 	NodeSolution sln = Solution();
+
+	// get all object of type NodeItem (working file *.cs, *.vb, ...)
+	List<NodeItem> list = sln.GetItem<NodeItem>().ToList();
+
+	foreach(NodeItem item in list)
+	{
+
+		// parse the list of code objects from 
+		foreach(ClassInfo cls in item.GetClassItems<ClassInfo>(c => c.IsGeneric))
+		{
+		
+			WriteLine("class : " + cls.FullName);
+            foreach (GenericArgument gen in cls.GenericArguments)
+            {
+
+				Write("\twhere " + gen.Name + ":" );
+		 
+				if (gen.IsClass)
+					WriteLine(" class");
+
+				bool t = false;
+
+                foreach (var cons in gen.Constraints)
+                {
+					if (t)
+						Write(",");
+
+					Write(" " + cons);
+
+					t = true;
+                }
+
+
+				if (gen.HasEmptyConstructor)
+                {
+					if (t)
+						Write(",");
+
+					WriteLine(" new()");
+                }
+
+				WriteLine("");
+            }
+		}
+
+	}
+
+```

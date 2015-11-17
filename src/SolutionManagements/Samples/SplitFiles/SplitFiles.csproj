@@ -39,6 +39,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Classes\IContrac2.cs" />
+    <Compile Include="Classes\IContract1.cs" />
+    <Compile Include="Classes\MyClass2.cs" />
     <Compile Include="Classes\MyClass1.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
@@ -47,11 +50,18 @@
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>SplitFilesScript4.txt</LastGenOutput>
     </Content>
-    <Content Include="SplitFilesScript6.txt">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>SplitFilesScript6.t4</DependentUpon>
-    </Content>
+    <None Include="SplitFilesScript9.t4">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>SplitFilesScript9.txt</LastGenOutput>
+    </None>
+    <None Include="SplitFilesScript8.t4">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>SplitFilesScript8.txt</LastGenOutput>
+    </None>
+    <None Include="SplitFilesScript7.t4">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>SplitFilesScript7.txt</LastGenOutput>
+    </None>
     <None Include="SplitFilesScript6.t4">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>SplitFilesScript6.txt</LastGenOutput>

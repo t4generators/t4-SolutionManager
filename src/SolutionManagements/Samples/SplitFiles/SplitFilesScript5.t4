@@ -13,6 +13,8 @@
 	// get all object of type NodeItem (working file *.cs, *.vb, ...)
 	List<NodeItem> list = sln.GetItem<NodeItem>().ToList();
 
+	System.Diagnostics.Debugger.Launch();
+
 	foreach(NodeItem item in list)
 	{
 
@@ -24,7 +26,69 @@
 
 			if (cls != null)
 			{
-				WriteLine("class : " + cls.Name);
+				Write("class : " + cls.Name);
+
+				if (cls.IsGeneric)
+                    {
+						Write("<");
+						bool t1 = false;
+                        foreach (GenericArgument item4 in cls.GenericArguments)
+                        {
+							if (t1)
+								Write(",");
+							Write(item4.Name);
+							t1 = true;
+                        }
+
+						Write(">");
+
+						
+                        foreach (GenericArgument item4 in cls.GenericArguments)
+                        {
+							if (item4.HasConstraint)
+                            {
+
+								WriteLine("");
+
+								Write("\t\t where " + item4.Name  + " : ");
+							
+								t1 = false;
+
+								if (item4.IsClass)
+                                {
+									Write(" class");
+									t1 = true;
+                                }
+
+                                foreach (string item5 in item4.Constraints)
+                                {
+
+									if (t1)
+										Write(",");
+									
+									Write(" " + item5);
+
+									t1 = true;
+
+                                }
+
+								if (item4.HasEmptyConstructor)
+                                {
+									
+									if (t1)
+										Write(",");
+
+									Write(" new()");
+                                
+								}
+							}
+                        }
+                    
+
+					}
+	
+					WriteLine("");
+
 				WriteLine("" + cls.DocComment);
 				
 				WriteLine("Methods : ");
@@ -41,6 +105,21 @@
 
 					Write("\t" + t + " " + m.Name);
 
+					if (m.IsGeneric)
+                    {
+						Write("<");
+						bool t1 = false;
+                        foreach (GenericArgument item3 in m.GenericArguments)
+                        {
+							if (t1)
+								Write(",");
+							Write(item3.Name);
+							t1 = true;
+                        }
+
+						Write(">");
+                    }
+
 					Write("(");
 					bool f = false;
                     foreach (MethodParamInfo p1 in m.Parameters)
@@ -50,9 +129,52 @@
 						Write(p1.Type.AsFullName + " " + p1.Name);
 						f = true;
 					}
-					WriteLine(");");
+					WriteLine(")");
 					
-					WriteLine("");
+					if (m.IsGeneric)
+                    {
+						foreach (GenericArgument item4 in m.GenericArguments)
+                        {
+							if (item4.HasConstraint)
+							{
+
+								Write("\t\t where " + item4.Name  + " : ");
+							
+								bool t1 = false;
+
+								if (item4.IsClass)
+								{
+									Write(" class");
+									t1 = true;
+								}
+
+								foreach (string item5 in item4.Constraints)
+								{
+
+									if (t1)
+										Write(",");
+								
+									Write(" " + item5);
+
+									t1 = true;
+
+								}
+
+								if (item4.HasEmptyConstructor)
+								{
+								
+									if (t1)
+										Write(",");
+
+									Write(" new()");
+                            
+								}
+								WriteLine("");
+
+							}
+						}
+
+                    }
 				
 				}
 
