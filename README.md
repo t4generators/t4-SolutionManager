@@ -215,10 +215,10 @@
 		}
 	}
 ...
- ```
+```
 
 
- ### Parse interfaces
+### Parse interfaces
 
 ```c#
 
@@ -243,11 +243,11 @@
 
 	}
 
- ```
+```
 
- ### Parse generic arguments of the class
+### Parse generic arguments of the class
 
- ```c#
+```c#
 
  	NodeSolution sln = Solution();
 
@@ -298,7 +298,6 @@
 	}
 
 ```
-
 
 
 #### Author
