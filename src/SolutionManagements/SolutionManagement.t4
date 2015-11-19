@@ -383,6 +383,7 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 			NodeItem fld = null;
 
 			var t = s.FileNames[1] as string;
+            t = t.TrimEnd('\\');
             
             if (t != null)
             {
@@ -1131,13 +1132,35 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 		}
 
 		/// <summary>
-		/// add a new file in the folder
+		/// add a new file in the folder to the solution
 		/// </summary>
-		public void AddFile(string filename)
+		public NodeItem AddFile(FileInfo file)
         {
+            return AddFile(file.FullName);
+        }
 
-            this.project.ProjectItems.AddFromFile(filename);
+		/// <summary>
+		/// add a new file in the folder to the solution
+		/// </summary>
+		public NodeItem AddFile(string FullName)
+        {
+            return new NodeItem(this.project.ProjectItems.AddFromFile(FullName));
+        }
 
+		/// <summary>
+		/// add a new files in the folder of the solution
+		/// </summary>
+        public NodeItemFolder AddFiles(DirectoryInfo directory)
+        {
+            return AddFiles(directory.FullName);
+        }
+
+		/// <summary>
+		/// add a new files in the folder of the solution
+		/// </summary>
+		public NodeItemFolder AddFiles(string directoryFullName)
+        {
+            return new NodeItemFolder(this.project.ProjectItems.AddFromDirectory(directoryFullName));
         }
 
 		/// <summary>
@@ -2200,6 +2223,38 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 		/// </summary>
 		public override KindItem KindItem { get { return KindItem.Folder; } }
 
+		        /// <summary>
+        /// add a new file in the folder to the solution
+        /// </summary>
+        public NodeItem AddFile(FileInfo file)
+        {
+            return AddFile(file.FullName);
+        }
+
+        /// <summary>
+        /// add a new file in the folder to the solution
+        /// </summary>
+        public NodeItem AddFile(string FullName)
+        {
+            return new NodeItem(this.s.ProjectItems.AddFromFile(FullName));
+        }
+
+        /// <summary>
+        /// add a new files in the folder of the solution
+        /// </summary>
+        public NodeItemFolder AddFiles(DirectoryInfo directory)
+        {
+            return AddFiles(directory.FullName);
+        }
+
+        /// <summary>
+        /// add a new files in the folder of the solution
+        /// </summary>
+        public NodeItemFolder AddFiles(string directoryFullName)
+        {
+            return new NodeItemFolder(this.s.ProjectItems.AddFromDirectory(directoryFullName));
+        }
+
 		/// <summary>
 		/// resolve the folder path and return the last folder of the path.
 		/// if a part is missing. it is created
@@ -2281,6 +2336,7 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 
 			this.s = s;            
             this.path = s.FileNames[1] as string;
+            this.path = this.path.TrimEnd('\\');
 
 			//Debug.WriteLine("----------------------------");
 			//foreach (Property item in s.Properties)
@@ -2567,6 +2623,25 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 		/// </summary>
 		public string Name2 { get { return s.FileNames[0]; } }
 		
+		
+
+        /// <summary>
+        /// add a new file in the folder to the solution
+        /// </summary>
+        public NodeItem AddFile(FileInfo file)
+        {
+            return AddFile(file.FullName);
+        }
+
+        /// <summary>
+        /// add a new file in the folder to the solution
+        /// </summary>
+        public NodeItem AddFile(string FullName)
+        {
+            return new NodeItem(this.s.ProjectItems.AddFromFile(FullName));
+        }
+
+
 	}
 
 	/// <summary>
@@ -2584,17 +2659,39 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 			
 		}
 
-        /// <summary>
-        /// Adds the file in the folder.
-        /// </summary>
-        /// <param name="filename">The filename.</param>
-        public void AddFile(string filename)
-        {
-            
-			//var file = Path.GetFileName(filename);
-            this.project.ProjectItems.AddFromFile(filename);
 
+		/// <summary>
+		/// add a new file in the folder of the solution
+		/// </summary>
+		public NodeItem AddFile(FileInfo file)
+        {
+            return AddFile(file.FullName);
         }
+
+		/// <summary>
+		/// add a new file in the folder of the solution
+		/// </summary>
+		public NodeItem AddFile(string FullName)
+        {
+            return new NodeItem(this.project.ProjectItems.AddFromFile(FullName));
+        }
+
+		/// <summary>
+		/// add a new files in the folder to the solution
+		/// </summary>
+        public NodeItemFolder AddFiles(DirectoryInfo directory)
+        {
+            return AddFiles(directory.FullName);
+        }
+
+		/// <summary>
+		/// add a new files in the folder to the solution
+		/// </summary>
+		public NodeItemFolder AddFiles(string directoryFullName)
+        {
+            return new NodeItemFolder(this.project.ProjectItems.AddFromDirectory(directoryFullName));
+        }
+
 
 		/// <summary>
 		/// return the fullname of the file
