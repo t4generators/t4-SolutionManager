@@ -10,8 +10,6 @@
     </UpgradeBackupLocation>
     <OldToolsVersion>4.0</OldToolsVersion>
   </PropertyGroup>
-  <Import Project="$(VSToolsPath)\DSLTools\Microsoft.DslTools.settings.targets" Condition="'$(VSToolsPath)' != ''" />
-  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v10.0\DSLTools\Microsoft.DslTools.settings.targets" Condition="false" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
@@ -174,7 +172,6 @@
   <Target Name="AfterBuild">
   </Target>
   -->
-  <Import Project="$(DslTargetsPath)\Microsoft.DSLTools.targets" />
   <!-- ******************************* -->
   <!-- T4 MsBuild utilities -->
   <PropertyGroup>
