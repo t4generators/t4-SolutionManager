@@ -50,6 +50,7 @@
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>SplitFilesScript4.txt</LastGenOutput>
     </Content>
+    <Content Include="targetFolder\SubTargetFolder\Test.generated.txt" />
     <None Include="SplitFilesScript9.t4">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>SplitFilesScript9.txt</LastGenOutput>
@@ -68,7 +69,7 @@
     </None>
     <None Include="SplitFilesScript5.t4">
       <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>SplitFilesScript51.txt</LastGenOutput>
+      <LastGenOutput>SplitFilesScript5.txt</LastGenOutput>
     </None>
     <Content Include="SplitFilesScript3.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
@@ -76,7 +77,7 @@
     </Content>
     <Content Include="SplitFilesScript2.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>SplitFilesScript2.txt</LastGenOutput>
+      <LastGenOutput>SplitFilesScript2.cs</LastGenOutput>
     </Content>
     <Content Include="SplitFilesScript.tt">
       <Generator>TextTemplatingFileGenerator</Generator>

@@ -3,10 +3,13 @@
 
 [![Gitter](https://badges.gitter.im/Join Chat.svg)](https://gitter.im/gaelgael5/t4generators?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge) ![Build status](https://ci.appveyor.com/api/projects/status/miuedx7p06tbhdk1?svg=true)
 
+## what this script T4 do
 * Manages multi file generation with multi folder target.
 * List the files from solution. 
 * Parse the code C#, Visual Basic, and all .NET languages integrated into Visual Studio.
 
+## how this script T4 is developed
+* this t4 is developed in a classic csharp project (VisualStudio.ParsingSolution). a T4 "Generator/T4/Project2T4/GenerateFromProject.t4" concate all files of the project and generate the T4 "ParsingSolution.generated.t4"
 
 # Getting started
 
@@ -17,20 +20,29 @@
 
 <#@ template debug="false" hostspecific="true" language="C#" #>
 <#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
 <#@ output extension=".txt" #>
-<#@ include file="..\..\SolutionManagement.t4" /* reference the file include */ #>
+<#@ include file="..\..\..\VisualStudio.ParsingSolution\ParsingSolution.generated.t4" #>
+
 <# 
 
 	// initialize the split file manager. 
-	using(ManagerScope _manager = StartManager())
-	{  
+	using(ManagerScope _manager = ScopeHelper.StartManager())
+    {  
+
 		// create a new file called 'test.generated.txt' located under the script T4.
 		using (_manager.NewFile("Test.txt"))
-		{
+        {
+
 			WriteLine("Test");
+        
 		}
-  	}
-#>
+
+    }
+
+ #>
 
 ```
 
@@ -42,12 +54,15 @@
 <#@ import namespace="System.Linq" #>
 <#@ import namespace="System.Text" #>
 <#@ import namespace="System.Collections.Generic" #>
-<#@ output extension=".txt" #>
-<#@ include file="..\..\SolutionManagement.t4" #>
+<#@ output extension=".cs" #>
+<#@ include file="..\..\..\VisualStudio.ParsingSolution\ParsingSolution.generated.t4" #>
+
 <# 
+
 	// initialize the split file manager. 
-	using(ManagerScope _manager = StartManager())
-	{  
+	using(ManagerScope _manager = ScopeHelper.StartManager())
+    {  
+
 		// get the project that contains the script T4
 		var project = _manager.GetCurrentProject();
 
@@ -57,11 +72,15 @@
 		// create a new file called 'test.generated.txt' located in the specified folder.
 		// Note : all files tagged 'generated' in the name are deleted.
 		using (_manager.NewFile("Test.txt", folder))
-        	{
+        {
+
 			WriteLine("Test");
+        
 		}
+
     }
-#>
+
+ #>
 
 ```
 
@@ -69,7 +88,7 @@
 ```c#
 ...
 	// get a reference to the solution
-	var sln = Solution();
+	var sln = ProjectHelper.GetContext().Solution();
 
 	// get all object of type NodeFolderSolution (solution folder)
 	List<NodeFolderSolution> listSlnFolders = sln.GetItem<NodeFolderSolution>().ToList();
@@ -107,7 +126,7 @@
 <# 
 
 	// get a reference to solution
-	NodeSolution sln = Solution();
+	NodeSolution sln = ProjectHelper.GetContext().Solution();
 
 	// get all object of type NodeItem (working file *.cs, *.vb, ...)
 	List<NodeItem> list = sln.GetItem<NodeItem>().ToList();
@@ -188,7 +207,7 @@
 ```c#
 ...
 	// get a reference to solution
-	NodeSolution sln = Solution();
+	NodeSolution sln = ProjectHelper.GetContext().Solution();
 
 	// get all object of type NodeItem (working file *.cs, *.vb, ...)
 	List<NodeItem> list = sln.GetItem<NodeItem>().ToList();
@@ -223,7 +242,7 @@
 ```c#
 
  	// get a reference to solution
-	NodeSolution sln = Solution();
+	NodeSolution sln = ProjectHelper.GetContext().Solution();
 
 	// get all object of type NodeItem (working file *.cs, *.vb, ...)
 	List<NodeItem> list = sln.GetItem<NodeItem>().ToList();
@@ -249,7 +268,7 @@
 
 ```c#
 
- 	NodeSolution sln = Solution();
+ 	NodeSolution sln = ProjectHelper.GetContext().Solution();
 
 	// get all object of type NodeItem (working file *.cs, *.vb, ...)
 	List<NodeItem> list = sln.GetItem<NodeItem>().ToList();
@@ -299,6 +318,31 @@
 
 ```
 
+# Breaking changes
+many function was in the root of the template moves in helpers 
+
+ex:
+```c#
+   NodeSolution sln = Solution();
+```
+become
+```c#
+   NodeSolution sln = ProjectHelper.GetContext().Solution();
+```
+
+```c#
+	using(ManagerScope _manager = StartManager())
+    {  
+
+	}
+```
+become
+```c#
+   	using(ManagerScope _manager = ScopeHelper.StartManager())
+    {  
+
+	}
+```
 
 #### Author
   **Gaël, Beard** 

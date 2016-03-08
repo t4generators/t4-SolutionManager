@@ -3,12 +3,12 @@
 <#@ import namespace="System.Linq" #>
 <#@ import namespace="System.Collections.Generic" #>
 <#@ output extension=".txt" #>
-<#@ include file="..\..\SolutionManagement.t4" #>
+<#@ include file="..\..\..\VisualStudio.ParsingSolution\ParsingSolution.generated.t4" #>
 
 <# 
 
 	// get a reference to the solution
-	NodeSolution sln = Solution();
+	NodeSolution sln = ProjectHelper.GetContext().Solution();
 
 	// get all object of type NodeFolderSolution (solution folder)
 	List<NodeFolderSolution> listSlnFolders = sln.GetItem<NodeFolderSolution>().ToList();

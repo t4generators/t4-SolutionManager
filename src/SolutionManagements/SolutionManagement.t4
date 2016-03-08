@@ -26,14 +26,14 @@
 InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 
 #><#+
-		
-    static IServiceProvider serviceProvider;
-    static EnvDTE.DTE Dte;
-    static NodeSolution _sln;
-    static List<KeyValuePair<string, BaseInfo>> _classes;
-    static List<KeyValuePair<string, NodeProject>> _projects;
-    static ILookup<string, KeyValuePair<string, BaseInfo>> _indexeclasses;
-    static StringBuilder _generationEnvironment;
+
+	static IServiceProvider serviceProvider;
+	static EnvDTE.DTE Dte;
+	static NodeSolution _sln;
+	static List<KeyValuePair<string, BaseInfo>> _classes;
+	static List<KeyValuePair<string, NodeProject>> _projects;
+	static ILookup<string, KeyValuePair<string, BaseInfo>> _indexeclasses;
+	static StringBuilder _generationEnvironment;
 
 	/// <summary>
 	/// initialize the solution managemeent.
@@ -42,21 +42,21 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 	public static void InitializeSolution(IServiceProvider host, StringBuilder generationEnvironment)
 	{
 
-        _generationEnvironment = generationEnvironment;
+		_generationEnvironment = generationEnvironment;
 		serviceProvider = host;
 		if (serviceProvider != null)
 			Dte = (EnvDTE.DTE)serviceProvider.GetService(typeof(EnvDTE.DTE));
 		if (Dte == null)
 			throw new Exception("T4 can only execute through the Visual Studio host");
-	    _sln = new NodeSolution(Dte);
+		_sln = new NodeSolution(Dte);
 
-        _classes = new List<KeyValuePair<string, BaseInfo>>();
-        _projects = new List<KeyValuePair<string, NodeProject>>();
+		_classes = new List<KeyValuePair<string, BaseInfo>>();
+		_projects = new List<KeyValuePair<string, NodeProject>>();
 
-        ComputeClasses();
-        ComputeProject();
+		ComputeClasses();
+		ComputeProject();
 
-    }
+	}
 
 	
 	/// <summary>
@@ -67,17 +67,18 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 		return _sln;
 	}
 
-	static void ComputeClasses()
-    {
 
-        NodeSolution sln = Solution();
+	static void ComputeClasses()
+	{
+
+		NodeSolution sln = Solution();
 
         foreach(NodeItem file in sln.GetItem<NodeItem>())
-        {
+		{
 
-            foreach(BaseInfo cls in file.GetClassItems())
-            {
-                if(cls.IsCodeType)
+			foreach(BaseInfo cls in file.GetClassItems())
+			{
+				if(cls.IsCodeType)
                 {
                     string key = cls.FullName;
                     if (!string.IsNullOrEmpty(key))
@@ -215,7 +216,7 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 		/// 
 		/// </summary>
 		public static bool IsPath(EnvDTE.ProjectItem source, string path)
-		{        
+		{
 			string path2 = string.Join(@"\", GetPath(source));            
 			return String.Equals(path, path2);        
 		}
@@ -383,7 +384,6 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 			NodeItem fld = null;
 
 			var t = s.FileNames[1] as string;
-            t = t.TrimEnd('\\');
             
             if (t != null)
             {
@@ -402,14 +402,14 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 	
 	
 		public static GenericArguments ParseGenericArguments(string type, string path, int absoluteCharOffset)
-        {
+		{
 
 			GenericArguments generics = new GenericArguments();
 			
 			var p = type.IndexOf('<');
-            System.Text.StringBuilder s = new System.Text.StringBuilder();
+			System.Text.StringBuilder s = new System.Text.StringBuilder();
 			if (p > -1)
-            {
+			{
 				for (int i = p + 1; i < type.Length; i++)
 				{
 
@@ -431,53 +431,53 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 					}
 
 				}
-            }
+			}
 
 
 			string txt = LoadText(path, absoluteCharOffset);
 			System.Text.RegularExpressions.MatchCollection matchs = r.Matches(txt);
 
-            foreach (System.Text.RegularExpressions.Match item in matchs)
-            {
+			foreach (System.Text.RegularExpressions.Match item in matchs)
+			{
 				string t = item.Value.Substring("where".Length).Trim();
 				GenericArgument gen = generics.Resolve(t);
 				if (gen != null)
-                {
+				{
 					t = txt.Substring(item.Index + item.Length + 1).Trim();
 					var m2 = r.Match(t);
 					if (m2.Success)
 						t = t.Substring(0, m2.Index);
 					var constraints = t.Split(',');
-                    foreach (string constraint in constraints)
+					foreach (string constraint in constraints)
 						gen.AddConstraint(constraint.Trim());
-                }
+				}
 			}
 
 			return generics;
 
-        }
+		}
 
 
 		private static string LoadText(string path, int absoluteCharOffset)
-        {
+		{
 
 			var file = new FileInfo (path);
 			byte[] arr = new byte[file.Length];
 
-            using(FileStream stream = file.OpenRead())
+			using(FileStream stream = file.OpenRead())
 				stream.Read(arr, 0, arr.Length);
 
 			System.Text.StringBuilder s = new StringBuilder(System.Text.Encoding.UTF8.GetString(arr).Replace("\n", ""));
 			StringBuilder s2 = new StringBuilder(s.Length - absoluteCharOffset);
 
 			char txt = (char)0;
-            for (int i = absoluteCharOffset; i < s.Length; i++)
-            {
+			for (int i = absoluteCharOffset; i < s.Length; i++)
+			{
 			
 				var c = s[i];
 
 				if (txt == (char)0)
-                {
+				{
 					if (c == '"' || c == '\'')
 					{
 						txt = c;
@@ -489,7 +489,7 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 
 					s2.Append(c);
 
-                }
+				}
 				else if (c == txt)
 				{
 					txt = (char)0;
@@ -500,7 +500,7 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 
 			return s2.ToString();
 
-        }
+		}
 
 		
 		private const string pattern = @"where\s[^:]*";
@@ -564,7 +564,6 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 
 
 		protected Dictionary<string, NodeItemProperty> _properties = null;
-
 		protected INodeProperty<T> FindProperty<T>(string p)
 		{
 			if (_properties == null)
@@ -627,7 +626,7 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 		{
 
 			if (project == null)
-                yield break;
+				yield break;
 
 			var items = project.ProjectItems;
 
@@ -640,17 +639,17 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 
 					EnvDTE.Project proj = s.SubProject as EnvDTE.Project;
 
-					if (proj != null /* && !string.IsNullOrEmpty(proj.FullName) */)
+					if (proj != null)
 						fld = new NodeProject(proj);
 
-                    else if (s.Kind == "{66A26720-8FB5-11D2-AA7E-00C04F688DDE}" && proj != null)
-                        fld = new NodeFolderSolution(s as EnvDTE.Project);
+					else if (s.Kind == "{66A26720-8FB5-11D2-AA7E-00C04F688DDE}" && proj != null)
+						fld = new NodeFolderSolution(s as EnvDTE.Project);
 
-                    else if (s.Kind == "{66A26722-8FB5-11D2-AA7E-00C04F688DDE}" && proj !=null)
-                        fld = new NodeFolderSolution(s as EnvDTE.Project);
+					else if (s.Kind == "{66A26722-8FB5-11D2-AA7E-00C04F688DDE}" && proj !=null)
+						fld = new NodeFolderSolution(s as EnvDTE.Project);
 
-                    else if (s.Kind == "{EA6618E8-6E24-4528-94BE-6889FE16485C}" && proj != null)
-                        fld = new NodeVirtualFolder(s as EnvDTE.Project);
+					else if (s.Kind == "{EA6618E8-6E24-4528-94BE-6889FE16485C}" && proj != null)
+						fld = new NodeVirtualFolder(s as EnvDTE.Project);
 
 					else
 						fld = Helper.CreateNodeItem(s);
@@ -922,28 +921,27 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 		public override IEnumerable<T> GetItem<T>(Func<T, bool> filter)
 		{
 
-            var prjs = this.solution.Projects;
+			var prjs = this.solution.Projects;
 
-            if (prjs != null)
-            {
-                foreach (EnvDTE.Project project in prjs)
-                {
+			if (prjs != null)
+			{
+				foreach (EnvDTE.Project project in prjs)
+				{
 
-                    NodeSolutionItem fld = null;
+					NodeSolutionItem fld = null;
 
-                    if (project.Kind == "{66A26720-8FB5-11D2-AA7E-00C04F688DDE}")
-                        fld = new NodeFolderSolution(project);
+					if (project.Kind == "{66A26720-8FB5-11D2-AA7E-00C04F688DDE}")
+						fld = new NodeFolderSolution(project);
 
-                    else if (project.Kind == "{66A26720-8FB5-11D2-AA7E-00C04F688DDE}")  // is not the same that last test
-                        fld = new NodeFolderSolution(project);
+					else if (project.Kind == "{66A26720-8FB5-11D2-AA7E-00C04F688DDE}")  // is not the same that last test
+						fld = new NodeFolderSolution(project);
 
-                    else if (project.Kind == "{EA6618E8-6E24-4528-94BE-6889FE16485C}")
-                        fld = new NodeVirtualFolder(project);
+					else if (project.Kind == "{EA6618E8-6E24-4528-94BE-6889FE16485C}")
+						fld = new NodeVirtualFolder(project);
+					else
+						fld = new NodeProject(project);
 
-                    else
-                        fld = new NodeProject(project);
-
-                    var f = fld as T;
+			var f = fld as T;
                     if (f != null)
                         if (filter == null || filter(f))
                             yield return f;
@@ -954,6 +952,7 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
                 }
             }
         }
+
 
 		protected override void BuildProperties()
 		{
@@ -1150,7 +1149,7 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 		/// <summary>
 		/// add a new files in the folder of the solution
 		/// </summary>
-        public NodeItemFolder AddFiles(DirectoryInfo directory)
+        public NodeItem AddFiles(DirectoryInfo directory)
         {
             return AddFiles(directory.FullName);
         }
@@ -1158,7 +1157,7 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 		/// <summary>
 		/// add a new files in the folder of the solution
 		/// </summary>
-		public NodeItemFolder AddFiles(string directoryFullName)
+		public NodeItem AddFiles(string directoryFullName)
         {
             return new NodeItemFolder(this.project.ProjectItems.AddFromDirectory(directoryFullName));
         }
@@ -2223,38 +2222,6 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 		/// </summary>
 		public override KindItem KindItem { get { return KindItem.Folder; } }
 
-		        /// <summary>
-        /// add a new file in the folder to the solution
-        /// </summary>
-        public NodeItem AddFile(FileInfo file)
-        {
-            return AddFile(file.FullName);
-        }
-
-        /// <summary>
-        /// add a new file in the folder to the solution
-        /// </summary>
-        public NodeItem AddFile(string FullName)
-        {
-            return new NodeItem(this.s.ProjectItems.AddFromFile(FullName));
-        }
-
-        /// <summary>
-        /// add a new files in the folder of the solution
-        /// </summary>
-        public NodeItemFolder AddFiles(DirectoryInfo directory)
-        {
-            return AddFiles(directory.FullName);
-        }
-
-        /// <summary>
-        /// add a new files in the folder of the solution
-        /// </summary>
-        public NodeItemFolder AddFiles(string directoryFullName)
-        {
-            return new NodeItemFolder(this.s.ProjectItems.AddFromDirectory(directoryFullName));
-        }
-
 		/// <summary>
 		/// resolve the folder path and return the last folder of the path.
 		/// if a part is missing. it is created
@@ -2336,7 +2303,6 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 
 			this.s = s;            
             this.path = s.FileNames[1] as string;
-            this.path = this.path.TrimEnd('\\');
 
 			//Debug.WriteLine("----------------------------");
 			//foreach (Property item in s.Properties)
@@ -2514,11 +2480,11 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 		///</summary>
 		public IEnumerable<BaseInfo> GetClassItems<T>(Func<T, bool> predicate)
 			where T : BaseInfo
-        {
+		{
 
 			return GetClassItems().OfType<T>().Where(predicate);
 
-        }
+		}
 
 
 		///<summary>
@@ -2526,11 +2492,11 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 		///</summary>
 		public IEnumerable<BaseInfo> GetClassItems<T>()
 			where T : BaseInfo
-        {
+		{
 
 			return GetClassItems().OfType<T>();
 
-        }
+		}
 
 		///<summary>
 		/// return the list of objects contains in the file.
@@ -2539,9 +2505,9 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 		{
 
 			if (classes == null)
-            {
+			{
 
-                classes = new List<BaseInfo>();
+			classes = new List<BaseInfo>();
 			
                 try
                 {
@@ -2624,24 +2590,6 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 		public string Name2 { get { return s.FileNames[0]; } }
 		
 		
-
-        /// <summary>
-        /// add a new file in the folder to the solution
-        /// </summary>
-        public NodeItem AddFile(FileInfo file)
-        {
-            return AddFile(file.FullName);
-        }
-
-        /// <summary>
-        /// add a new file in the folder to the solution
-        /// </summary>
-        public NodeItem AddFile(string FullName)
-        {
-            return new NodeItem(this.s.ProjectItems.AddFromFile(FullName));
-        }
-
-
 	}
 
 	/// <summary>
@@ -2664,33 +2612,33 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 		/// add a new file in the folder of the solution
 		/// </summary>
 		public NodeItem AddFile(FileInfo file)
-        {
-            return AddFile(file.FullName);
-        }
+		{
+			return AddFile(file.FullName);
+		}
 
 		/// <summary>
 		/// add a new file in the folder of the solution
 		/// </summary>
 		public NodeItem AddFile(string FullName)
-        {
-            return new NodeItem(this.project.ProjectItems.AddFromFile(FullName));
-        }
+		{
+			return new NodeItem(this.project.ProjectItems.AddFromFile(FullName));
+		}
 
 		/// <summary>
 		/// add a new files in the folder to the solution
 		/// </summary>
-        public NodeItemFolder AddFiles(DirectoryInfo directory)
-        {
-            return AddFiles(directory.FullName);
-        }
+		public NodeItem AddFiles(DirectoryInfo directory)
+		{
+			return AddFiles(directory.FullName);
+		}
 
 		/// <summary>
 		/// add a new files in the folder to the solution
 		/// </summary>
-		public NodeItemFolder AddFiles(string directoryFullName)
-        {
-            return new NodeItemFolder(this.project.ProjectItems.AddFromDirectory(directoryFullName));
-        }
+		public NodeItem AddFiles(string directoryFullName)
+		{
+			return new NodeItemFolder(this.project.ProjectItems.AddFromDirectory(directoryFullName));
+		}
 
 
 		/// <summary>
@@ -3006,7 +2954,7 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 		/// List the generics arguments if the interface is generic 
 		/// </summary>
 		public GenericArguments GenericArguments
-        {
+		{
 			get
 			{
 				if (this._genericArguments == null)
@@ -3017,8 +2965,8 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 						this._genericArguments = new GenericArguments();
 				}
 				return _genericArguments;
-            }
-        }
+			}
+		}
 
 		/// <summary>
 		/// 
@@ -3051,7 +2999,7 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 		public bool IsShared { get; private set; }
 
 		/// <summary>
-		/// 
+		/// return true if the current interface is derived from the specified type
 		/// </summary>
 		public bool IsDerivedFrom(string fullName)
 		{
@@ -3059,23 +3007,26 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 		}
 
 		/// <summary>
-		/// 
+		/// return the list of derived interface.
 		/// </summary>
-		public ClassInfo GetBase()
-		{
+		public IEnumerable<InterfaceInfo> ImplementedInterfaces()
+        {
 
-			if (_base == null && item.Bases.Count > 0)
-			{
-				CodeClass2 i = item.Bases.Item(1) as CodeClass2;
-				_base = ObjectFactory.Instance.CreateClass(this.Parent, i);
-			}
+            foreach (EnvDTE.CodeElement item in this.item.Bases)
+            {
+                if (item.Kind == EnvDTE.vsCMElement.vsCMElementInterface)
+                {
+					NodeItem parent = new NodeItem(this.item.ProjectItem);
+                    EnvDTE80.CodeInterface2 i = item as EnvDTE80.CodeInterface2;
+                    InterfaceInfo _result = ObjectFactory.Instance.CreateInterface(parent , i);
+					yield return _result;
+                }
+            }
 
-			return _base;
-
-		}
+        }
 
 		/// <summary>
-		/// 
+		/// return the list of the methods.
 		/// </summary>
 		public IEnumerable<CodeFunctionInfo> GetMethods()
 		{
@@ -3441,8 +3392,6 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 
 			this.DocComment = this.item.DocComment;
 
-			CodeElements _interfaces = this.item.ImplementedInterfaces;
-
 			//this.item.Children
 			//this.item.DerivedTypes
 			//this.item.InfoLocation
@@ -3454,14 +3403,13 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 
 		}
 
-
 		private GenericArguments _genericArguments;
 		
 		/// <summary>
 		/// List the generics arguments if the class is generic 
 		/// </summary>
 		public GenericArguments GenericArguments 
-        {
+		{
 			get
 			{
 				if (this._genericArguments == null)
@@ -3472,23 +3420,13 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 						this._genericArguments = new GenericArguments();
 				}
 				return _genericArguments;
-            }
-        }
-
-		/*
-		public TypeInfo Type
-        {
-			get
-            {
-					return new TypeInfo(
-            }
-        }*/
+			}
+		}
 
 		/// <summary>
 		/// 
 		/// </summary>
 		protected readonly CodeClass2 item;
-
 		private List<CodeFunctionInfo> _methods;
 		private List<CodePropertyInfo> _properties;
 		private List<CodeEventInfo> _events;
@@ -3541,18 +3479,42 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 		}
 
 		/// <summary>
-		/// return the class base
+		/// return the base class
 		/// </summary>
 		public ClassInfo GetBase()
 		{
 
-			if (_base == null && item.Bases.Count > 0)
+			foreach (EnvDTE.CodeElement item in this.item.Bases)
 			{
-				CodeClass2 i = item.Bases.Item(1) as CodeClass2;
-				_base = ObjectFactory.Instance.CreateClass(this.Parent, i);
+				if (item.Kind == EnvDTE.vsCMElement.vsCMElementClass)
+				{
+					NodeItem parent = new NodeItem(this.item.ProjectItem);
+					EnvDTE80.CodeClass2 i = item as EnvDTE80.CodeClass2;
+					ClassInfo _result = ObjectFactory.Instance.CreateClass(parent, i);
+					return _result;
+				}
 			}
 
-			return _base;
+			return null;
+
+		}
+
+		/// <summary>
+		/// return the list of derived interface.
+		/// </summary>
+		public IEnumerable<InterfaceInfo> ImplementedInterfaces()
+		{
+
+			foreach (EnvDTE.CodeElement item in this.item.Bases)
+			{
+				if (item.Kind == EnvDTE.vsCMElement.vsCMElementInterface)
+				{
+					NodeItem parent = new NodeItem(this.item.ProjectItem);
+					EnvDTE80.CodeInterface2 i = item as EnvDTE80.CodeInterface2;
+					InterfaceInfo _result = ObjectFactory.Instance.CreateInterface(parent , i);
+					yield return _result;
+				}
+			}
 
 		}
 
@@ -3858,7 +3820,24 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 		/// <summary>
 		/// 
 		/// </summary>
-		public string FullName { get { return _attr.FullName; } }
+		public string FullName
+		{ 
+			get 
+			{ 
+
+	            try 
+                {	        
+					return _attr.FullName; 
+                }
+                catch (Exception e)
+                {
+
+				}
+
+				return  string.Empty;
+
+			} 
+		}
 
 		/// <summary>
 		/// 
@@ -4002,12 +3981,11 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 		/// </summary>
 		public BaseInfo Root { get; private set; }
 
-
-        /// <summary>
+		/// <summary>
 		/// 
 		/// </summary>
 		public bool IsEnum { get; protected set; }
-        
+
 		
 		/// <summary>
 		/// 
@@ -4017,7 +3995,7 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 		/// <summary>
 		/// 
 		/// </summary>
-        public bool IsClass { get; protected set; }  
+		public bool IsClass { get; protected set; }  
 
 	}
 
@@ -4065,7 +4043,7 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 	/// <summary>
 	/// 
 	/// </summary>
-    [System.Diagnostics.DebuggerDisplay("event {FullName}")]
+	[System.Diagnostics.DebuggerDisplay("event {FullName}")]
 	public class CodeEventInfo : CodeMemberInfo
 	{
 
@@ -4178,39 +4156,64 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 
 	}
 
-    /// <summary>
+	/// <summary>
 	/// 
 	/// </summary>
 	[System.Diagnostics.DebuggerDisplay("field {FullName}")]
-    public class CodeFieldInfo : CodeMemberInfo
-    {
+	public class CodeFieldInfo : CodeMemberInfo
+	{
 
 		private CodeElement _item;
-        private TypeInfo _type;
+		private TypeInfo _type;
 
 		/// <summary>
 		/// 
 		/// </summary>
-        public CodeFieldInfo(BaseInfo parent, CodeElement item, TypeInfo type)
-            : base(parent, item as CodeElement2)
-        {
-            this._item = item;
-            this.Access = CMAccess.Public; // ObjectFactory.Convert(this._item.Access);
-            this._type = type;
-        }
+		public CodeFieldInfo(BaseInfo parent, CodeElement item, TypeInfo type)
+			: base(parent, item as CodeElement2)
+		{
+			this._item = item;
+			this.Access = CMAccess.Public; // ObjectFactory.Convert(this._item.Access);
+			this._type = type;
+		}
 
  		/// <summary>
 		/// 
 		/// </summary>
-        public override TypeInfo Type 
-        { 
-            get
-            {
-                return _type;
-            }
-        }    
+		public override TypeInfo Type 
+		{ 
+			get
+			{
+				return _type;
+			}
+		}
 
-    }
+
+		public object Value
+        {
+			get
+			{
+                try 
+                {	     
+					
+					if (this._item.Kind == vsCMElement.vsCMElementVariable)
+                    {
+						EnvDTE80.CodeVariable2 variable = this._item as EnvDTE80.CodeVariable2 ;
+						if (variable != null && variable.IsConstant && variable.InitExpression != null)
+							return variable.InitExpression;
+                    }
+                }
+                catch (Exception e)
+                {
+		
+                }
+
+				return string.Empty;
+
+            }
+        }
+
+	}
 
 
 	/// <summary>
@@ -4413,13 +4416,13 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 		/// List the generics arguments if the method is generic 
 		/// </summary>
 		public GenericArguments GenericArguments 
-        {
+		{
 			get
 			{
 				if (this._genericArguments == null)
 				{
 					if (this.IsGeneric)
-                    {
+					{
 
 						string localPath = string.Empty;
 						ClassInfo cls = this.Parent as ClassInfo;
@@ -4430,7 +4433,7 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 							InterfaceInfo cls2 = this.Parent as InterfaceInfo;
 							if (cls2 != null)
 								localPath= cls2.Parent.LocalPath;
-                        }
+					}
 
 						this._genericArguments = Helper.ParseGenericArguments(this._item.FullName, localPath , this._item.StartPoint.AbsoluteCharOffset);
 					
@@ -4439,8 +4442,8 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 						this._genericArguments = new GenericArguments();
 				}
 				return _genericArguments;
-            }
-        }
+			}
+		}
 
 		/// <summary>
 		/// result type of the method
@@ -4451,6 +4454,7 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 			{
 				if (_returnType == null)
 					_returnType = TypeInfo.Create(_item.Type);
+
 				return _returnType;
 			}
 		}
@@ -4788,50 +4792,50 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
                     Name = type.AsFullName;
                     break;
 
-            }
+	}
 
-            this.KindType = type.TypeKind.ToString().Substring(11);
+	this.KindType = type.TypeKind.ToString().Substring(11);
 
-            if (!(this.IsVoid = (type.TypeKind == vsCMTypeRef.vsCMTypeRefVoid)))
-            {
+	if (!(this.IsVoid = (type.TypeKind == vsCMTypeRef.vsCMTypeRefVoid)))
+	{
 
-                this.IsClass = (type.TypeKind == vsCMTypeRef.vsCMTypeRefCodeType);
-                
-				if (!this.IsClass && type.TypeKind == vsCMTypeRef.vsCMTypeRefArray)
-                    this.IsClass = (type.Rank > 0 && type.ElementType.TypeKind == vsCMTypeRef.vsCMTypeRefCodeType);
+		this.IsClass = (type.TypeKind == vsCMTypeRef.vsCMTypeRefCodeType) || type.TypeKind == vsCMTypeRef.vsCMTypeRefString;
 
-                else if (!this.IsClass && type.TypeKind != vsCMTypeRef.vsCMTypeRefOther)
-                    this.IsEnumerable = type.CodeType.get_IsDerivedFrom(typeof(System.Collections.IEnumerable).FullName);
+		if (!this.IsClass && type.TypeKind == vsCMTypeRef.vsCMTypeRefArray)
+			this.IsClass = (type.Rank > 0 && type.ElementType.TypeKind == vsCMTypeRef.vsCMTypeRefCodeType);
 
-                if (type.TypeKind == vsCMTypeRef.vsCMTypeRefCodeType)
-                    if (type.CodeType.InfoLocation != vsCMInfoLocation.vsCMInfoLocationExternal)
-                        this.project = this.type.CodeType.ProjectItem.ContainingProject;
+		else if (!this.IsClass && type.TypeKind != vsCMTypeRef.vsCMTypeRefOther)
+			this.IsEnumerable = type.CodeType.get_IsDerivedFrom(typeof(System.Collections.IEnumerable).FullName);
 
-            }
+		if (type.TypeKind == vsCMTypeRef.vsCMTypeRefCodeType)
+			if (type.CodeType.InfoLocation != vsCMInfoLocation.vsCMInfoLocationExternal)
+				this.project = this.type.CodeType.ProjectItem.ContainingProject;
 
-			int i = 0;
-			Parse(Name, this, ref i);
-            DispatchType();
-            OnCreated();
+	}
+
+	int i = 0;
+	Parse(Name, this, ref i);
+	DispatchType();
+	OnCreated();
 
 			/*
-			        vsCMTypeRefOther,
-					vsCMTypeRefCodeType,
-					vsCMTypeRefArray,
-					vsCMTypeRefVoid,
-					vsCMTypeRefPointer,
-					vsCMTypeRefString,
-					vsCMTypeRefObject,
-					vsCMTypeRefByte,
-					vsCMTypeRefChar,
-					vsCMTypeRefShort,
-					vsCMTypeRefInt,
-					vsCMTypeRefLong,
-					vsCMTypeRefFloat,
-					vsCMTypeRefDouble,
-					vsCMTypeRefDecimal,
-					vsCMTypeRefBool,
-					vsCMTypeRefVariant
+				vsCMTypeRefOther,
+				vsCMTypeRefCodeType,
+				vsCMTypeRefArray,
+				vsCMTypeRefVoid,
+				vsCMTypeRefPointer,
+				vsCMTypeRefString,
+				vsCMTypeRefObject,
+				vsCMTypeRefByte,
+				vsCMTypeRefChar,
+				vsCMTypeRefShort,
+				vsCMTypeRefInt,
+				vsCMTypeRefLong,
+				vsCMTypeRefFloat,
+				vsCMTypeRefDouble,
+				vsCMTypeRefDecimal,
+				vsCMTypeRefBool,
+				vsCMTypeRefVariant
 			*/
         }
 
@@ -4876,23 +4880,23 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 		/// <summary>
 		/// 
 		/// </summary>
-        public IEnumerable<CodePropertyInfo> Properties()
-        {
+		public IEnumerable<CodePropertyInfo> Properties()
+		{
 
-            if (PropertyInfolst == null)
-            {
-                if (type != null)
-                {
-                    if (type.TypeKind == vsCMTypeRef.vsCMTypeRefCodeType)
-                        PropertyInfolst = type.CodeType.Members.OfType<CodeProperty2>().Select(c => ObjectFactory.Instance.CreateProperty(null, c)).ToList();
-                    else if (type.TypeKind == vsCMTypeRef.vsCMTypeRefArray)
-                        PropertyInfolst = type.ElementType.CodeType.Members.OfType<CodeProperty2>().Select(c => ObjectFactory.Instance.CreateProperty(null, c)).ToList();
-                }
-            }
+			if (PropertyInfolst == null)
+			{
+				if (type != null)
+				{
+					if (type.TypeKind == vsCMTypeRef.vsCMTypeRefCodeType)
+						PropertyInfolst = type.CodeType.Members.OfType<CodeProperty2>().Select(c => ObjectFactory.Instance.CreateProperty(null, c)).ToList();
+					else if (type.TypeKind == vsCMTypeRef.vsCMTypeRefArray)
+						PropertyInfolst = type.ElementType.CodeType.Members.OfType<CodeProperty2>().Select(c => ObjectFactory.Instance.CreateProperty(null, c)).ToList();
+				}
+			}
 
-            return PropertyInfolst;
-            
-        }
+			return PropertyInfolst;
+
+		}
 
 		/// <summary>
 		/// 
@@ -4925,7 +4929,9 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 			{
 
 				if (_classRef == null)
-                    _classRef = ResolveType(this).FirstOrDefault();
+				{
+					_classRef = ResolveType(this).FirstOrDefault();
+				}
 
 				return _classRef;
 
@@ -4947,7 +4953,6 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 		/// </summary>
         protected virtual void DispatchType()
         {
-
 
             if (this.project == null && ObjectFactory.Instance.DefaultProject != null)
             {
@@ -5170,7 +5175,7 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 		/// <summary>
 		/// 
 		/// </summary>
-        public bool IsNullable { get; set; }
+		public bool IsNullable { get; set; }
 
 		/// <summary>
 		/// 
@@ -5180,24 +5185,24 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 		/// <summary>
 		/// 
 		/// </summary>
-        public string KindType { get; set; }
+		public string KindType { get; set; }
 
 		/// <summary>
 		/// 
 		/// </summary>
-        public bool IsVoid { get; private set; }
+		public bool IsVoid { get; private set; }
 
 		/// <summary>
 		/// 
 		/// </summary>
-        public bool IsClass { get; private set; }
+		public bool IsClass { get; private set; }
 
 		/// <summary>
 		/// 
 		/// </summary>
-        public bool IsEnumerable { get; private set; }
+		public bool IsEnumerable { get; private set; }
 
-        /// <summary>
+		/// <summary>
 		/// 
 		/// </summary>
 		public bool IsGeneric { get { return this.ElementItems.Any(); } }
@@ -5206,12 +5211,12 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 		/// 
 		/// </summary>
 		public string AsFullName 
-        { 
+		{ 
 			get 
-            { 
-                return this.type.AsFullName; 
-            } 
-        }
+			{ 
+				return this.type.AsFullName; 
+			} 
+		}
 		
 		/// <summary>
 		/// 
@@ -5357,55 +5362,55 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 	/// collection of generic argument 
 	/// </summary>
 	public class GenericArguments : IEnumerable<GenericArgument>
-    {
+	{
 
 		private Dictionary<string, GenericArgument> _list;
 
 		/// <summary>
 		/// contructor
 		/// </summary>
-        public GenericArguments()
-        {
+		public GenericArguments()
+		{
 			_list = new Dictionary<string, GenericArgument>();
-        }
+		}
 
 		/// <summary>
 		/// add an item
 		/// </summary>
 		public GenericArgument Add(string typeName)
-        {
+		{
 			var g = new GenericArgument(typeName);
 			_list.Add(typeName, g);
 			return g;
-        }
+		}
 
 		/// <summary>
 		/// resolve an item by typeName
 		/// </summary>
 		public GenericArgument Resolve(string typeName)
-        {
+		{
 			GenericArgument result;
 			_list.TryGetValue(typeName, out result);
 			return result;
-        }
+		}
 
 		
 		/// <summary>
-        /// Returns an enumerator that iterates through the collection.
-        /// </summary>
-        /// <returns>
-        /// An enumerator that can be used to iterate through the collection.
-        /// </returns>
-        /// <exception cref="System.NotImplementedException"></exception>
-        public IEnumerator<GenericArgument> GetEnumerator()
-        {
+		/// Returns an enumerator that iterates through the collection.
+		/// </summary>
+		/// <returns>
+		/// An enumerator that can be used to iterate through the collection.
+		/// </returns>
+		/// <exception cref="System.NotImplementedException"></exception>
+		public IEnumerator<GenericArgument> GetEnumerator()
+		{
 			return this._list.Values.GetEnumerator();
-        }
+		}
 
-        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
-        {
-            return this._list.Values.GetEnumerator();
-        }
+		System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
+		{
+			return this._list.Values.GetEnumerator();
+		}
 
 	}
 
@@ -5413,18 +5418,18 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 	/// generic argument informations
 	/// </summary>
 	public class GenericArgument
-    {
+	{
 
 		private List<string> _constraints;
 
 		/// <summary>
 		/// constructor
 		/// </summary>
-	    public GenericArgument(string typeName)
-        {
+		public GenericArgument(string typeName)
+		{
 			_constraints = new List<string>();
 			this.Name = typeName;
-        }
+		}
 
 
 		public bool HasConstraint { get; private set; }
@@ -5434,9 +5439,9 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 		/// Add constraint
 		/// </summary>
 		public void AddConstraint(string constraint)
-        {
+		{
 			if(!string.IsNullOrEmpty(constraint))
-            {
+			{
 
 				HasConstraint = true;
 
@@ -5472,7 +5477,7 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 		/// </summary>
 		public IEnumerable<string> Constraints { get { return _constraints; } }
 
-    }
+	}
 
 
 
@@ -5493,7 +5498,7 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
         public EnvDTE.ProjectItem ParentProjectItem;
     }
 
-    class Manager
+    public class Manager
     {
 
         private Block currentBlock;
@@ -5664,87 +5669,94 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
             }
         }
 
-        private class VSManager : Manager
-        {
-            private Action<String> checkOutAction;
-            private Action<Func<FileInfo, bool>, IEnumerable<Block>> projectSyncAction;
-            private IVsQueryEditQuerySave2 queryEditSave;
+	private class VSManager : Manager
+	{
+		private Action<String> checkOutAction;
+		private Action<Func<FileInfo, bool>, IEnumerable<Block>> projectSyncAction;
+		private IVsQueryEditQuerySave2 queryEditSave;
 
-			/// <summary>
-			/// 
-			/// </summary>
-            public override String DefaultProjectNamespace
-            {
-                get
-                {
-                    return templateProjectItem.ContainingProject.Properties.Item("DefaultNamespace").Value.ToString();
-                }
-            }
+		/// <summary>
+		/// 
+		/// </summary>
+		public override String DefaultProjectNamespace
+		{
+			get
+			{
+				return templateProjectItem.ContainingProject.Properties.Item("DefaultNamespace").Value.ToString();
+			}
+		}
 
-			/// <summary>
-			/// 
-			/// </summary>
-            public override String GetCustomToolNamespace(string fileName)
-            {
-                return dte.Solution.FindProjectItem(fileName).Properties.Item("CustomToolNamespace").Value.ToString();
-            }
+		/// <summary>
+		/// 
+		/// </summary>
+		public override String GetCustomToolNamespace(string fileName)
+		{
+			return dte.Solution.FindProjectItem(fileName).Properties.Item("CustomToolNamespace").Value.ToString();
+		}
 
-			/// <summary>
-			/// 
-			/// </summary>
-            public override void Process(bool split)
-            {
-                base.Process(split);
-                projectSyncAction.EndInvoke(projectSyncAction.BeginInvoke(filterToDelete, generatedFileNames, null, null));
-            }
+		/// <summary>
+		/// 
+		/// </summary>
+		public override void Process(bool split)
+		{
+			base.Process(split);
+			projectSyncAction.EndInvoke(projectSyncAction.BeginInvoke(filterToDelete, generatedFileNames, null, null));
+		}
 
-			/// <summary>
-			/// 
-			/// </summary>
-            public override bool FileOkToWrite(String fileName)
-            {
-                CheckoutFileIfRequired(fileName);
-                return base.FileOkToWrite(fileName);
-            }
+		/// <summary>
+		/// 
+		/// </summary>
+		public override bool FileOkToWrite(String fileName)
+		{
+			CheckoutFileIfRequired(fileName);
+			return base.FileOkToWrite(fileName);
+		}
 
-            protected override void CreateFile(String fileName, String content)
-            {
-                if (IsFileContentDifferent(fileName, content))
-                {
-                    CheckoutFileIfRequired(fileName);
-                    File.WriteAllText(fileName, content);
-                }
-            }
+		protected virtual void CreateFile(String fileName, String content)
+		{
+			try
+			{
+				if (IsFileContentDifferent(fileName, content))
+				{
+					CheckoutFileIfRequired(fileName);
+					File.WriteAllText(fileName, content);
+				}
+			}
+			catch(Exception e)
+			{
+				throw new Exception(e.Message + @"\t for the file : " + fileName, e); 
+			}
+		}
 
-            internal VSManager(ITextTemplatingEngineHost host, StringBuilder template)
-                : base(host, template)
-            {
+		internal VSManager(ITextTemplatingEngineHost host, StringBuilder template)
+			: base(host, template)
+		{
 
-                var hostServiceProvider = (IServiceProvider)host;
+			var hostServiceProvider = (IServiceProvider)host;
 
-                if (hostServiceProvider == null)
-                    throw new ArgumentNullException("Could not obtain IServiceProvider");
+			if (hostServiceProvider == null)
+				throw new ArgumentNullException("Could not obtain IServiceProvider");
 
-                dte = (EnvDTE.DTE)hostServiceProvider.GetService(typeof(EnvDTE.DTE));
-                if (dte == null)
-                    throw new ArgumentNullException("Could not obtain DTE from host");
+			dte = (EnvDTE.DTE)hostServiceProvider.GetService(typeof(EnvDTE.DTE));
+			if (dte == null)
+				throw new ArgumentNullException("Could not obtain DTE from host");
 
-                checkOutAction = (String fileName) => dte.SourceControl.CheckOutItem(fileName);
-                projectSyncAction = (Func<FileInfo, bool> filterToDelete, IEnumerable<Block> fileNames) => ProjectSync(filterToDelete, fileNames);
-                queryEditSave = (IVsQueryEditQuerySave2)hostServiceProvider.GetService(typeof(SVsQueryEditQuerySave));
+			checkOutAction = (String fileName) => dte.SourceControl.CheckOutItem(fileName);
+			projectSyncAction = (Func<FileInfo, bool> filterToDelete, IEnumerable<Block> fileNames) => ProjectSync(filterToDelete, fileNames);
+			queryEditSave = (IVsQueryEditQuerySave2)hostServiceProvider.GetService(typeof(SVsQueryEditQuerySave));
 
-                this.templateProjectItem = this.dte.Solution.FindProjectItem(host.TemplateFile);
-                this.ContainingProject = this.templateProjectItem.ContainingProject;
+			this.templateProjectItem = this.dte.Solution.FindProjectItem(host.TemplateFile);
+			this.ContainingProject = this.templateProjectItem.ContainingProject;
 
-            }
+		}
 
-            private static void ProjectSync(Func<FileInfo, bool> filterToDelete, IEnumerable<Block> keepFileNames)
-            {
+		private static void ProjectSync(Func<FileInfo, bool> filterToDelete, IEnumerable<Block> keepFileNames)
+		{
 
-                var keepFileNameSet = new HashSet<String>(keepFileNames.Select(c => c.Fullname).ToList());
+			var keepFileNameSet = new HashSet<String>(keepFileNames.Select(c => c.Fullname).ToList());
 
-                foreach(Block block in keepFileNames)
-                {
+			foreach(Block block in keepFileNames)
+			{
 
                     var projectFiles = new Dictionary<String, EnvDTE.ProjectItem>();
                     string filename1 = block.ParentProjectItem.get_FileNames(0);
@@ -5787,12 +5799,13 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
                 }
             }
         }
-    }
+
+	}
 
 //   End of Manager.tt
 
 
-    /// <summary>
+	/// <summary>
 	/// 
 	/// </summary>
 	public static ManagerScope StartManager()
@@ -5853,7 +5866,7 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 		/// <summary>
 		/// 
 		/// </summary>
-        public IDisposable NewFile(string filename)
+        public ScriptFileScope NewFile(string filename)
         {
             return new ScriptFileScope(manager, filename);
         }
@@ -5861,7 +5874,7 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 		/// <summary>
 		/// 
 		/// </summary>
-        public IDisposable NewFile(string filename, NodeItemFolder folder)
+        public ScriptFileScope NewFile(string filename, NodeItemFolder folder)
         {
             return new ScriptFileScope(manager, filename, folder);
         }
@@ -5889,49 +5902,57 @@ InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
 
     }
 
-    class ScriptFileScope : IDisposable
-    {
-    
-        private Manager manager;
-        private Block block;
+	public class ScriptFileScope : IDisposable
+	{
+	
+		private Manager manager;
+		private Block block;
 
-        public ScriptFileScope(Manager manager, string name)
-        {
-            string _name = AppliPatternToFilname(name);
-            this.manager = manager;
-            block = manager.StartNewFile(_name);
-        }
+		internal ScriptFileScope(object manager, string name)
+		{
+			string _name = AppliPatternToFilname(name);
+			this.manager = manager as Manager;
+			block = this.manager.StartNewFile(_name);
+		}
 
-        public ScriptFileScope(Manager manager, string name, NodeItemFolder folder)
-        {
-            string _name = AppliPatternToFilname(name);
-            this.manager = manager;
-            block = manager.StartNewFile(_name, folder);
-        }
+		internal ScriptFileScope(object manager, string name, NodeItemFolder folder)
+		{
+			string _name = AppliPatternToFilname(name);
+			this.manager = manager as Manager;
+			block = this.manager.StartNewFile(_name, folder);
+		}
 
-        private string AppliPatternToFilname(string name)
-        {
+		private string AppliPatternToFilname(string name)
+		{
 
-            string _name;
+			string _name;
 
-            string e = Path.GetExtension(name);
-            string mask = ".generated" + e;
+			string e = Path.GetExtension(name);
+			string mask = ".generated" + e;
 
-            if (!name.EndsWith(mask))
-            {
-                e = mask;
-                _name = Path.ChangeExtension(name, e);
-            }
-            else
-                _name = name;
+			if (!name.EndsWith(mask))
+			{
+				e = mask;
+				_name = Path.ChangeExtension(name, e);
+			}
+			else
+				_name = name;
 
-            return _name;
-        }
+			return _name;
+		}
 
-        public void Dispose()
-        {
-            manager.EndBlock();
-        }
+		public void Dispose()
+		{
+			manager.EndBlock();
+		}
+
+		public String Name { get { return this.block.Name; } }
+
+		public string OutputPath  { get { return this.block.OutputPath; } }
+
+		public string Fullname { get { return this.block.Fullname; } }
+
+		public EnvDTE.ProjectItem ParentProjectItem { get { return this.block.ParentProjectItem; } }
 
     }
 

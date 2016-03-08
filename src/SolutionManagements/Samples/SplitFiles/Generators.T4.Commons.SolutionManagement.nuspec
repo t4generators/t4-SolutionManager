@@ -21,7 +21,7 @@
   </metadata>
 
   <files>
-    <file src="..\..\SolutionManagement.t4" target="content\Generators\T4\Commons\SolutionManagement.t4" />
+    <file src="..\..\..\VisualStudio.ParsingSolution\ParsingSolution.generated.t4" target="content\Generators\T4\Commons\SolutionManagement.t4" />
   </files>
 
 

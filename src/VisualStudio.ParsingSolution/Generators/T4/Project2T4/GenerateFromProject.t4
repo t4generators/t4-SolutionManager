@@ -1,0 +1,577 @@
+﻿<#@ template debug="true" hostSpecific="true" language="C#" #>
+<#@ output extension=".cs" #>
+<#@ import namespace="System.Globalization" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Text.RegularExpressions" #>
+<#@ import namespace="System.IO" #>
+<#@ import namespace="System.Diagnostics" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Xml.Linq" #>
+<#@ import namespace="System.Collections" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ include file="..\Commons\SolutionManagement.t4" #>
+<#   
+
+	// System.Diagnostics.Debugger.Launch();
+	
+	// ---------------------	parameters	---------------------
+
+	string targetFilename = "ParsingSolution.t4";				// target t4 filename
+	string rootPath_Code = "ParsingSolution";					// folder where the code to convert in t4 is located
+	string[] excludeAssemblies = new string[]					// list of assemblies must to be excluded
+    {
+		"Microsoft.VisualStudio.ExtensibilityHosting",
+    };
+
+	string[] excludeNamespaces = new string[]					// list of usings must to be excluded
+    {
+		
+    };
+
+	string[] typesOrders = new string[]							// ordered list of classes must to be includes
+    {
+		"ProjectHelper",
+		"NodeItemBase",
+		"KindItem",
+		"NodeSolutionItem",
+		"NodeVirtualFolder",
+		"NodeSolution",
+		"NodeItemProperty",
+		"GenericNodeProperty",
+		"NodeProperty",
+		"INodeProperty",
+		"NodeProject",
+		"NodeItemFolder",
+		"NodeItem",
+		"NodeFolderSolution",
+		
+		"ObjectFactory",
+		"InterfaceInfo",
+		"EnumInfo",
+		"ClassInfo",
+		"CMAccess",
+		"AttributeInfo",
+		"AttributeArgumentInfo",
+		"BaseInfo",
+		"LocationInfo",
+		"LocationPoint",
+		"CodeMemberInfo",
+		"CodeEventInfo",
+		"CodeFieldInfo",
+		"CodePropertyInfo",
+		"CodeFunctionInfo",
+		"MethodParamInfo",
+		"TypeInfo",
+		"GenericArguments",
+		"GenericArgument",
+		"ReferenceAssembly",
+
+		"Block",
+		"Manager",
+		"ManagerScope",
+		"ScriptFileScope",
+		"HeaderScope",
+		"FooterScope",
+
+    };
+
+	// ---------------------	end parameters	---------------------
+ 	
+	
+	using(var manager = ScopeHelper.StartManager())
+    {
+		
+		StringBuilder sb = new StringBuilder();		
+		NodeProject prj = manager.GetCurrentProject();
+		
+		// Write header
+		List<CodeFile> files = Generator.GenerateHeader(sb, prj, rootPath_Code, excludeAssemblies, excludeNamespaces);
+
+		// Write code
+		Generator.GenerateCode(sb, prj, rootPath_Code, targetFilename);
+		
+		// Write classes
+		Generator.WriteStartClassCode(sb);
+		sb.AppendLine(string.Empty);
+
+		HashSet<string> _buckets = new HashSet<string>();	// ensure generate every class only one time
+        foreach (string item in typesOrders)				// parse ordered list of class
+        {
+			CodeFile file = files.FirstOrDefault(c => c.Name == item);
+			if (file != null)
+				if (_buckets.Add(file.Name))
+					file.AppendCode(sb);
+        }
+
+        foreach (CodeFile file in files.OrderBy(c => c.Name))	// parse other classes no parsed in the previous iteration
+			if (_buckets.Add(file.Name))
+				file.AppendCode(sb);
+		
+		sb.AppendLine(string.Empty);
+		Generator.WriteEndCode(sb);
+
+		// final write
+		using (var _f = manager.NewFile(targetFilename, prj))
+			Write(sb.ToString());
+
+    }
+
+#>
+<#+  
+
+	public static class Generator
+	{
+
+		public static string MetaStart = "<" + "#" + "@";
+		public static string MetaEnd = " #" + ">";
+		public const string languageCS = "C#";
+		public const string languageVB = "VB";
+
+		// generate code collected in the 
+		public static void GenerateCode(StringBuilder sb, NodeProject prj, string rootPath_Code, string targetFilename)
+        {
+
+			var outputfilename = string.Format("{0}.generated{1}", Path.GetFileNameWithoutExtension(targetFilename), Path.GetExtension(targetFilename));
+
+			NodeItemFolder fld = prj.GetFolder(rootPath_Code);
+			T4File file = fld.GetItem<NodeItem>(i => Path.GetExtension(i.Filename) == ".t4" )
+				.Select(j => new T4File(j))
+				.FirstOrDefault(c => 
+				{
+					if (c.Pairs != null)
+						foreach (T4Item pair in c.Pairs)
+							if (pair.IsInclude)
+								if (pair.Keyes.Any(m => m.Key == "file" && m.Value.EndsWith(outputfilename)))
+									return true;
+					return false;
+				});
+
+			if (file != null)
+				file.AppendCode(sb);
+			
+			sb.AppendLine(string.Empty);
+
+        }
+
+		public static List<CodeFile> GenerateHeader(StringBuilder sb, NodeProject prj, string folderPath, string[] excludeAssemblies, string[] excludeNamespaces)
+        {
+
+			HashSet<string> _excludeAssemblies = new HashSet<string>(excludeAssemblies);
+			HashSet<string> _excludeNamespaces = new HashSet<string>(excludeNamespaces);
+
+			List<CodeFile> result = new List<CodeFile>();
+			List<NodeItem> items;
+
+			string extension;
+			HashSet<string> _assemblies = new HashSet<string>();
+			HashSet<string> _usings = new HashSet<string>();
+
+			extension = Path.GetExtension(prj.FileName);
+			extension = extension.Substring(0,  extension.Length - 4);
+
+			foreach (ReferenceAssembly item in prj.References)
+            {
+				if (!_excludeAssemblies.Contains(item.Name))
+					_assemblies.Add(item.Name);
+            }
+
+			if (!string.IsNullOrEmpty(folderPath))
+			{
+				NodeItemFolder fld = prj.GetFolder(folderPath);
+				items = fld.GetItem<NodeItem>(c=> c.Filename.EndsWith(extension)).ToList();
+            }
+			else
+				items = prj.GetItem<NodeItem>(c=> c.Filename.EndsWith(extension)).ToList();
+
+			result = Generator.CollectUsings(prj, extension, _usings, items, _excludeNamespaces);
+
+			Generator.WriteTemplate(sb, true, true, Generator.languageCS, null, null, null);
+			Generator.WriteOutput(sb, extension);
+			Generator.WriteAssemblies(sb, _assemblies.OrderBy(c => c));
+			Generator.WriteImports(sb, _usings.OrderBy(c => c));
+
+			
+			return result;
+
+        }
+
+		public static void WriteStartClassCode(StringBuilder sb)
+        {
+			sb.Append("<" + "#" + "+");
+        }
+    
+		public static void WriteStartCode(StringBuilder sb)
+        {
+			sb.Append("<" + "#");
+        }
+
+		public static void WriteEndCode(StringBuilder sb)
+        {
+			sb.Append(MetaEnd);
+        }
+
+		public static List<CodeFile> CollectUsings(NodeProject prj, string extension, HashSet<string> _usings, List<NodeItem> items, HashSet<string> _excludeNamespaces)
+        {
+
+			foreach (NodeItem item in items)
+			{
+				var lst = item.GetNamespaceItems().Select(c => c.Name).ToList();
+                foreach (string _namespace in lst)
+					_excludeNamespaces.Add(_namespace);
+            }
+
+
+			List<CodeFile> result = new List<CodeFile>();
+
+			string pattern = @"using\s+[a-zA-Z0-9.=_-]+";
+			if (extension == languageVB)
+				pattern = @"import\s+[a-zA-Z0-9.=_-]+";
+
+
+			System.Text.RegularExpressions.Regex reg = new System.Text.RegularExpressions.Regex(pattern);
+			foreach (NodeItem item in items)
+			{
+
+				var file = new FileInfo(item.LocalPath);
+				string txt;
+				using(FileStream stream = file.OpenRead())
+				{
+					var ar = new byte[file.Length];
+					stream.Read(ar, 0, ar.Length);
+					txt = System.Text.Encoding.UTF8.GetString(ar);
+				}
+
+				CodeFile _file = new CodeFile(item, txt);
+				result.Add(_file);
+
+				var ms = reg.Matches(txt);
+				foreach(System.Text.RegularExpressions.Match m in ms)
+				{
+					
+					var t = m.Value.Substring(5).Trim();
+					
+					if (t == "static")
+						throw new NotImplementedException(string.Format("the using static line is not supported at the file {0} ", file.FullName));
+
+					if (!_excludeNamespaces.Contains(t))
+						_usings.Add(t);
+
+				}
+			
+
+			}
+
+			return result;
+
+        }
+
+		public static void WriteAssemblyForIntellisenseOnly(StringBuilder sb, string assemblyForIntellisenseOnly)
+		{
+
+			assemblyForIntellisenseOnly = assemblyForIntellisenseOnly == null ? string.Empty : assemblyForIntellisenseOnly;
+
+			if(!string.IsNullOrEmpty(assemblyForIntellisenseOnly))
+			{
+				sb.Append(MetaStart);
+				sb.AppendFormat(@" assemblyForIntellisenseOnly processor=""{0}""", assemblyForIntellisenseOnly);
+				sb.AppendLine(MetaEnd);
+			}
+		}
+
+		public static void WriteInclude(StringBuilder sb, string include)
+		{
+
+			include = include == null ? string.Empty : include;
+
+			if(!string.IsNullOrEmpty(include))
+			{
+				sb.Append(MetaStart);
+				sb.AppendFormat(@" include file=""{0}""", include);
+				sb.AppendLine(MetaEnd);
+			}
+		}
+
+		public static void WriteParameter(StringBuilder sb, string name, string type)
+		{
+
+			name = name == null ? string.Empty : name;
+
+			if(!string.IsNullOrEmpty(name))
+			{
+				sb.Append(MetaStart);
+				sb.AppendFormat(@" import parameter=""{0}"" type=""{1}""", name, type);
+				sb.AppendLine(MetaEnd);
+			}
+		}
+
+		public static void WriteImports(StringBuilder sb, IEnumerable<string> imports)
+		{
+            foreach (string item in imports)
+				WriteImport(sb, item);
+        }
+
+		public static void WriteImport(StringBuilder sb, string import)
+		{
+
+			import = import == null ? string.Empty : import;
+
+			if(!string.IsNullOrEmpty(import))
+			{
+				sb.Append(MetaStart);
+				sb.AppendFormat(@" import namespace=""{0}""", import);
+				sb.AppendLine(MetaEnd);
+			}
+		}
+
+		public static void WriteAssemblies(StringBuilder sb, IEnumerable<string> assemblies)
+        {
+            foreach (var item in assemblies)
+				WriteAssembly(sb, item);
+        }
+
+		public static void WriteAssembly(StringBuilder sb, string assembly)
+		{
+
+			assembly = assembly == null ? string.Empty : assembly;
+
+			if(!string.IsNullOrEmpty(assembly))
+			{
+				sb.Append(MetaStart);
+				sb.AppendFormat(@" Assembly Name=""{0}""", assembly);
+				sb.AppendLine(MetaEnd);
+			}
+		}
+
+		public static void WriteOutput(StringBuilder sb, string extension)
+		{
+
+			extension = extension == null ? string.Empty : extension;
+
+			if(!string.IsNullOrEmpty(extension))
+			{
+				if (!extension.StartsWith("."))
+					extension = "." + extension;
+
+				sb.Append(MetaStart);
+				sb.AppendFormat(@" output extension=""{0}""", extension);
+				sb.AppendLine(MetaEnd);
+			}
+		}
+
+		public static void WriteTemplate(StringBuilder sb, bool? debug, bool? hostSpecific, string language, CultureInfo culture, string Inherits, string compilerOptions)
+		{
+
+			sb.Append(MetaStart);
+			sb.Append(" template");
+
+			if (debug.HasValue)
+			{
+				sb.Append(@" debug=""");
+				if (debug.Value)
+					sb.Append(@"true");
+				else
+					sb.Append(@"false");
+				sb.Append(@"""");
+			}
+
+			if (hostSpecific.HasValue)
+			{
+				sb.Append(@" hostSpecific=""");
+				if (hostSpecific.Value)
+					sb.Append(@"true");
+				else
+					sb.Append(@"false");
+				sb.Append(@"""");
+			}
+
+			if (!string.IsNullOrEmpty(language))
+				sb.AppendFormat(@" language=""{0}""", language);
+
+			if (culture != null)
+				sb.AppendFormat(@" culture=""{0}""", culture.IetfLanguageTag);
+		
+			if (!string.IsNullOrEmpty(Inherits))
+				sb.AppendFormat(@" inherits=""{0}""", Inherits);
+
+			if (!string.IsNullOrEmpty(compilerOptions))
+				sb.AppendFormat(@" compilerOptions=""{0}""", compilerOptions);
+
+			sb.AppendLine(MetaEnd);
+
+		}
+		
+    }
+
+	public class CodeFile
+    {
+
+		private NodeItem item;
+		private string code;
+
+		List<LocationInfo> _loc_codes = new List<LocationInfo>();
+
+		public CodeFile(NodeItem item, string code)
+		{
+			this.item = item;
+			this.Codes = item.GetClassItems().ToList();
+			this.code = code;
+            
+			foreach (BaseInfo item2 in this.Codes)
+            {
+				if (string.IsNullOrEmpty(this.Name))
+				{
+					this.Name = item2.Name;
+					this.FullName = item2.FullName;
+                }
+
+				_loc_codes.Add(item2.Location);
+            }
+		}
+
+		public string Name { get; private set; }
+		public string FullName { get; private set; }
+
+		public void AppendCode(StringBuilder sb)
+        {
+
+			sb.AppendLine("// start : " + this.item.Name2);
+
+            foreach (LocationInfo loc in _loc_codes)
+            {			
+
+				int index = loc.Start.ResolveRealOffset(code, true);
+				int index2 = loc.End.ResolveRealOffset(code, false);
+
+				var l = index2 - index;
+
+				var txt = this.code.Substring(index, l).Trim('\r', '\n');
+
+				sb.AppendLine(txt);
+
+            }
+
+			sb.AppendLine("// end : " + this.item.Name2);
+			sb.AppendLine(string.Empty);
+
+        }
+
+		public IEnumerable<BaseInfo> Codes  {get; set; }
+
+    }  
+
+	public class T4File
+    {
+
+		private NodeItem item;
+		private string code;
+		private const string pattern = @"<" +"#(@)?|#" + ">";
+		
+		private int s = int.MaxValue;
+		private int e = 0;
+
+		public T4File(NodeItem item)
+		{
+					
+			Pairs = new List<T4Item>();
+			this.item = item;
+			var file = new FileInfo(item.LocalPath);
+			
+			using(FileStream stream = file.OpenRead())
+			{
+
+				var ar = new byte[file.Length];
+				stream.Read(ar, 0, ar.Length);
+				this.code = System.Text.Encoding.UTF8.GetString(ar);
+				
+				Regex regex = new Regex(pattern, RegexOptions.None);				
+				MatchCollection col = regex.Matches(this.code);
+
+                for (int i = 0; i < col.Count; i++)
+                {
+					
+					var m1 = col[i];
+					i++;
+					if(i < col.Count)
+                    {
+						var m2 = col[i];
+						T4Item t = new T4Item(this.code, m1, m2);
+						Pairs.Add(t);
+                    }
+
+                }
+
+				
+
+				foreach (T4Item _item in Pairs)
+					if (!_item.IsMeta)
+					{
+						s = Math.Min(s, _item.Start.Index);
+						e = Math.Max(e, _item.End.Index + _item.End.Length);
+	                }
+
+			}
+			
+		}
+
+		public string Name { get; private set; }
+		public string FullName { get; private set; }
+		public List<T4Item> Pairs { get; private set; }
+
+		public void AppendCode(StringBuilder sb)
+        {
+			var c = this.code.Substring(s, e - s);
+			sb.Append(c);
+        }
+
+
+    }  
+
+	public class T4Item
+    {
+
+		private const string pattern = @"[a-z]+=""[^""]*""";
+
+        public T4Item(string text, Match m1, Match m2)
+        {
+			
+			Keyes = new List<KeyValuePair<string, string>>();
+
+			this.Start = m1;
+			this.End = m2;
+			var s = m1.Index + m1.Length;
+			this.Text = text.Substring(m1.Index, (m2.Index + m2.Length) - m1.Index);
+
+			this.IsMeta = this.Text.StartsWith(Generator.MetaStart);
+
+			if (this.IsMeta)
+            {
+
+				var e = Text.Substring(Generator.MetaStart.Length).Trim();
+				this.IsInclude = e.StartsWith("include");
+
+				Regex r = new Regex(pattern);
+				foreach (Match item in r.Matches(e))
+					if (item.Success)
+					{
+						var a = item.Value.Split('=');
+						string key = a[0];
+						string value = a[1];
+						value = value.Substring(1, value.Length - 2);
+						Keyes.Add(new KeyValuePair<string, string>(key, value));
+					}
+                
+            }
+
+        }
+
+		public Match Start { get; set; }
+		public Match End { get; set; }
+		public string Text { get; set; }
+		public bool IsMeta  { get; set; }
+		public bool IsInclude  { get; set; }
+    
+		public List<KeyValuePair<string, string>> Keyes { get; private set; }
+
+	}
+
+#>

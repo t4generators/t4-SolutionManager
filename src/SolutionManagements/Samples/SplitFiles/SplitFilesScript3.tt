@@ -3,13 +3,13 @@
 <#@ import namespace="System.Linq" #>
 <#@ import namespace="System.Collections.Generic" #>
 <#@ output extension=".txt" #>
-<#@ include file="..\..\SolutionManagement.t4" #>
+<#@ include file="..\..\..\VisualStudio.ParsingSolution\ParsingSolution.generated.t4" #>
 
 <# 
 
 
 	// get a reference to the solution
-	var sln = Solution();
+	var sln = ProjectHelper.GetContext().Solution();
 
 	// get the project called 'SplitFiles'
 	NodeProject prj = sln.GetProjects(c => c.Name == "SplitFiles").FirstOrDefault();

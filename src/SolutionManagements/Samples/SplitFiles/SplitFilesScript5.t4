@@ -3,17 +3,17 @@
 <#@ import namespace="System.Linq" #>
 <#@ import namespace="System.Collections.Generic" #>
 <#@ output extension=".txt" #>
-<#@ include file="..\..\SolutionManagement.t4" #>
+<#@ include file="..\..\..\VisualStudio.ParsingSolution\ParsingSolution.generated.t4" #>
 
 <# 
 
 	// get a reference to solution
-	NodeSolution sln = Solution();
+	NodeSolution sln = ProjectHelper.GetContext().Solution();
 
 	// get all object of type NodeItem (working file *.cs, *.vb, ...)
 	List<NodeItem> list = sln.GetItem<NodeItem>().ToList();
 
-	System.Diagnostics.Debugger.Launch();
+	//System.Diagnostics.Debugger.Launch();
 
 	foreach(NodeItem item in list)
 	{

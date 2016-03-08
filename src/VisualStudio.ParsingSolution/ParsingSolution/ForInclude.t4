@@ -1,0 +1,8 @@
+<#@ template debug="true" hostSpecific="true" language="C#" #>
+<#@ output extension=".cs" #>
+<#@ include file="..\ParsingSolution.generated.t4" #>
+<#
+
+	ProjectHelper.InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);	
+
+#>

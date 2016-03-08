@@ -4,12 +4,12 @@
 <#@ import namespace="System.Text" #>
 <#@ import namespace="System.Collections.Generic" #>
 <#@ output extension=".txt" #>
-<#@ include file="..\..\SolutionManagement.t4" #>
+<#@ include file="..\..\..\VisualStudio.ParsingSolution\ParsingSolution.generated.t4" #>
 
 <# 
 
 	// initialize the split file manager. 
-	using(ManagerScope _manager = StartManager())
+	using(ManagerScope _manager = ScopeHelper.StartManager())
     {  
 
 		// create a new file called 'test.generated.txt' located under the script T4.

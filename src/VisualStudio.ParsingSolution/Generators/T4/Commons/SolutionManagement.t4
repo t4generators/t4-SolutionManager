@@ -1,0 +1,6474 @@
+<#@ Assembly Name="envdte" #>
+<#@ Assembly Name="EnvDTE80" #>
+<#@ Assembly Name="Microsoft.Build" #>
+<#@ Assembly Name="Microsoft.CSharp" #>
+<#@ Assembly Name="Microsoft.VisualStudio.ArchitectureTools.Extensibility" #>
+<#@ Assembly Name="Microsoft.VisualStudio.ComponentModelHost" #>
+<#@ Assembly Name="Microsoft.VisualStudio.CoreUtility" #>
+<#@ Assembly Name="Microsoft.VisualStudio.OLE.Interop" #>
+<#@ Assembly Name="Microsoft.VisualStudio.Shell.10.0" #>
+<#@ Assembly Name="Microsoft.VisualStudio.Shell.Immutable.10.0" #>
+<#@ Assembly Name="Microsoft.VisualStudio.Shell.Interop" #>
+<#@ Assembly Name="Microsoft.VisualStudio.Shell.Interop.10.0" #>
+<#@ Assembly Name="Microsoft.VisualStudio.Shell.Interop.8.0" #>
+<#@ Assembly Name="Microsoft.VisualStudio.Shell.Interop.9.0" #>
+<#@ Assembly Name="Microsoft.VisualStudio.TextManager.Interop" #>
+<#@ Assembly Name="Microsoft.VisualStudio.TextTemplating.Interfaces.10.0" #>
+<#@ Assembly Name="Microsoft.VisualStudio.Uml.Interfaces" #>
+<#@ Assembly Name="System" #>
+<#@ Assembly Name="System.ComponentModel.Composition" #>
+<#@ Assembly Name="System.ComponentModel.DataAnnotations" #>
+<#@ Assembly Name="System.Core" #>
+<#@ Assembly Name="System.Data" #>
+<#@ Assembly Name="System.Design" #>
+<#@ Assembly Name="System.Runtime.Serialization" #>
+<#@ Assembly Name="System.Xml" #>
+<#@ Assembly Name="System.Xml.Linq" #>
+<#@ Assembly Name="WindowsBase" #>
+<#@ import namespace="EnvDTE" #>
+<#@ import namespace="EnvDTE80" #>
+<#@ import namespace="Microsoft.VisualStudio.Shell" #>
+<#@ import namespace="Microsoft.VisualStudio.Shell.Interop" #>
+<#@ import namespace="Microsoft.VisualStudio.TextTemplating" #>
+<#@ import namespace="System" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ import namespace="System.IO" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Threading.Tasks" #>
+<#
+
+	ProjectHelper.InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);
+
+#>
+<#+
+// start : C:\Users\gael\Documents\Visual Studio 2015\Projects\TestConvertToT4\VisualStudio.ParsingSolution\Projects\ProjectHelper.cs
+	public static class ProjectHelper
+	{
+		
+		internal static Context _context;
+		internal static EnvDTE.DTE Dte;
+		internal static IServiceProvider serviceProvider;
+		internal static NodeSolution _sln;
+		internal static StringBuilder _generationEnvironment;
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public static bool HasCsharpFile(NodeItem item)
+		{
+			if (item.KindItem == KindItem.File)
+				return (Path.GetExtension(item.Filename) == ".cs");
+	
+			return false;
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public static bool HasVbFile(NodeItem item)
+		{
+			if (item.KindItem == KindItem.File)
+				return (Path.GetExtension(item.Filename) == ".vb");
+	
+			return false;
+		}
+
+		#region Path
+
+		/// <summary>
+        /// Determines whether the specified source is located in the path.
+		/// </summary>
+        /// <param name="source">The source.</param>
+        /// <param name="path">The path.</param>
+        /// <returns></returns>
+		public static bool IsPath(EnvDTE.ProjectItem source, string path)
+		{
+			string path2 = string.Join(@"\", GetPath(source));            
+			return String.Equals(path, path2);        
+		}
+
+		/// <summary>
+        /// Gets the path of the specified source
+		/// </summary>
+        /// <param name="source">The source.</param>
+        /// <returns></returns>
+		public static IEnumerable<string> GetPath(EnvDTE.ProjectItem source)
+		{
+
+			List<string> l = new List<string>();
+			
+			var s = source.Collection.Parent;
+
+			EnvDTE.ProjectItem p1 = s as EnvDTE.ProjectItem;
+			if (p1 != null)
+				l.AddRange(GetPath(p1));
+			
+			else
+			{
+				EnvDTE.Project p2 = s as EnvDTE.Project;
+				if (p2 != null)
+				{
+					l.AddRange(GetPath(p2));
+				}
+				else
+				{
+
+				}
+			}
+
+			l.Add(source.Name);
+			return l;
+		}
+
+		/// <summary>
+		/// return the files of the project item
+		/// </summary>
+		public static IEnumerable<string> GetPath(EnvDTE.Project source)
+		{
+			List<string> l = new List<string>();
+
+			var s = source.ParentProjectItem;
+
+			EnvDTE.ProjectItem p1 = s as EnvDTE.ProjectItem;
+			if (p1 != null)
+			{
+				l.AddRange(GetPath(p1));
+				return l;
+			}
+
+			else
+			{
+				EnvDTE.Project p2 = s as EnvDTE.Project;
+				if (p2 != null)
+				{
+					l.AddRange(GetPath(p2));
+
+				}
+				else
+				{
+
+				}
+			}
+
+			l.Add(source.Name);
+			return l;
+		}
+
+		#endregion
+
+		#region Getfiles
+
+		/// <summary>
+		/// return the files of the project item
+		/// </summary>
+		public static IEnumerable<EnvDTE.ProjectItem> GetFiles(EnvDTE.ProjectItems source)
+		{
+
+			foreach (EnvDTE.ProjectItem item2 in source)            
+				foreach (var item3 in GetFiles(item2))                
+					yield return item3;
+			
+		}
+
+		/// <summary>
+		/// return the files of the project item
+		/// </summary>
+		public static IEnumerable<EnvDTE.ProjectItem> GetFiles(EnvDTE.ProjectItem source)
+		{
+
+			yield return source;
+
+			 if (source.ProjectItems != null)
+				foreach (EnvDTE.ProjectItem item2 in GetFiles(source.ProjectItems))                                                
+					yield return item2;   
+		}
+
+		/// <summary>
+		/// return the files of the project item
+		/// </summary>
+		public static IEnumerable<EnvDTE.ProjectItem> GetFiles(EnvDTE.Project source)
+		{
+
+			foreach (EnvDTE.ProjectItem item in source.ProjectItems)
+			{
+				yield return item;
+
+				if (item.ProjectItems != null)
+
+					foreach (EnvDTE.ProjectItem item2 in GetFiles(item.ProjectItems))                    
+							yield return item2;                        
+					
+			}
+
+
+		}
+
+		#endregion
+
+		public static string GetNamespace(EnvDTE.ProjectItem source)
+		{
+
+
+            StringBuilder s1 = new StringBuilder();
+
+			var s = source.Collection.Parent;
+
+			EnvDTE.ProjectItem p1 = s as EnvDTE.ProjectItem;
+			if (p1 != null)
+				s1.Append(GetNamespace(p1));
+
+			else
+			{
+				EnvDTE.Project p2 = s as EnvDTE.Project;
+				if (p2 != null)
+				{
+					s1.Append(p2.Properties.Item("DefaultNamespace").Value.ToString());
+				}
+			 
+			}
+
+			if (s1.Length > 0)
+				s1.Append(".");
+			s1.Append(source.Name);
+			return s1.ToString();
+
+		}
+
+		public static NodeItem CreateNodeItem(EnvDTE.ProjectItem s)
+		{
+
+			NodeItem fld = null;
+
+			var t = s.FileNames[1] as string;
+            
+            if (t != null)
+            {
+                System.IO.FileInfo f = new System.IO.FileInfo(t);
+
+                if (f.Exists && f.Extension.Length > 0)
+                    fld = new NodeItem(s);
+                else
+                    fld = new NodeItemFolder(s);
+
+            }
+
+			return fld;
+
+		}
+	
+        public class Context
+        {			
+
+            public Context()
+            {
+                Classes = new List<KeyValuePair<string, BaseInfo>>();
+                Projects = new List<KeyValuePair<string, NodeProject>>();
+
+				ComputeClasses();
+				ComputeProject();
+
+            }
+
+            public List<KeyValuePair<string, BaseInfo>> Classes { get; set; }
+            public List<KeyValuePair<string, NodeProject>> Projects { get; set; }
+
+            public ILookup<string, KeyValuePair<string, BaseInfo>> Indexeclasses { get; set; }
+
+            /// <summary>
+            /// return the class of the specified object 
+            /// </summary>
+            public IEnumerable<BaseInfo> ResolveType(TypeInfo type)
+            {
+
+                var t = type.Name;
+
+                if (this.Indexeclasses.Contains(t))
+                {
+
+                    IEnumerable<KeyValuePair<string, BaseInfo>> results = this.Indexeclasses[t];
+
+                    foreach (KeyValuePair<string, BaseInfo> k in results)
+                        yield return k.Value;
+
+                }
+
+                yield break;
+
+            }
+
+			/// <summary>
+			/// return the solution instance 
+			/// </summary>
+			public NodeSolution Solution()
+			{
+				return _sln;
+			}
+
+			void ComputeClasses()
+			{
+
+				NodeSolution sln = Solution();
+
+				foreach(NodeItem file in sln.GetItem<NodeItem>())
+					foreach(BaseInfo cls in file.GetClassItems())
+						if(cls.IsCodeType)
+						{
+							string key = cls.FullName;
+							if (!string.IsNullOrEmpty(key))
+							{
+								var keyValuePair = new KeyValuePair<string, BaseInfo>(cls.FullName, cls);
+								Classes.Add(keyValuePair);
+							}
+						}
+
+				Indexeclasses = Classes.ToLookup(cls => cls.Key);
+
+			}
+
+			void ComputeProject()
+			{
+
+				NodeSolution sln = Solution();
+
+				foreach(NodeProject file in sln.GetItem<NodeProject>())
+				{
+					if (!string.IsNullOrEmpty(file.Source.FullName))
+					{
+						var f = new FileInfo(file.Source.FullName).Directory.FullName;
+						var keyValuePair = new KeyValuePair<string, NodeProject>(f, file);
+						Projects.Add(keyValuePair);
+					}
+				}
+
+			}
+
+			/// <summary>
+			/// return the project for the full path project name specified
+			/// </summary>
+			public NodeProject GetProjectByName(string fullpathItem)
+			{
+
+				foreach(KeyValuePair<string, NodeProject> item in Projects)
+					if (fullpathItem == item.Key)
+						return item.Value;
+
+				return null;
+			}
+
+			/// <summary>
+			/// return all script objects from parsable code
+			/// </summary>
+			public IEnumerable<BaseInfo> GetObjects()
+			{
+        
+				foreach(KeyValuePair<string, BaseInfo> k in Classes)
+					yield return k.Value;
+
+			}
+
+			/// <summary>
+			/// return all object from parsable code that inherit from the specidied object
+			/// <summary>
+			public IEnumerable<BaseInfo> GetObjectsInheritFrom(string fullname)
+			{
+				foreach(KeyValuePair<string, BaseInfo> k in Classes)
+				{
+					if (k.Value.IsClass)
+					{
+						ClassInfo itemC = k.Value as ClassInfo;
+						if (itemC.IsDerivedFrom(fullname))
+							yield return k.Value;
+					}
+					else if(k.Value.IsInterface)
+					{
+						InterfaceInfo itemI = k.Value as InterfaceInfo;
+						if (itemI.IsDerivedFrom(fullname))
+							yield return k.Value;
+					}
+				}
+			}
+
+        }
+
+        public static Context GetContext()
+        {
+
+		return _context;
+		
+        }
+
+		/// <summary>
+		/// initialize the solution managemeent.
+		/// Note : the script attribute "hostspecific" must be "true"
+		/// </summary>
+		public static void InitializeSolution(IServiceProvider host, StringBuilder generationEnvironment)
+		{
+		
+			_generationEnvironment = generationEnvironment;
+			serviceProvider = host;
+		
+			if (serviceProvider != null)
+				Dte = (EnvDTE.DTE)serviceProvider.GetService(typeof(EnvDTE.DTE));
+			
+			if (Dte == null)
+				throw new Exception("T4 can only execute through the Visual Studio host");
+			
+			_sln = new NodeSolution(Dte);
+		
+			_context = new Context();
+			
+		}
+
+		public static GenericArguments ParseGenericArguments(string type, string path, int absoluteCharOffset)
+		{
+
+			GenericArguments generics = new GenericArguments();
+			
+			var p = type.IndexOf('<');
+			System.Text.StringBuilder s = new System.Text.StringBuilder();
+			if (p > -1)
+			{
+				for (int i = p + 1; i < type.Length; i++)
+				{
+
+					var c = type[i];
+
+					switch (c)
+					{
+
+						case '>':
+						case ',':
+							generics.Add(s.ToString().Trim());
+							s.Clear();
+							break;
+
+						default:
+							s.Append(c);
+							break;
+					}
+
+				}
+			}
+
+
+			string txt = LoadText(path, absoluteCharOffset);
+			System.Text.RegularExpressions.MatchCollection matchs = r.Matches(txt);
+
+			foreach (System.Text.RegularExpressions.Match item in matchs)
+			{
+				string t = item.Value.Substring("where".Length).Trim();
+				GenericArgument gen = generics.Resolve(t);
+				if (gen != null)
+				{
+					t = txt.Substring(item.Index + item.Length + 1).Trim();
+					var m2 = r.Match(t);
+					if (m2.Success)
+						t = t.Substring(0, m2.Index);
+					var constraints = t.Split(',');
+					foreach (string constraint in constraints)
+						gen.AddConstraint(constraint.Trim());
+				}
+			}
+
+			return generics;
+
+		}
+
+		private static string LoadText(string path, int absoluteCharOffset)
+		{
+
+			var file = new FileInfo (path);
+			byte[] arr = new byte[file.Length];
+
+			using(FileStream stream = file.OpenRead())
+				stream.Read(arr, 0, arr.Length);
+
+			System.Text.StringBuilder s = new StringBuilder(System.Text.Encoding.UTF8.GetString(arr).Replace("\n", ""));
+			StringBuilder s2 = new StringBuilder(s.Length - absoluteCharOffset);
+
+			char txt = (char)0;
+			for (int i = absoluteCharOffset; i < s.Length; i++)
+			{
+			
+				var c = s[i];
+
+				if (txt == (char)0)
+				{
+					if (c == '"' || c == '\'')
+					{
+						txt = c;
+						continue;
+					}
+
+					if (c == '{' || c== ';')
+						break;
+
+					s2.Append(c);
+
+				}
+				else if (c == txt)
+				{
+					txt = (char)0;
+					continue;
+				}
+
+			}	
+
+			return s2.ToString();
+
+		}
+		
+		private const string pattern = @"where\s[^:]*";
+		private static System.Text.RegularExpressions.Regex r = new System.Text.RegularExpressions.Regex(pattern);
+
+	}
+// end : C:\Users\gael\Documents\Visual Studio 2015\Projects\TestConvertToT4\VisualStudio.ParsingSolution\Projects\ProjectHelper.cs
+
+// start : C:\Users\gael\Documents\Visual Studio 2015\Projects\TestConvertToT4\VisualStudio.ParsingSolution\Projects\NodeItemBase.cs
+	public abstract class NodeItemBase
+	{
+
+		/// <summary>
+        /// Initializes a new instance of the <see cref="NodeItemBase"/> class.
+		/// </summary>
+		public NodeItemBase()
+		{
+
+		}
+
+		/// <summary>
+        /// Gets the kind item.
+		/// </summary>
+        /// <value>
+        /// The kind item.
+        /// </value>
+		public abstract KindItem KindItem { get; }
+
+	}
+// end : C:\Users\gael\Documents\Visual Studio 2015\Projects\TestConvertToT4\VisualStudio.ParsingSolution\Projects\NodeItemBase.cs
+
+// start : C:\Users\gael\Documents\Visual Studio 2015\Projects\TestConvertToT4\VisualStudio.ParsingSolution\Projects\KindItem.cs
+	public enum KindItem
+	{
+		Solution,
+		Project,
+		File,
+		Folder,
+		VirtualFolder,
+	}
+// end : C:\Users\gael\Documents\Visual Studio 2015\Projects\TestConvertToT4\VisualStudio.ParsingSolution\Projects\KindItem.cs
+
+// start : C:\Users\gael\Documents\Visual Studio 2015\Projects\TestConvertToT4\VisualStudio.ParsingSolution\Projects\NodeSolutionItem.cs
+	[System.Diagnostics.DebuggerDisplay("{Name}")]
+	public abstract class NodeSolutionItem : NodeItemBase
+	{
+
+		protected EnvDTE.Project project;
+
+		/// <summary>
+		/// Initializes a new instance of the <see cref="NodeSolutionItem"/> class.
+		/// </summary>
+		public NodeSolutionItem()
+			: base()
+		{
+
+		}
+
+
+		protected Dictionary<string, NodeItemProperty> _properties = null;
+		/// <summary>
+		/// Finds the property.
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="p">The p.</param>
+		/// <returns></returns>
+		protected INodeProperty<T> FindProperty<T>(string p)
+		{
+			if (_properties == null)
+				BuildProperties();
+
+			NodeItemProperty result;
+			_properties.TryGetValue(p, out result);
+
+			return new GenericNodeProperty<T>(result);
+
+		}
+
+		/// <summary>
+		/// Gets the properties.
+		/// </summary>
+		/// <value>
+		/// The properties.
+		/// </value>
+		public Dictionary<string, NodeItemProperty> Properties { get { return _properties; } }
+
+		protected virtual void BuildProperties()
+		{
+			_properties = new Dictionary<string, NodeItemProperty>();
+			if (project != null)
+			{
+				try
+				{
+					foreach (Property item in project.Properties)
+						_properties.Add(item.Name, new NodeProperty<object>(this.project, item.Name));
+				}
+				catch { }
+
+			}
+		}
+
+		/// <summary>
+		/// Initializes a new instance of the <see cref="NodeSolutionItem"/> class.
+		/// </summary>
+		/// <param name="project">The project.</param>
+		public NodeSolutionItem(EnvDTE.Project project)
+			: base()
+		{
+			this.project = project;
+		}
+
+		/// <summary>
+		/// Gets the item.
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <returns></returns>
+		public virtual IEnumerable<T> GetItem<T>() 
+			where T : NodeSolutionItem
+		{
+			foreach(T item in GetItem<T>((Func<T, bool>)null))
+			yield return item;
+		}
+
+		/// <summary>
+		/// Gets the item.
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="filter">The filter.</param>
+		/// <returns></returns>
+		public virtual IEnumerable<T> GetItem<T>(Func<T, bool> filter) 
+			where T : NodeSolutionItem
+		{
+
+			if (project == null)
+				yield break;
+
+			var items = project.ProjectItems;
+			if (items != null)
+			{
+				foreach (EnvDTE.ProjectItem s in project.ProjectItems)
+				{
+
+					NodeSolutionItem fld = null;
+
+					EnvDTE.Project proj = s.SubProject as EnvDTE.Project;
+
+					if (proj != null && !string.IsNullOrEmpty(proj.FullName))
+					{
+						fld = new NodeProject(proj);
+					}
+
+					else if (s.Kind == "{66A26720-8FB5-11D2-AA7E-00C04F688DDE}" && proj != null)
+						fld = new NodeFolderSolution(s as EnvDTE.Project);
+
+					else if (s.Kind == "{66A26722-8FB5-11D2-AA7E-00C04F688DDE}" && proj !=null)
+						fld = new NodeFolderSolution(s as EnvDTE.Project);
+
+					else if (s.Kind == "{EA6618E8-6E24-4528-94BE-6889FE16485C}" && proj != null)
+						fld = new NodeVirtualFolder(s as EnvDTE.Project);
+
+					else
+						fld = ProjectHelper.CreateNodeItem(s);
+
+
+                    if (fld != null)
+                    {
+                        var f = fld as T;
+                        if (f != null)
+                            if (filter == null || filter(f))
+                                yield return f;
+
+                        foreach (NodeSolutionItem i2 in fld.GetItem<T>(filter))
+                            yield return i2 as T;
+                    }
+
+				}
+
+			}
+
+		}
+
+		/// <summary>
+		/// return the kind of the object
+		/// </summary>
+        /// <value>
+        /// The kind.
+        /// </value>
+		public virtual string Kind
+		{
+			get
+			{
+				return project.Kind;
+			}
+		}
+
+
+		/// <summary>
+		/// get or set the name of the project
+		/// </summary>
+        /// <value>
+        /// The name.
+        /// </value>
+		public virtual string Name
+		{
+			get
+			{
+				return project.Name;
+			}
+			set
+			{
+				project.Name = value;
+			}
+		}
+
+		/// <summary>
+        /// Gets the get last access time of the file.
+		/// </summary>
+        /// <value>
+        /// The get last access time.
+        /// </value>
+		public virtual DateTime GetLastAccessTime { get { return File.GetLastAccessTime(this.project.FullName); } }
+
+		/// <summary>
+        /// Gets the get creation time of the file.
+		/// </summary>
+        /// <value>
+        /// The get creation time.
+        /// </value>
+		public virtual DateTime GetCreationTime { get { return File.GetCreationTime (this.project.FullName); } }
+
+		/// <summary>
+        /// Gets the get last write time of the file.
+		/// </summary>
+        /// <value>
+        /// The get last write time.
+        /// </value>
+		public virtual DateTime GetLastWriteTime { get { return File.GetLastWriteTime (this.project.FullName); } }
+
+	}
+// end : C:\Users\gael\Documents\Visual Studio 2015\Projects\TestConvertToT4\VisualStudio.ParsingSolution\Projects\NodeSolutionItem.cs
+
+// start : C:\Users\gael\Documents\Visual Studio 2015\Projects\TestConvertToT4\VisualStudio.ParsingSolution\Projects\NodeVirtualFolder.cs
+    [System.Diagnostics.DebuggerDisplay("{FullName}")]
+	public class NodeVirtualFolder : NodeSolutionItem
+	{
+		
+        /// <summary>
+        /// Initializes a new instance of the <see cref="NodeVirtualFolder"/> class.
+        /// </summary>
+        /// <param name="project">The project.</param>
+        public NodeVirtualFolder(EnvDTE.Project project)
+            : base(project)
+		{
+			
+		}
+
+		/// <summary>
+		/// return the fullname of the virtual filder
+		/// </summary>
+        /// <value>
+        /// The full name.
+        /// </value>
+		public virtual string FullName
+		{
+			get
+			{
+				return project.FullName;
+			}
+		}
+
+		/// <summary>
+        /// Gets the kind item.
+		/// </summary>
+        /// <value>
+        /// The kind item.
+        /// </value>
+		public override KindItem KindItem { get { return KindItem.VirtualFolder; } }
+
+	}
+// end : C:\Users\gael\Documents\Visual Studio 2015\Projects\TestConvertToT4\VisualStudio.ParsingSolution\Projects\NodeVirtualFolder.cs
+
+// start : C:\Users\gael\Documents\Visual Studio 2015\Projects\TestConvertToT4\VisualStudio.ParsingSolution\Projects\NodeSolution.cs
+    [System.Diagnostics.DebuggerDisplay("{Name}")]
+	public class NodeSolution : NodeSolutionItem
+	{
+
+		private EnvDTE.Solution solution;
+		private EnvDTE.DTE dte;
+
+		/// <summary>
+		/// constructor
+		/// </summary>
+		/// <param name="dte">The DTE.</param>
+		public NodeSolution (EnvDTE.DTE dte) : base() 
+		{
+			this.dte = dte;
+			this.solution = dte.Solution;
+			this.BuildProperties();
+		}
+
+		/// <summary>
+		/// Initializes a new instance of the <see cref="NodeSolution"/> class.
+		/// </summary>
+		public NodeSolution()
+			: base()
+		{
+
+			EnvDTE.DTE dte = (EnvDTE.DTE)Package.GetGlobalService(typeof(EnvDTE.DTE));
+			this.dte = dte;
+			this.solution = dte.Solution;
+			this.BuildProperties();
+		}
+
+		/// <summary>
+		/// Gets the source.
+		/// </summary>
+		/// <value>
+		/// The source.
+		/// </value>
+		public EnvDTE.Solution Source { get { return this.solution; } }
+
+		/// <summary>
+        /// The vs view kind code
+        /// </summary>
+        public const string vsViewKindCode = "{7651A701-06E5-11D1-8EBD-00A0C90F26EA}";
+
+        /// <summary>
+		/// return the fullname of the specified path
+		/// </summary>
+        /// <param name="path">The path.</param>
+        /// <returns></returns>
+        /// <exception cref="System.Exception"></exception>
+		public string ResolvePath(string path)
+		{
+		
+			ProjectItem projectItem = this.solution.FindProjectItem(path);
+
+			if (projectItem == null)
+				throw new Exception(string.Format("the path '{0}' can't be resolved", path));
+
+			// If the .tt file is not opened, open it
+			if (projectItem.Document == null)
+				projectItem.Open(vsViewKindCode);
+
+			var file = projectItem.FileNames[1];
+
+			return file;
+
+		}
+
+		/// <summary>
+        /// Gets the kind item.
+		/// </summary>
+        /// <value>
+        /// The kind item.
+        /// </value>
+		public override KindItem KindItem { get { return KindItem.Solution; } }
+
+		/// <summary>
+		/// return the name of the solution
+		/// </summary>
+        /// <value>
+        /// The name.
+        /// </value>
+		public override string Name
+		{
+			get { return FindProperty<string>("Name").Value; }
+			set { FindProperty<string>("Name").Value = value; }
+		}
+
+		/// <summary>
+        /// Gets or sets the extender catid.
+		/// </summary>
+        /// <value>
+        /// The extender catid.
+        /// </value>
+		public string ExtenderCATID
+		{
+			get { return FindProperty<string>("ExtenderCATID").Value; }
+			set { FindProperty<string>("ExtenderCATID").Value = value; }
+		}          
+
+		/// <summary>
+        /// Gets or sets the project dependencies.
+		/// </summary>
+        /// <value>
+        /// The project dependencies.
+        /// </value>
+		public string ProjectDependencies
+		{
+			get { return FindProperty<string>("ProjectDependencies").Value; }
+			set { FindProperty<string>("ProjectDependencies").Value = value; }
+		}          
+
+		/// <summary>
+        /// Gets or sets the extender.
+		/// </summary>
+        /// <value>
+        /// The extender.
+        /// </value>
+		public string Extender
+		{
+			get { return FindProperty<string>("Extender").Value; }
+			set { FindProperty<string>("Extender").Value = value; }
+		}       
+
+		/// <summary>
+        /// Gets or sets the active configuration.
+		/// </summary>
+        /// <value>
+        /// The active configuration.
+        /// </value>
+		public string ActiveConfig
+		{
+			get { return FindProperty<string>("ActiveConfig").Value; }
+			set { FindProperty<string>("ActiveConfig").Value = value; }
+		}
+			
+		/// <summary>
+        /// Gets or sets the path.
+		/// </summary>
+        /// <value>
+        /// The path.
+        /// </value>
+		public string Path
+		{
+			get { return FindProperty<string>("Path").Value; }
+			set { FindProperty<string>("Path").Value = value; }
+		}
+
+		/// <summary>
+        /// Gets or sets the extender names.
+		/// </summary>
+        /// <value>
+        /// The extender names.
+        /// </value>
+		public string ExtenderNames
+		{
+			get { return FindProperty<string>("ExtenderNames").Value; }
+			set { FindProperty<string>("ExtenderNames").Value = value; }
+		}
+			
+		/// <summary>
+        /// Gets or sets the description.
+		/// </summary>
+        /// <value>
+        /// The description.
+        /// </value>
+		public string Description
+		{
+			get { return FindProperty<string>("Description").Value; }
+			set { FindProperty<string>("Description").Value = value; }
+		}
+
+		/// <summary>
+        /// Gets or sets the startup project.
+		/// </summary>
+        /// <value>
+        /// The startup project.
+        /// </value>
+		public string StartupProject
+		{
+			get { return FindProperty<string>("StartupProject").Value; }
+			set { FindProperty<string>("StartupProject").Value = value; }
+		}
+
+
+		/// <summary>
+        /// Gets the get DTE.
+		/// </summary>
+        /// <value>
+        /// The get DTE.
+        /// </value>
+		public EnvDTE.DTE GetDTE { get { return dte; } }
+	   
+		/// <summary>
+        /// Gets the projects.
+		/// </summary>
+        /// <value>
+        /// The projects.
+        /// </value>
+		public IEnumerable<NodeProject> Projects
+		{
+			get
+			{
+                return GetItem<NodeProject>(/*c => c.Kind != "{66A26720-8FB5-11D2-AA7E-00C04F688DDE}"*/);
+			}
+		}
+
+        /// <summary>
+        /// Gets the projects.
+        /// </summary>
+        /// <returns></returns>
+        public IEnumerable<NodeProject> GetProjects()
+        {
+            return GetItem<NodeProject>(/*c => c.Kind != "{66A26720-8FB5-11D2-AA7E-00C04F688DDE}"*/);
+        }
+
+		/// <summary>
+        /// Gets the projects.
+		/// </summary>
+        /// <param name="filter">The filter.</param>
+        /// <returns></returns>
+		public IEnumerable<NodeProject> GetProjects(Func<NodeProject, bool> filter)
+		{
+            return GetItem<NodeProject>(filter)/*.Where(c => c.Kind != "{66A26720-8FB5-11D2-AA7E-00C04F688DDE}")*/;
+		}
+	
+		/// <summary>
+        /// Gets the item.
+		/// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="filter">The filter.</param>
+        /// <returns></returns>
+		public override IEnumerable<T> GetItem<T>(Func<T, bool> filter)
+		{
+
+			var prjs = this.solution.Projects;
+
+			if (prjs != null)
+			{
+				foreach (EnvDTE.Project project in prjs)
+				{
+
+					NodeSolutionItem fld = null;
+
+					if (project.Kind == "{66A26720-8FB5-11D2-AA7E-00C04F688DDE}")
+						fld = new NodeFolderSolution(project);
+
+					else if (project.Kind == "{66A26720-8FB5-11D2-AA7E-00C04F688DDE}")  // is not the same that last test
+						fld = new NodeFolderSolution(project);
+
+					else if (project.Kind == "{EA6618E8-6E24-4528-94BE-6889FE16485C}")
+						fld = new NodeVirtualFolder(project);
+
+					else
+						fld = new NodeProject(project);
+
+			var f = fld as T;
+                    if (f != null)
+                        if (filter == null || filter(f))
+                            yield return f;
+
+                    foreach (T item in fld.GetItem<T>(filter))
+                        yield return item;
+
+                }
+            }
+        }
+
+
+        /// <summary>
+        /// Builds the properties.
+        /// </summary>
+		protected override void BuildProperties()
+		{
+			_properties = new Dictionary<string, NodeItemProperty>();
+
+			foreach (EnvDTE.Property item in solution.Properties)
+				_properties.Add(item.Name, new NodeProperty<object>(this.solution, item.Name));
+
+		}
+
+	}
+// end : C:\Users\gael\Documents\Visual Studio 2015\Projects\TestConvertToT4\VisualStudio.ParsingSolution\Projects\NodeSolution.cs
+
+// start : C:\Users\gael\Documents\Visual Studio 2015\Projects\TestConvertToT4\VisualStudio.ParsingSolution\Projects\NodeItemProperty.cs
+    [System.Diagnostics.DebuggerDisplay("{Name}")]
+	public class NodeItemProperty
+	{ 
+
+		private bool? undefine = null;
+		private EnvDTE.Property property;
+		private EnvDTE.Properties properties;
+
+		/// <summary>
+        /// Initializes a new instance of the <see cref="NodeItemProperty"/> class.
+		/// </summary>
+        /// <param name="o">The o.</param>
+        /// <param name="name">The name.</param>
+ 		public NodeItemProperty(object o, string name)
+		{
+			Name = name;
+
+			if ((o as EnvDTE.Solution) != null)
+				this.properties = (o as EnvDTE.Solution).Properties;
+
+			else if ((o as EnvDTE.Project) != null)
+				this.properties = (o as EnvDTE.Project).Properties;
+
+			else if ((o as EnvDTE.ProjectItem) != null)
+				this.properties = (o as EnvDTE.ProjectItem).Properties;
+
+		}
+
+		private EnvDTE.Property SetValue()
+		{
+
+			try
+			{
+				property = properties.Item(Name);
+				undefine = true;
+				return property;
+			}
+			catch (Exception)
+			{
+				undefine = false;
+			}
+
+			return null;
+
+		}
+
+		/// <summary>
+        /// Gets the property object.
+		/// </summary>
+        /// <value>
+        /// The property object.
+        /// </value>
+ 		public EnvDTE.Property PropertyObject { get { return undefine != null ? property : SetValue(); } }
+
+		/// <summary>
+        /// Gets the name of the property.
+		/// </summary>
+        /// <value>
+        /// The name.
+        /// </value>
+ 		public string Name { get; private set; }
+
+		/// <summary>
+        /// Gets a value indicating whether this <see cref="NodeItemProperty"/> is undefine.
+		/// </summary>
+        /// <value>
+        ///   <c>true</c> if undefine; otherwise, <c>false</c>.
+        /// </value>
+ 		private bool Undefine { get { return undefine != null ? (bool)undefine : (PropertyObject == null); } }
+
+	}
+// end : C:\Users\gael\Documents\Visual Studio 2015\Projects\TestConvertToT4\VisualStudio.ParsingSolution\Projects\NodeItemProperty.cs
+
+// start : C:\Users\gael\Documents\Visual Studio 2015\Projects\TestConvertToT4\VisualStudio.ParsingSolution\Projects\GenericNodeProperty.cs
+    [System.Diagnostics.DebuggerDisplay("{Value}")]
+	public class GenericNodeProperty<T> : INodeProperty<T>
+	{
+
+		NodeItemProperty _instance;
+
+		/// <summary>
+        /// Initializes a new instance of the <see cref="GenericNodeProperty{T}"/> class.
+		/// </summary>
+        /// <param name="item">The item.</param>
+ 		public GenericNodeProperty(NodeItemProperty item)
+		{
+			this._instance = item;
+		}
+
+		/// <summary>
+        /// Gets or sets the value.
+		/// </summary>
+        /// <value>
+        /// The value.
+        /// </value>
+ 		public T Value
+		{
+			get 
+			{
+				if(this._instance != null && this._instance.PropertyObject != null)
+					return (T)this._instance.PropertyObject.Value; 
+				return default(T);
+			}
+			set 
+			{
+				if(this._instance != null && this._instance.PropertyObject != null)
+					this._instance.PropertyObject.Value = Value; 
+			}
+		}
+
+	}
+// end : C:\Users\gael\Documents\Visual Studio 2015\Projects\TestConvertToT4\VisualStudio.ParsingSolution\Projects\GenericNodeProperty.cs
+
+// start : C:\Users\gael\Documents\Visual Studio 2015\Projects\TestConvertToT4\VisualStudio.ParsingSolution\Projects\NodeProperty.cs
+	[System.Diagnostics.DebuggerDisplay("{Name}: {Value}")]
+ 	public class NodeProperty<T> : NodeItemProperty, INodeProperty<T>
+	{
+
+		/// <summary>
+        /// Initializes a new instance of the <see cref="NodeProperty{T}"/> class.
+		/// </summary>
+        /// <param name="o">The o.</param>
+        /// <param name="name">The name.</param>
+ 		public NodeProperty(object o, string name)
+			: base(o, name)
+		{
+		
+		}
+
+		/// <summary>
+        /// Gets or sets the value.
+		/// </summary>
+        /// <value>
+        /// The value.
+        /// </value>
+ 		public T Value
+		{
+			get { return PropertyObject != null ? (T)PropertyObject.Value : default(T); }
+			set { PropertyObject.Value = value; }
+		}
+
+		/// <summary>
+        /// Performs an implicit conversion from <see cref="NodeProperty{T}"/> to <see cref="T"/>.
+		/// </summary>
+        /// <param name="property">The property.</param>
+        /// <returns>
+        /// The result of the conversion.
+        /// </returns>
+ 		public static implicit operator T(NodeProperty<T> property) { return property.Value; }
+
+	}
+// end : C:\Users\gael\Documents\Visual Studio 2015\Projects\TestConvertToT4\VisualStudio.ParsingSolution\Projects\NodeProperty.cs
+
+// start : C:\Users\gael\Documents\Visual Studio 2015\Projects\TestConvertToT4\VisualStudio.ParsingSolution\Projects\INodeProperty.cs
+ 	public interface INodeProperty<T>
+	{
+
+		T Value { get; set; }
+
+	}
+// end : C:\Users\gael\Documents\Visual Studio 2015\Projects\TestConvertToT4\VisualStudio.ParsingSolution\Projects\INodeProperty.cs
+
+// start : C:\Users\gael\Documents\Visual Studio 2015\Projects\TestConvertToT4\VisualStudio.ParsingSolution\Projects\NodeProject.cs
+    [System.Diagnostics.DebuggerDisplay("{Name}")]
+	public class NodeProject : NodeSolutionItem
+	{
+
+        public const string ContentProjectConst2 = "Project";
+        public const string ContentProjectConst = "project";
+        public const string ContentPathConst = "path";
+        public const string ContentCompile = "Compile";
+        public const string ContentReference = "Reference";
+        public const string ContentProjectReference = "ProjectReference";
+        public const string ContentContent = "Content";
+        public const string ContentEmbeddedResource = "EmbeddedResource";
+        public const string ContentResource = "Resource";
+        public const string ContentClassName = "classname";
+	private Microsoft.Build.Construction.ProjectRootElement _projectContent;
+        private string configurationFile;
+
+		/// <summary>
+        /// Initializes a new instance of the <see cref="NodeProject"/> class.
+		/// </summary>
+        /// <param name="project">The project.</param>
+		public NodeProject(EnvDTE.Project project) 
+			: base(project)
+		{
+							  
+
+		}
+		
+
+
+		/// <summary>
+		/// add a new file in the folder to the solution
+		/// </summary>
+		public NodeItem AddFile(FileInfo file)
+        {
+            return AddFile(file.FullName);
+        }
+
+		/// <summary>
+		/// add a new file in the folder to the solution
+		/// </summary>
+		public NodeItem AddFile(string FullName)
+        {
+            return new NodeItem(this.project.ProjectItems.AddFromFile(FullName));
+        }
+
+		/// <summary>
+		/// add a new files in the folder of the solution
+		/// </summary>
+        public NodeItem AddFiles(DirectoryInfo directory)
+        {
+            return AddFiles(directory.FullName);
+        }
+
+		/// <summary>
+		/// add a new files in the folder of the solution
+		/// </summary>
+		public NodeItem AddFiles(string directoryFullName)
+        {
+            return new NodeItemFolder(this.project.ProjectItems.AddFromDirectory(directoryFullName));
+        }
+
+		/// <summary>
+		/// resolve the folder path and return the last folder.
+		/// if a part is missing. it is created 
+		/// </summary>
+        public NodeItemFolder GetFolder(string path)
+        {
+            
+            string p = path.Replace("/", @"\");
+            p = p.Trim();
+            p = p.Trim('\\');
+
+            string[] ar = p.Split('\\');
+
+            return GetFolder(ar);
+
+        }
+
+		/// <summary>
+		/// resolve the folder path and return the last folder.
+		/// if a part is missing. it is created
+		/// </summary>
+        public NodeItemFolder GetFolder(string[] paths)
+        {
+
+            NodeItemFolder node = null;
+            string n2 = Name;
+
+            for(int i = 0; i < paths.Length;i++)
+            {
+
+                string n = paths[i];
+
+				if (string.IsNullOrEmpty(n))
+					return null;
+
+                if (node == null)
+                    node = this.GetItem<NodeItemFolder>(c => c.Name.ToLower() == n.ToLower()).FirstOrDefault();
+                else
+                    node = node.GetFolder(n);
+
+                if (node == null)
+                {
+
+					var _path = Path.Combine(LocalPath, n);
+                    DirectoryInfo dir  = new DirectoryInfo(_path);
+                    if (!dir.Exists)
+                        dir.Create();
+
+					this.project.ProjectItems.AddFromDirectory(_path);
+
+					node = this.GetItem<NodeItemFolder>(c => c.Name.ToLower() == n.ToLower())
+							   .FirstOrDefault();
+
+					if (node == null)
+						throw new Exception(String.Format("{0} can't be resolved in ", n, n2));
+                                    
+                }
+
+                n2 = n;
+
+            }
+
+            return node;
+
+        }
+
+		/// <summary>
+        /// Creates the code type reference.
+		/// </summary>
+        /// <param name="typeFullname">The type fullname.</param>
+        /// <returns></returns>
+         public CodeTypeRef CreateCodeTypeRef(string typeFullname)
+        {
+            return this.project.CodeModel.CreateCodeTypeRef(typeFullname);
+        }
+
+ 		/// <summary>
+		/// return the codetype from the type fullname
+		/// </summary>
+        public EnvDTE.CodeType CodeTypeFromFullName(string typeFullname)
+        {
+            return this.project.CodeModel.CodeTypeFromFullName(typeFullname);
+        }
+
+		/// <summary>
+		/// return the datetime of the last access 
+		/// </summary>
+ 		public override DateTime GetLastAccessTime { get { return File.GetLastAccessTime(this.project.FullName); } }
+
+		/// <summary>
+		/// return the creation datetime 
+		/// </summary>
+ 		public override DateTime GetCreationTime { get { return File.GetCreationTime (this.project.FullName); } }
+
+		/// <summary>
+		/// return the datatime of the last write access
+		/// </summary>
+ 		public override DateTime GetLastWriteTime { get { return File.GetLastWriteTime (this.project.FullName); } }
+
+		/// <summary>
+		/// return kind item
+		/// </summary>
+ 		public override KindItem KindItem { get { return KindItem.Project; } }
+
+		protected Microsoft.Build.Construction.ProjectRootElement GetProjectContent()
+        {
+			if (_projectContent == null)
+				_projectContent = Microsoft.Build.Construction.ProjectRootElement.Open(this.FullName);
+			return _projectContent;
+        }
+
+		protected IEnumerable<Microsoft.Build.Construction.ProjectItemElement> GetElements(string name)
+        {
+
+			Microsoft.Build.Construction.ProjectRootElement project = GetProjectContent();
+
+            foreach (var item in project.ItemGroups)
+                foreach (var item2 in item.Children)
+                {
+                    var t = item2 as Microsoft.Build.Construction.ProjectItemElement;
+                    if (t != null)
+                        if (t.ItemType == name)
+                            yield return t;
+                }
+        }
+
+
+		public IEnumerable<ReferenceAssembly> References
+        {
+			get
+			{
+
+				List<ReferenceAssembly> _result = new List<ReferenceAssembly>();
+				var lst = GetElements(NodeProject.ContentReference).ToList();
+				HashSet<string> _h = new HashSet<string>();
+				foreach(Microsoft.Build.Construction.ProjectItemElement ass in lst)
+                {
+					if (_h.Add(ass.Include) && !ass.Include.Contains("$") && !ass.Include.Contains(")"))
+                    {
+						var a = new ReferenceAssembly(ass.Include);
+						_result.Add(a);
+                    }
+                }
+
+				return _result;
+            }
+        }
+
+
+
+ 		public string AspNetDebugging
+		{
+			get { return FindProperty<string>("WebApplication.AspNetDebugging").Value; }
+			set { FindProperty<string>("WebApplication.AspNetDebugging").Value = value; }
+		}
+
+ 		public string AspnetCompilerIISMetabasePath
+		{
+			get { return FindProperty<string>("WebApplication.AspnetCompilerIISMetabasePath").Value; }
+			set { FindProperty<string>("WebApplication.AspnetCompilerIISMetabasePath").Value = value; }
+		}
+
+ 		public string OutputTypeEx
+		{
+			get { return FindProperty<string>("OutputTypeEx").Value; }
+			set { FindProperty<string>("OutputTypeEx").Value = value; }
+		}
+
+ 		public string TargetFrameworkMoniker
+		{
+			get { return FindProperty<string>("TargetFrameworkMoniker").Value; }
+			set { FindProperty<string>("TargetFrameworkMoniker").Value = value; }
+		}
+
+ 		public string ComVisible
+		{
+			get { return FindProperty<string>("ComVisible").Value; }
+			set { FindProperty<string>("ComVisible").Value = value; }
+		}
+
+ 		public string EnableSecurityDebugging
+		{
+			get { return FindProperty<string>("EnableSecurityDebugging").Value; }
+			set { FindProperty<string>("EnableSecurityDebugging").Value = value; }
+		}
+
+ 		public string OptionCompare
+		{
+			get { return FindProperty<string>("OptionCompare").Value; }
+			set { FindProperty<string>("OptionCompare").Value = value; }
+		}
+
+ 		public string StartupObject
+		{
+			get { return FindProperty<string>("StartupObject").Value; }
+			set { FindProperty<string>("StartupObject").Value = value; }
+		}
+
+ 		public string SSLEnabled
+		{
+			get { return FindProperty<string>("WebApplication.SSLEnabled").Value; }
+			set { FindProperty<string>("WebApplication.SSLEnabled").Value = value; }
+		}
+
+ 		public string UseIIS
+		{
+			get { return FindProperty<string>("WebApplication.UseIIS").Value; }
+			set { FindProperty<string>("WebApplication.UseIIS").Value = value; }
+		}
+
+ 		public string ManifestCertificateThumbprint
+		{
+			get { return FindProperty<string>("ManifestCertificateThumbprint").Value; }
+			set { FindProperty<string>("ManifestCertificateThumbprint").Value = value; }
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+ 		public string Trademark
+		{
+			get { return FindProperty<string>("Trademark").Value; }
+			set { FindProperty<string>("Trademark").Value = value; }
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+ 		public string Title
+		{
+			get { return FindProperty<string>("Title").Value; }
+			set { FindProperty<string>("Title").Value = value; }
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public string StartExternalUrl
+		{
+			get { return FindProperty<string>("WebApplication.StartExternalUrl").Value; }
+			set { FindProperty<string>("WebApplication.StartExternalUrl").Value = value; }
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public string IISUrl
+		{
+			get { return FindProperty<string>("WebApplication.IISUrl").Value; }
+			set { FindProperty<string>("WebApplication.IISUrl").Value = value; }
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public string AssemblyOriginatorKeyFileType
+		{
+			get { return FindProperty<string>("AssemblyOriginatorKeyFileType").Value; }
+			set { FindProperty<string>("AssemblyOriginatorKeyFileType").Value = value; }
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public string FileName
+		{
+			get { return FindProperty<string>("FileName").Value; }
+			set { FindProperty<string>("FileName").Value = value; }
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public string WebServer
+		{
+			get { return FindProperty<string>("WebServer").Value; }
+			set { FindProperty<string>("WebServer").Value = value; }
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public string AssemblyOriginatorKeyMode
+		{
+			get { return FindProperty<string>("AssemblyOriginatorKeyMode").Value; }
+			set { FindProperty<string>("AssemblyOriginatorKeyMode").Value = value; }
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public string AssemblyKeyContainerName
+		{
+			get { return FindProperty<string>("AssemblyKeyContainerName").Value; }
+			set { FindProperty<string>("AssemblyKeyContainerName").Value = value; }
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public string WindowsAuthenticationEnabled
+		{
+			get { return FindProperty<string>("WebApplication.WindowsAuthenticationEnabled").Value; }
+			set { FindProperty<string>("WebApplication.WindowsAuthenticationEnabled").Value = value; }
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public string SecureUrl
+		{
+			get { return FindProperty<string>("WebApplication.SecureUrl").Value; }
+			set { FindProperty<string>("WebApplication.SecureUrl").Value = value; }
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public string DevelopmentServerCommandLine
+		{
+			get { return FindProperty<string>("WebApplication.DevelopmentServerCommandLine").Value; }
+			set { FindProperty<string>("WebApplication.DevelopmentServerCommandLine").Value = value; }
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public string SQLDebugging
+		{
+			get { return FindProperty<string>("WebApplication.SQLDebugging").Value; }
+			set { FindProperty<string>("WebApplication.SQLDebugging").Value = value; }
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public string StartPageUrl
+		{
+			get { return FindProperty<string>("WebApplication.StartPageUrl").Value; }
+			set { FindProperty<string>("WebApplication.StartPageUrl").Value = value; }
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public string DefaultServerDirectoryListing
+		{
+			get { return FindProperty<string>("WebApplication.DefaultServerDirectoryListing").Value; }
+			set { FindProperty<string>("WebApplication.DefaultServerDirectoryListing").Value = value; }
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public string DevelopmentServerVPath
+		{
+			get { return FindProperty<string>("WebApplication.DevelopmentServerVPath").Value; }
+			set { FindProperty<string>("WebApplication.DevelopmentServerVPath").Value = value; }
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public string DevelopmentServerPort
+		{
+			get { return FindProperty<string>("WebApplication.DevelopmentServerPort").Value; }
+			set { FindProperty<string>("WebApplication.DevelopmentServerPort").Value = value; }
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public string ProjectType
+		{
+			get { return FindProperty<string>("ProjectType").Value; }
+			set { FindProperty<string>("ProjectType").Value = value; }
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public string ReferencePath
+		{
+			get { return FindProperty<string>("ReferencePath").Value; }
+			set { FindProperty<string>("ReferencePath").Value = value; }
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public string IsUsingIISExpress
+		{
+			get { return FindProperty<string>("WebApplication.IsUsingIISExpress").Value; }
+			set { FindProperty<string>("WebApplication.IsUsingIISExpress").Value = value; }
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public string PreBuildEvent
+		{
+			get { return FindProperty<string>("PreBuildEvent").Value; }
+			set { FindProperty<string>("PreBuildEvent").Value = value; }
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public string AnonymousAuthenticationEnabled
+		{
+			get { return FindProperty<string>("WebApplication.AnonymousAuthenticationEnabled").Value; }
+			set { FindProperty<string>("WebApplication.AnonymousAuthenticationEnabled").Value = value; }
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public string SilverlightDebugging
+		{
+			get { return FindProperty<string>("WebApplication.SilverlightDebugging").Value; }
+			set { FindProperty<string>("WebApplication.SilverlightDebugging").Value = value; }
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public string StartCmdLineArguments
+		{
+			get { return FindProperty<string>("WebApplication.StartCmdLineArguments").Value; }
+			set { FindProperty<string>("WebApplication.StartCmdLineArguments").Value = value; }
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public string Copyright
+		{
+			get { return FindProperty<string>("Copyright").Value; }
+			set { FindProperty<string>("Copyright").Value = value; }
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public string ApplicationIcon
+		{
+			get { return FindProperty<string>("ApplicationIcon").Value; }
+			set { FindProperty<string>("ApplicationIcon").Value = value; }
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public string CurrentDebugUrl
+		{
+			get { return FindProperty<string>("WebApplication.CurrentDebugUrl").Value; }
+			set { FindProperty<string>("WebApplication.CurrentDebugUrl").Value = value; }
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public string ExcludedPermissions
+		{
+			get { return FindProperty<string>("ExcludedPermissions").Value; }
+			set { FindProperty<string>("ExcludedPermissions").Value = value; }
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public string RunPostBuildEvent
+		{
+			get { return FindProperty<string>("RunPostBuildEvent").Value; }
+			set { FindProperty<string>("RunPostBuildEvent").Value = value; }
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public string DefaultTargetSchema
+		{
+			get { return FindProperty<string>("DefaultTargetSchema").Value; }
+			set { FindProperty<string>("DefaultTargetSchema").Value = value; }
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public string RootNamespace
+		{
+			get { return FindProperty<string>("RootNamespace").Value; }
+			set { FindProperty<string>("RootNamespace").Value = value; }
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public string IsUsingCustomServer
+		{
+			get { return FindProperty<string>("WebApplication.IsUsingCustomServer").Value; }
+			set { FindProperty<string>("WebApplication.IsUsingCustomServer").Value = value; }
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public string ManifestTimestampUrl
+		{
+			get { return FindProperty<string>("ManifestTimestampUrl").Value; }
+			set { FindProperty<string>("ManifestTimestampUrl").Value = value; }
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public string ManifestKeyFile
+		{
+			get { return FindProperty<string>("ManifestKeyFile").Value; }
+			set { FindProperty<string>("ManifestKeyFile").Value = value; }
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public string DebugSecurityZoneURL
+		{
+			get { return FindProperty<string>("DebugSecurityZoneURL").Value; }
+			set { FindProperty<string>("DebugSecurityZoneURL").Value = value; }
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public string Product
+		{
+			get { return FindProperty<string>("Product").Value; }
+			set { FindProperty<string>("Product").Value = value; }
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public string PostBuildEvent
+		{
+			get { return FindProperty<string>("PostBuildEvent").Value; }
+			set { FindProperty<string>("PostBuildEvent").Value = value; }
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public string OptionStrict
+		{
+			get { return FindProperty<string>("OptionStrict").Value; }
+			set { FindProperty<string>("OptionStrict").Value = value; }
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public string DefaultHTMLPageLayout
+		{
+			get { return FindProperty<string>("DefaultHTMLPageLayout").Value; }
+			set { FindProperty<string>("DefaultHTMLPageLayout").Value = value; }
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public string DelaySign
+		{
+			get { return FindProperty<string>("DelaySign").Value; }
+			set { FindProperty<string>("DelaySign").Value = value; }
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public string OutputType
+		{
+			get { return FindProperty<string>("OutputType").Value; }
+			set { FindProperty<string>("OutputType").Value = value; }
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public string StartWorkingDirectory
+		{
+			get { return FindProperty<string>("WebApplication.StartWorkingDirectory").Value; }
+			set { FindProperty<string>("WebApplication.StartWorkingDirectory").Value = value; }
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public string DebugStartAction
+		{
+			get { return FindProperty<string>("WebApplication.DebugStartAction").Value; }
+			set { FindProperty<string>("WebApplication.DebugStartAction").Value = value; }
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public string NeutralResourcesLanguage
+		{
+			get { return FindProperty<string>("NeutralResourcesLanguage").Value; }
+			set { FindProperty<string>("NeutralResourcesLanguage").Value = value; }
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public string OptionExplicit
+		{
+			get { return FindProperty<string>("OptionExplicit").Value; }
+			set { FindProperty<string>("OptionExplicit").Value = value; }
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public string OutputFileName
+		{
+			get { return FindProperty<string>("OutputFileName").Value; }
+			set { FindProperty<string>("OutputFileName").Value = value; }
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public string ServerExtensionsVersion
+		{
+			get { return FindProperty<string>("ServerExtensionsVersion").Value; }
+			set { FindProperty<string>("ServerExtensionsVersion").Value = value; }
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public string NonSecureUrl
+		{
+			get { return FindProperty<string>("WebApplication.NonSecureUrl").Value; }
+			set { FindProperty<string>("WebApplication.NonSecureUrl").Value = value; }
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public new string ToString
+		{
+			get { return FindProperty<string>("WebApplication.ToString").Value; }
+			set { FindProperty<string>("WebApplication.ToString").Value = value; }
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public string AssemblyGuid
+		{
+			get { return FindProperty<string>("AssemblyGuid").Value; }
+			set { FindProperty<string>("AssemblyGuid").Value = value; }
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public string GenerateManifests
+		{
+			get { return FindProperty<string>("GenerateManifests").Value; }
+			set { FindProperty<string>("GenerateManifests").Value = value; }
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public string AssemblyVersion
+		{
+			get { return FindProperty<string>("AssemblyVersion").Value; }
+			set { FindProperty<string>("AssemblyVersion").Value = value; }
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public string Win32ResourceFile
+		{
+			get { return FindProperty<string>("Win32ResourceFile").Value; }
+			set { FindProperty<string>("Win32ResourceFile").Value = value; }
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public string Description
+		{
+			get { return FindProperty<string>("Description").Value; }
+			set { FindProperty<string>("Description").Value = value; }
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public string URL
+		{
+			get { return FindProperty<string>("URL").Value; }
+			set { FindProperty<string>("URL").Value = value; }
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public string DefaultClientScript
+		{
+			get { return FindProperty<string>("DefaultClientScript").Value; }
+			set { FindProperty<string>("DefaultClientScript").Value = value; }
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public string NativeDebugging
+		{
+			get { return FindProperty<string>("WebApplication.NativeDebugging").Value; }
+			set { FindProperty<string>("WebApplication.NativeDebugging").Value = value; }
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public string TargetFramework
+		{
+			get { return FindProperty<string>("TargetFramework").Value; }
+			set { FindProperty<string>("TargetFramework").Value = value; }
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public string SignManifests
+		{
+			get { return FindProperty<string>("SignManifests").Value; }
+			set { FindProperty<string>("SignManifests").Value = value; }
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public string OfflineURL
+		{
+			get { return FindProperty<string>("OfflineURL").Value; }
+			set { FindProperty<string>("OfflineURL").Value = value; }
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public string WebServerVersion
+		{
+			get { return FindProperty<string>("WebServerVersion").Value; }
+			set { FindProperty<string>("WebServerVersion").Value = value; }
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public string Publish
+		{
+			get { return FindProperty<string>("Publish").Value; }
+			set { FindProperty<string>("Publish").Value = value; }
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public int AssemblyType
+		{
+			get { return FindProperty<int>("AssemblyType").Value; }
+			set { FindProperty<int>("AssemblyType").Value = value; }
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public string FullPath
+		{
+			get { return FindProperty<string>("FullPath").Value; }
+			set { FindProperty<string>("FullPath").Value = value; }
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public string WebAccessMethod
+		{
+			get { return FindProperty<string>("WebAccessMethod").Value; }
+			set { FindProperty<string>("WebAccessMethod").Value = value; }
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public string UseIISExpress
+		{
+			get { return FindProperty<string>("WebApplication.UseIISExpress").Value; }
+			set { FindProperty<string>("WebApplication.UseIISExpress").Value = value; }
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public string BrowseURL
+		{
+			get { return FindProperty<string>("WebApplication.BrowseURL").Value; }
+			set { FindProperty<string>("WebApplication.BrowseURL").Value = value; }
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public string NTLMAuthentication
+		{
+			get { return FindProperty<string>("WebApplication.NTLMAuthentication").Value; }
+			set { FindProperty<string>("WebApplication.NTLMAuthentication").Value = value; }
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public string OverrideIISAppRootUrl
+		{
+			get { return FindProperty<string>("WebApplication.OverrideIISAppRootUrl").Value; }
+			set { FindProperty<string>("WebApplication.OverrideIISAppRootUrl").Value = value; }
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public string OpenedURL
+		{
+			get { return FindProperty<string>("WebApplication.OpenedURL").Value; }
+			set { FindProperty<string>("WebApplication.OpenedURL").Value = value; }
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public string AssemblyKeyProviderName
+		{
+			get { return FindProperty<string>("AssemblyKeyProviderName").Value; }
+			set { FindProperty<string>("AssemblyKeyProviderName").Value = value; }
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public string TypeComplianceDiagnostics
+		{
+			get { return FindProperty<string>("TypeComplianceDiagnostics").Value; }
+			set { FindProperty<string>("TypeComplianceDiagnostics").Value = value; }
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public string Company
+		{
+			get { return FindProperty<string>("Company").Value; }
+			set { FindProperty<string>("Company").Value = value; }
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public string ActiveFileSharePath
+		{
+			get { return FindProperty<string>("ActiveFileSharePath").Value; }
+			set { FindProperty<string>("ActiveFileSharePath").Value = value; }
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public string AssemblyOriginatorKeyFile
+		{
+			get { return FindProperty<string>("AssemblyOriginatorKeyFile").Value; }
+			set { FindProperty<string>("AssemblyOriginatorKeyFile").Value = value; }
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public string StartWebServerOnDebug
+		{
+			get { return FindProperty<string>("WebApplication.StartWebServerOnDebug").Value; }
+			set { FindProperty<string>("WebApplication.StartWebServerOnDebug").Value = value; }
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public string AutoAssignPort
+		{
+			get { return FindProperty<string>("WebApplication.AutoAssignPort").Value; }
+			set { FindProperty<string>("WebApplication.AutoAssignPort").Value = value; }
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public string ApplicationManifest
+		{
+			get { return FindProperty<string>("ApplicationManifest").Value; }
+			set { FindProperty<string>("ApplicationManifest").Value = value; }
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public string AssemblyFileVersion
+		{
+			get { return FindProperty<string>("AssemblyFileVersion").Value; }
+			set { FindProperty<string>("AssemblyFileVersion").Value = value; }
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public string AspnetVersion
+		{
+			get { return FindProperty<string>("AspnetVersion").Value; }
+			set { FindProperty<string>("AspnetVersion").Value = value; }
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public string FileSharePath
+		{
+			get { return FindProperty<string>("FileSharePath").Value; }
+			set { FindProperty<string>("FileSharePath").Value = value; }
+		}
+
+		/// <summary>
+		/// return the name of the assembly
+		/// </summary>
+		public string AssemblyName
+		{
+			get { return FindProperty<string>("AssemblyName").Value; }
+			set { FindProperty<string>("AssemblyName").Value = value; }
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public string EditAndContinue
+		{
+			get { return FindProperty<string>("WebApplication.EditAndContinue").Value; }
+			set { FindProperty<string>("WebApplication.EditAndContinue").Value = value; }
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public string ServerDirectoryListing
+		{
+			get { return FindProperty<string>("WebApplication.ServerDirectoryListing").Value; }
+			set { FindProperty<string>("WebApplication.ServerDirectoryListing").Value = value; }
+		}
+
+		/// <summary>
+		/// return directory full name
+		/// </summary>
+		public virtual string LocalPath
+		{
+            get { return new FileInfo(this.project.FileName).Directory.FullName; }
+		}
+
+		/// <summary>
+		/// return the default namespace
+		/// </summary>
+		public string DefaultNamespace
+		{
+			get { return FindProperty<string>("DefaultNamespace").Value; }
+			set { FindProperty<string>("DefaultNamespace").Value = value; }
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public string LinkRepair
+		{
+			get { return FindProperty<string>("LinkRepair").Value; }
+			set { FindProperty<string>("LinkRepair").Value = value; }
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public string StartExternalProgram
+		{
+			get { return FindProperty<string>("WebApplication.StartExternalProgram").Value; }
+			set { FindProperty<string>("WebApplication.StartExternalProgram").Value = value; }
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public string IISAppRootUrl
+		{
+			get { return FindProperty<string>("WebApplication.IISAppRootUrl").Value; }
+			set { FindProperty<string>("WebApplication.IISAppRootUrl").Value = value; }
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public string TargetZone
+		{
+			get { return FindProperty<string>("TargetZone").Value; }
+			set { FindProperty<string>("TargetZone").Value = value; }
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public string SignAssembly
+		{
+			get { return FindProperty<string>("SignAssembly").Value; }
+			set { FindProperty<string>("SignAssembly").Value = value; }
+		}
+
+		/// <summary>
+		/// return the reference object com
+		/// </summary>
+		public EnvDTE.Project Source
+		{
+			get 
+			{
+				return project;
+			}
+		}
+
+		/// <summary>
+		/// full filename
+		/// </summary>
+		public virtual string FullName
+		{
+			get
+			{
+				return project.FullName;
+			}
+		}
+
+	}
+// end : C:\Users\gael\Documents\Visual Studio 2015\Projects\TestConvertToT4\VisualStudio.ParsingSolution\Projects\NodeProject.cs
+
+// start : C:\Users\gael\Documents\Visual Studio 2015\Projects\TestConvertToT4\VisualStudio.ParsingSolution\Projects\NodeItemFolder.cs
+    [System.Diagnostics.DebuggerDisplay("{Name}")]
+	public class NodeItemFolder : NodeItem
+	{
+
+		/// <summary>
+        /// Initializes a new instance of the <see cref="NodeItemFolder"/> class.
+		/// </summary>
+        /// <param name="s">The s.</param>
+        public NodeItemFolder(EnvDTE.ProjectItem s)
+            : base(s)
+		{
+                    
+		}
+
+		/// <summary>
+        /// Gets the kind item.
+		/// </summary>
+        /// <value>
+        /// The kind item.
+        /// </value>
+		public override KindItem KindItem { get { return KindItem.Folder; } }
+
+		/// <summary>
+		/// resolve the folder path and return the last folder of the path.
+		/// if a part is missing. it is created
+		/// </summary>
+        /// <param name="path">The path.</param>
+        /// <returns></returns>
+        public NodeItemFolder GetFolder(string path)
+        {
+            
+            string p = path.Replace("/", @"\");
+            p = p.Trim();
+            p = p.Trim('\\');
+
+            string[] ar = p.Split('\\');
+
+            return GetFolder(ar);
+
+        }
+
+		/// <summary>
+        /// Gets the folder.
+		/// </summary>
+        /// <param name="paths">The paths.</param>
+        /// <returns></returns>
+        /// <exception cref="System.Exception"></exception>
+        public NodeItemFolder GetFolder(string[] paths)
+        {
+
+            NodeItemFolder node = null;
+            string n2 = Name;
+
+            for(int i = 0; i < paths.Length;i++)
+            {
+
+                string n = paths[i];
+
+				if (string.IsNullOrEmpty(n))
+                    return null;
+
+                node = this.GetItem<NodeItemFolder>(c => c.Name == n).FirstOrDefault();
+
+                if (node == null)
+                {
+
+                    var _path = Path.Combine(LocalPath, n);
+                    DirectoryInfo dir = new DirectoryInfo(_path);
+
+                    if (!dir.Exists)
+                        dir.Create();
+
+                    this.s.ProjectItems.AddFromDirectory(_path);
+
+                    node = this.GetItem<NodeItemFolder>(c => c.Name == n).FirstOrDefault();
+
+                    if (node == null)
+                        throw new Exception(String.Format("{0} can't be resolved in ", n, n2));
+
+                }
+
+                n2 = n;
+
+            }
+
+            return node;
+
+        }
+
+	}
+// end : C:\Users\gael\Documents\Visual Studio 2015\Projects\TestConvertToT4\VisualStudio.ParsingSolution\Projects\NodeItemFolder.cs
+
+// start : C:\Users\gael\Documents\Visual Studio 2015\Projects\TestConvertToT4\VisualStudio.ParsingSolution\Projects\NodeItem.cs
+    [System.Diagnostics.DebuggerDisplay("{Name}")]
+	public class NodeItem : NodeSolutionItem
+	{
+
+		protected readonly EnvDTE.ProjectItem s;
+		private string path;
+		private List<BaseInfo> classes;
+
+		/// <summary>
+        /// Initializes a new instance of the <see cref="NodeItem"/> class.
+		/// </summary>
+        /// <param name="s">The s.</param>
+        public NodeItem(EnvDTE.ProjectItem s)
+            : base()
+		{
+
+			this.s = s;            
+            this.path = s.FileNames[1] as string;
+            this.path = this.path.TrimEnd('\\');
+			//Debug.WriteLine("----------------------------");
+			//foreach (Property item in s.Properties)
+			//{
+			//    Debug.WriteLine(item.Name);
+			//}
+			//Debug.WriteLine("----------------------------");
+
+			 
+			//   Extension
+			//   CustomToolOutput
+			//   DateModified
+			//   IsLink
+			//   BuildAction
+			//   SubType
+			//   CopyToOutputDirectory
+			//   IsSharedDesignTimeBuildInput
+			//   ItemType
+			//   IsCustomToolOutput
+			//   HTMLTitle
+			//   CustomTool
+			//   URL
+			//   Filesize
+			//   CustomToolNamespace
+			//   Author
+			//   FullPath
+			//   IsDependentFile
+			//   IsDesignTimeBuildInput
+			//   DateCreated
+			//   LocalPath
+			//   ModifiedBy
+			  
+		}
+
+		/// <summary>
+        /// Gets the project item.
+		/// </summary>
+        /// <value>
+        /// The project item.
+        /// </value>
+        public EnvDTE.ProjectItem ProjectItem
+        {
+            get
+            {
+                return this.s;
+            }
+        }
+
+		/// <summary>
+        /// Gets the get last access time of the file.
+		/// </summary>
+        /// <value>
+        /// The get last access time.
+        /// </value>
+		public override DateTime GetLastAccessTime { get { return File.GetLastAccessTime(this.Filename); } }
+
+		/// <summary>
+        /// Gets the get creation time of the file.
+		/// </summary>
+        /// <value>
+        /// The get creation time.
+        /// </value>
+		public override DateTime GetCreationTime { get { return File.GetCreationTime (this.Filename); } }
+
+		/// <summary>
+        /// Gets the get last write time of the file.
+		/// </summary>
+        /// <value>
+        /// The get last write time.
+        /// </value>
+		public override DateTime GetLastWriteTime { get { return File.GetLastWriteTime (this.Filename); } }
+
+		/// <summary>
+        /// Gets the kind item.
+		/// </summary>
+        /// <value>
+        /// The kind item.
+        /// </value>
+		public override KindItem KindItem { get { return KindItem.File; } }
+
+		public string WebReferenceInterface
+		{
+			get { return FindProperty<string>("WebReferenceInterface").Value; }
+			set { FindProperty<string>("WebReferenceInterface").Value = value; }
+		}
+			
+
+		public string WebReference
+		{
+			get { return FindProperty<string>("WebReference").Value; }
+			set { FindProperty<string>("WebReference").Value = value; }
+		}
+			
+
+		public string URL
+		{
+			get { return FindProperty<string>("URL").Value; }
+			set { FindProperty<string>("URL").Value = value; }
+		}
+			
+
+		public string UrlBehavior
+		{
+			get { return FindProperty<string>("UrlBehavior").Value; }
+			set { FindProperty<string>("UrlBehavior").Value = value; }
+		}
+			
+		/// <summary>
+		/// filename
+		/// </summary>
+		public string Filename
+		{
+			get { return this.path; }
+		}
+
+		public string LocalPath
+		{
+			get { return FindProperty<string>("LocalPath").Value; }
+			set { FindProperty<string>("LocalPath").Value = value; }
+		}
+			
+
+		public string DefaultNamespace
+		{
+			get { return FindProperty<string>("DefaultNamespace").Value; }
+			set { FindProperty<string>("DefaultNamespace").Value = value; }
+		}
+			
+
+		protected override void BuildProperties()
+		{
+
+			_properties = new Dictionary<string, NodeItemProperty>();
+
+            string aa = s.Name;
+			try
+			{
+				foreach (EnvDTE.Property item in s.Properties)
+					_properties.Add(item.Name, new NodeProperty<object>(s, item.Name));
+			}
+			catch(Exception)
+			{
+
+			}
+		}
+
+		/// <summary>
+		/// parser for iterate items of the solution
+		/// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="filter">The filter.</param>
+        /// <returns></returns>
+		public override IEnumerable<T> GetItem<T>(Func<T, bool> filter)
+		{
+
+			if (s.ProjectItems != null)
+				foreach (ProjectItem item in s.ProjectItems)
+				{
+
+					NodeItem i = ProjectHelper.CreateNodeItem(item);
+
+					var f = i as T;
+					if (f != null)
+						if (filter == null || filter(f))
+							yield return f;
+
+					foreach (NodeSolutionItem i2 in i.GetItem<T>(filter))
+						yield return i2 as T;
+
+				}
+
+		}
+
+
+		///<summary>
+		/// return the list of object contains in the file.
+		///</summary>
+		public IEnumerable<BaseInfo> GetClassItems<T>(Func<T, bool> predicate)
+			where T : BaseInfo
+		{
+
+			return GetClassItems().OfType<T>().Where(predicate);
+
+		}
+
+
+		///<summary>
+		/// return the list of object contains in the file.
+		///</summary>
+		public IEnumerable<BaseInfo> GetClassItems<T>()
+			where T : BaseInfo
+		{
+
+			return GetClassItems().OfType<T>();
+
+		}
+
+		///<summary>
+		/// return the list of objects contains in the file.
+		///</summary>
+		public IEnumerable<BaseInfo> GetClassItems()
+		{
+
+			if (classes == null)
+			{
+
+			classes = new List<BaseInfo>();
+			
+                try
+                {
+                    if (s.FileCodeModel != null)
+                    {
+
+                        foreach (CodeClass2 code in s.FileCodeModel.CodeElements.OfType<CodeClass2>())
+                            if (ObjectFactory.Instance.AcceptClass(code))
+                                classes.Add(ObjectFactory.Instance.CreateClass(this, code));
+
+                        foreach (CodeEnum code in s.FileCodeModel.CodeElements.OfType<CodeEnum>())
+                            if (ObjectFactory.Instance.AcceptEnum(code))
+                                classes.Add(ObjectFactory.Instance.CreateEnum(this, code));
+
+                        foreach (CodeInterface2 code in s.FileCodeModel.CodeElements.OfType<CodeInterface2>())
+                            if (ObjectFactory.Instance.AcceptInterface(code))
+                                classes.Add(ObjectFactory.Instance.CreateInterface(this, code));
+				
+                        foreach (EnvDTE.CodeNamespace ns in s.FileCodeModel.CodeElements.OfType<EnvDTE.CodeNamespace>())
+                        {
+
+                            foreach (CodeClass2 code in ns.Members.OfType<CodeClass2>())
+                                if (ObjectFactory.Instance.AcceptClass(code))
+                                    classes.Add(ObjectFactory.Instance.CreateClass(this, code));
+
+                            foreach (CodeEnum code in ns.Members.OfType<CodeEnum>())
+                                if (ObjectFactory.Instance.AcceptEnum(code))
+                                    classes.Add(ObjectFactory.Instance.CreateEnum(this, code));
+
+                            foreach (CodeInterface2 code in ns.Members.OfType<CodeInterface2>())
+                                if (ObjectFactory.Instance.AcceptInterface(code))
+                                    classes.Add(ObjectFactory.Instance.CreateInterface(this, code));
+
+                        }
+                    }
+                }
+                catch
+                {
+
+                }
+
+            }
+
+			return classes;
+		
+		}
+		
+		/// <summary>
+		/// return the namespaces list in the file
+		/// </summary>
+		public IEnumerable<EnvDTE.CodeNamespace> GetNamespaceItems()
+		{
+
+			List<EnvDTE.CodeNamespace> list = new List<EnvDTE.CodeNamespace>();
+			
+			foreach (EnvDTE.CodeNamespace codeNamespace in s.FileCodeModel.CodeElements.OfType<EnvDTE.CodeNamespace>())
+				list.Add(codeNamespace);
+
+			return list;
+		
+		}
+
+		/// <summary>
+		/// Kind item
+		/// </summary>
+		public override string Kind { get { return s.Kind; } }
+
+		/// <summary>
+		/// Name of the file in visual studio
+		/// </summary>
+		public override string Name
+		{       
+			get { return s.Name; }
+			set { s.Name = value; }
+		}
+
+		/// <summary>
+		/// Name of the filename
+		/// </summary>
+		public string Name2 { get { return s.FileNames[0]; } }
+		
+		
+	}
+// end : C:\Users\gael\Documents\Visual Studio 2015\Projects\TestConvertToT4\VisualStudio.ParsingSolution\Projects\NodeItem.cs
+
+// start : C:\Users\gael\Documents\Visual Studio 2015\Projects\TestConvertToT4\VisualStudio.ParsingSolution\Projects\NodeFolderSolution.cs
+    [System.Diagnostics.DebuggerDisplay("{FullName}")]
+	public class NodeFolderSolution : NodeSolutionItem
+	{
+
+		/// <summary>
+        /// Initializes a new instance of the <see cref="NodeFolderSolution"/> class.
+		/// </summary>
+        /// <param name="project">The project.</param>
+		public NodeFolderSolution(EnvDTE.Project project) 
+			: base(project)
+		{
+			
+		}
+
+		/// <summary>
+		/// add a new file in the folder of the solution
+		/// </summary>
+		public NodeItem AddFile(FileInfo file)
+		{
+			return AddFile(file.FullName);
+		}
+
+		/// <summary>
+		/// add a new file in the folder of the solution
+		/// </summary>
+		public NodeItem AddFile(string FullName)
+		{
+			return new NodeItem(this.project.ProjectItems.AddFromFile(FullName));
+		}
+
+		/// <summary>
+		/// add a new files in the folder to the solution
+		/// </summary>
+		public NodeItem AddFiles(DirectoryInfo directory)
+		{
+			return AddFiles(directory.FullName);
+		}
+
+		/// <summary>
+		/// add a new files in the folder to the solution
+		/// </summary>
+		public NodeItem AddFiles(string directoryFullName)
+		{
+			return new NodeItemFolder(this.project.ProjectItems.AddFromDirectory(directoryFullName));
+		}
+
+		/// <summary>
+		/// return the fullname of the file
+		/// </summary>
+		public virtual string FullName
+		{
+			get
+			{
+				return project.FullName;
+			}
+		}
+
+		/// <summary>
+		/// Kind item
+		/// </summary>
+		public override KindItem KindItem { get { return KindItem.Folder; } }
+
+	}
+// end : C:\Users\gael\Documents\Visual Studio 2015\Projects\TestConvertToT4\VisualStudio.ParsingSolution\Projects\NodeFolderSolution.cs
+
+// start : C:\Users\gael\Documents\Visual Studio 2015\Projects\TestConvertToT4\VisualStudio.ParsingSolution\Projects\Codes\ObjectFactory.cs
+	public class ObjectFactory
+	{
+
+		private static ObjectFactory _instance; 
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public static ObjectFactory Instance
+		{
+
+			get
+			{
+				if (_instance == null)
+					_instance = new ObjectFactory();
+				return _instance;
+			}
+			set
+			{
+				_instance = value;
+			}
+
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public virtual bool AcceptInterface(CodeInterface2 c)
+		{	
+			return true;
+		}
+
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public virtual bool AcceptClass(CodeClass2 c)
+		{	
+			return true;
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public virtual bool AcceptEnum(CodeEnum e)
+		{	
+			return true;
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+        public NodeProject DefaultProject { get; set; }
+
+		/// <summary>
+		/// 
+		/// </summary>
+        public virtual TypeInfo CreateType(CodeTypeRef type)
+        {
+            return new TypeInfo(type);
+        }
+
+		/// <summary>
+		/// 
+		/// </summary>
+        public virtual EnumInfo CreateEnum(NodeItem parent, CodeEnum item)
+		{
+			return new EnumInfo(parent, item);
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+        public virtual CodeFieldInfo CreateEnumValue(EnumInfo parent, CodeElement item, TypeInfo type)
+        {
+            return new CodeFieldInfo(parent, item, type);
+        }
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public virtual ClassInfo CreateClass(NodeItem parent, CodeClass2 item)
+		{
+			return new ClassInfo(parent, item);
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public virtual InterfaceInfo CreateInterface(NodeItem parent, CodeInterface2 item)
+		{
+			return new InterfaceInfo(parent, item);
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public virtual AttributeInfo CreateAttribute(CodeAttribute2 item)
+		{
+			return new AttributeInfo(item);
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public virtual CodeFunctionInfo CreateMethod(BaseInfo parent, CodeFunction2 item)
+		{
+			return new CodeFunctionInfo(parent, item);
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public virtual AttributeArgumentInfo CreateAttributeArgument(EnvDTE80.CodeAttributeArgument item)
+		{
+			return new AttributeArgumentInfo(item);
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public virtual MethodParamInfo CreatParameter(CodeFunctionInfo parent, CodeParameter2 item, string parameterComment)
+		{
+			return new MethodParamInfo(parent, item, parameterComment);
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public virtual CodePropertyInfo CreateProperty(BaseInfo parent, CodeProperty2 item)
+		{
+			return new CodePropertyInfo(parent, item);
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public virtual CodeEventInfo CreateEvent(BaseInfo parent, EnvDTE80.CodeEvent item)
+		{
+			return new CodeEventInfo(parent, item);
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public static IEnumerable<AttributeInfo> GetAttributes(IEnumerable<AttributeInfo> attributes, string attributeType)
+		{
+
+			var ar = attributeType.Split(','); 
+
+			foreach(AttributeInfo attr in attributes)
+				if (ar.Contains(attr.FullName, StringComparer.OrdinalIgnoreCase))
+					yield return attr;
+
+			yield break;
+
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public static List<AttributeInfo> GetAttributes(CodeClass2 type)
+		{
+			
+
+			var l = new List<AttributeInfo>();
+
+			while(type != null) 
+			{
+				var attribute = GetAttributes(type.Attributes);
+				l.AddRange(attribute);
+				if (type.Bases.Count == 0)
+					return null;
+				type = (CodeClass2)type.Bases.Item(1);
+			}
+
+			return l;
+
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public static List<AttributeInfo> GetAttributes(CodeElements attributes)
+		{
+			List<AttributeInfo> _result = new List<AttributeInfo>();
+			for (int i = 1; i <= attributes.Count; i++)
+			{
+				try
+				{
+					var attrib = (CodeAttribute2)attributes.Item(i);
+					_result.Add(ObjectFactory.Instance.CreateAttribute(attrib));
+				}
+				catch
+				{
+					continue;
+				}
+			}
+			return _result;
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public static CMAccess Convert(EnvDTE.vsCMAccess item)
+		{
+
+			switch  (item)
+			{
+
+				case EnvDTE.vsCMAccess.vsCMAccessAssemblyOrFamily:
+					return CMAccess.AssemblyOrFamily;
+				case EnvDTE.vsCMAccess.vsCMAccessDefault:
+					return CMAccess.Default;
+				case EnvDTE.vsCMAccess.vsCMAccessPrivate:
+					return CMAccess.Private;
+				case EnvDTE.vsCMAccess.vsCMAccessProject:
+					return CMAccess.Project;
+				case EnvDTE.vsCMAccess.vsCMAccessProjectOrProtected:
+					return CMAccess.ProjectOrProtected;
+				case EnvDTE.vsCMAccess.vsCMAccessProtected:
+					return CMAccess.Protected;
+				case EnvDTE.vsCMAccess.vsCMAccessPublic:
+					return CMAccess.Public;
+				case EnvDTE.vsCMAccess.vsCMAccessWithEvents:
+					return CMAccess.WithEvents;
+
+			}
+
+			return CMAccess.Default;
+
+		}
+	}
+// end : C:\Users\gael\Documents\Visual Studio 2015\Projects\TestConvertToT4\VisualStudio.ParsingSolution\Projects\Codes\ObjectFactory.cs
+
+// start : C:\Users\gael\Documents\Visual Studio 2015\Projects\TestConvertToT4\VisualStudio.ParsingSolution\Projects\Codes\InterfaceInfo.cs
+    [System.Diagnostics.DebuggerDisplay("{Namespace}.{Name}")]
+    public class InterfaceInfo : BaseInfo
+	{
+	
+		/// <summary>
+		/// 
+		/// </summary>
+		public InterfaceInfo(NodeItem parent, CodeInterface2 item)
+			: base(null, item as CodeElement2)
+		{
+
+			this.Parent = parent;
+			this.item = item;
+            this.IsInterface = true;
+			this.Access = ObjectFactory.Convert(this.item.Access);
+			this.IsAbstract = true;
+			this.IsShared = false;
+			this.IsGeneric = this.item.IsGeneric;
+			this.Namespace = item.Namespace.FullName;
+            this.DocComment = this.item.DocComment;
+
+			//this.item.Children
+			//this.item.DerivedTypes
+			//this.item.InfoLocation
+			//this.item.InheritanceKind
+			//this.item.Kind = vsCMElement.
+			//this.item.Parent
+			//this.item.PartialClasses
+			//this.item.Parts
+
+		}
+
+		protected readonly CodeInterface2 item;
+
+		private List<CodeFunctionInfo> _methods;
+		private List<CodePropertyInfo> _properties;
+		private List<CodeEventInfo> _events;
+		private List<AttributeInfo> _attributes;
+		private ClassInfo _base;
+		private GenericArguments _genericArguments;
+
+		/// <summary>
+		/// List the generics arguments if the interface is generic 
+		/// </summary>
+		public GenericArguments GenericArguments
+		{
+			get
+			{
+				if (this._genericArguments == null)
+				{
+					if (this.IsGeneric)
+						this._genericArguments = ProjectHelper.ParseGenericArguments(this.item.FullName, this.Parent.LocalPath, this.item.StartPoint.AbsoluteCharOffset);
+					else
+						this._genericArguments = new GenericArguments();
+				}
+				return _genericArguments;
+			}
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public NodeItem Parent { get; private set; }
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public CMAccess Access { get; private set; }
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public bool IsAbstract { get; private set; }
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public bool IsGeneric { get; private set; }
+		
+		/// <summary>
+		/// 
+		/// </summary>
+		public bool IsShared { get; private set; }
+
+		/// <summary>
+		/// return true if the current interface is derived from the specified type
+		/// </summary>
+		public bool IsDerivedFrom(string fullName)
+		{
+			return this.item.IsDerivedFrom[fullName];
+		}
+
+		/// <summary>
+		/// return the list of derived interface.
+		/// </summary>
+		public IEnumerable<InterfaceInfo> ImplementedInterfaces()
+        {
+
+            foreach (EnvDTE.CodeElement item in this.item.Bases)
+            {
+                if (item.Kind == EnvDTE.vsCMElement.vsCMElementInterface)
+                {
+					NodeItem parent = new NodeItem(this.item.ProjectItem);
+                    EnvDTE80.CodeInterface2 i = item as EnvDTE80.CodeInterface2;
+                    InterfaceInfo _result = ObjectFactory.Instance.CreateInterface(parent , i);
+					yield return _result;
+                }
+            }
+
+        }
+
+		/// <summary>
+		/// return the list of the methods.
+		/// </summary>
+		public IEnumerable<CodeFunctionInfo> GetMethods()
+		{
+
+			if (_methods == null)
+			{
+
+				_methods = new  List<CodeFunctionInfo>();
+				CodeInterface2 i = item;
+
+				while(i != null) 
+				{
+
+					var _members = i.Members.OfType<CodeFunction2>()
+						.Where(f => AcceptMethod(f))
+						.Select(c => ObjectFactory.Instance.CreateMethod(this, c))
+						.Where(d => d != null)
+						.ToList();
+
+					_methods.AddRange(_members);
+
+					if (i.Bases.Count == 0)
+						break;
+
+					i = i.Bases.Item(1) as CodeInterface2;
+
+					if (i == null || !AcceptAncestor(i.Namespace.FullName, i.Name))
+						break;
+
+				}
+
+				InitializeMethods(_methods);
+
+			}
+
+			return _methods;
+
+		}
+
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public IEnumerable<CodePropertyInfo> GetProperties()
+		{
+
+			if (_properties == null)
+			{
+
+				_properties = new  List<CodePropertyInfo>();
+				CodeInterface2 i = item;
+
+				while(i != null) 
+				{
+				
+					var _members = i.Members.OfType<CodeProperty2>()
+						.Where(f => AcceptProperty(f))
+						.Select(c => ObjectFactory.Instance.CreateProperty(this, c))
+						.Where(d => d != null)
+						.ToList();
+
+					_properties.AddRange(_members);
+
+					if (i.Bases.Count == 0)
+						break;
+
+					i = i.Bases.Item(1) as CodeInterface2;
+
+					if (i == null || !AcceptAncestor(i.Namespace.FullName, i.Name))
+						break;
+
+				}
+
+				InitializeProperties(_properties);
+
+			}
+
+			return _properties;
+
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public IEnumerable<CodeEventInfo> GetEvents()
+		{
+
+			if (_events == null)
+			{
+				
+				_events = new  List<CodeEventInfo>();
+
+				CodeInterface2 i = item;
+
+				while(i != null) 
+				{
+								 
+					var _members = i.Members.OfType<EnvDTE80.CodeEvent>()
+							.Where(f => AcceptEvent(f))
+							.Select(c => ObjectFactory.Instance.CreateEvent(this, c))
+							.Where(d => d != null)
+							.ToList();
+
+					_events.AddRange(_members);
+
+					if (i.Bases.Count == 0)
+						break;
+
+					i = i.Bases.Item(1) as CodeInterface2;
+
+					if (i == null || !AcceptAncestor(i.Namespace.FullName, i.Name))
+						break;
+
+				}
+
+				InitializeEvents(_events);
+
+			}
+
+			return _events;
+
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public IEnumerable<AttributeInfo> Attributes 
+		{
+			get
+			{
+				if (_attributes == null)
+				{
+					try
+					{
+						_attributes = ObjectFactory.GetAttributes(item.Attributes);
+					}
+					catch(Exception)
+					{
+						_attributes = new List<AttributeInfo>();
+					}
+
+					InitializeAttributes(_attributes);
+
+				}
+				return _attributes;
+			}
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		protected virtual bool AcceptAncestor(string _namespace, string name)
+		{
+			return true;
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		protected IEnumerable<AttributeInfo> GetAttributes(string attributeType)
+		{
+			return ObjectFactory.GetAttributes(Attributes, attributeType).ToList();
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		protected virtual bool AcceptEvent(EnvDTE80.CodeEvent e)
+		{
+			return true;
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		protected bool IsPublic(EnvDTE.vsCMAccess a)
+		{
+			return a == EnvDTE.vsCMAccess.vsCMAccessPublic;
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		protected bool IsPrivate(EnvDTE.vsCMAccess a)
+		{
+			return a == EnvDTE.vsCMAccess.vsCMAccessPrivate;
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		protected bool IsProtected(EnvDTE.vsCMAccess a)
+		{
+			return ( a & EnvDTE.vsCMAccess.vsCMAccessProtected) == EnvDTE.vsCMAccess.vsCMAccessProtected;
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		protected bool IsFamily(EnvDTE.vsCMAccess a)
+		{
+			return (a & EnvDTE.vsCMAccess.vsCMAccessProject) == EnvDTE.vsCMAccess.vsCMAccessProject;
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		protected bool IsFamilyOrProtected(EnvDTE.vsCMAccess a)
+		{
+			return (a & EnvDTE.vsCMAccess.vsCMAccessProjectOrProtected) == EnvDTE.vsCMAccess.vsCMAccessProjectOrProtected;
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		protected virtual void InitializeEvents(List<CodeEventInfo> events)
+		{
+
+		}
+		
+		/// <summary>
+		/// 
+		/// </summary>
+		protected virtual bool AcceptMethod(CodeFunction2 method)
+		{
+			return method.FunctionKind == vsCMFunction.vsCMFunctionFunction;
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		protected virtual void InitializeMethods(List<CodeFunctionInfo> methods)
+		{
+
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		protected virtual bool AcceptProperty(CodeProperty2 property)
+		{
+			return true;
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		protected virtual void InitializeProperties(List<CodePropertyInfo> properties)
+		{
+
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		protected virtual void InitializeAttributes(List<AttributeInfo> attributes)
+		{
+
+		}
+
+
+	}
+// end : C:\Users\gael\Documents\Visual Studio 2015\Projects\TestConvertToT4\VisualStudio.ParsingSolution\Projects\Codes\InterfaceInfo.cs
+
+// start : C:\Users\gael\Documents\Visual Studio 2015\Projects\TestConvertToT4\VisualStudio.ParsingSolution\Projects\Codes\EnumInfo.cs
+    [System.Diagnostics.DebuggerDisplay("{FullName}")]
+    public class EnumInfo : BaseInfo
+    {
+
+        private CodeEnum _enum;
+        private List<CodeFieldInfo> _fields;
+        private TypeInfo type = null;
+
+		/// <summary>
+		/// 
+		/// </summary>
+        public EnumInfo(NodeItem parent, CodeEnum item)
+            : base(null, item as CodeElement2)
+        {
+
+            this._enum = item as CodeEnum;
+            this.IsEnum = true;
+            this.Namespace = item.Namespace.FullName;
+            this.DocComment = this._enum.DocComment;
+
+            GetFields();
+
+        } 
+
+		/// <summary>
+		/// 
+		/// </summary>
+        public IEnumerable<CodeFieldInfo> GetFields()
+        {
+
+            if (_fields == null)
+            {
+
+                _fields = new  List<CodeFieldInfo>();
+
+                var _members = _enum.Members.OfType<CodeElement2>()
+                    .Select(c => ObjectFactory.Instance.CreateEnumValue(this, c, type))
+                    .Where(d => d != null)
+                    .ToList();
+
+                _fields.AddRange(_members);
+
+
+                InitializeFields(_fields);
+
+            }
+
+            return _fields;
+            
+        }
+
+		/// <summary>
+		/// 
+		/// </summary>
+        public virtual void InitializeFields(List<CodeFieldInfo> fields)
+        {
+
+        }
+
+    }
+// end : C:\Users\gael\Documents\Visual Studio 2015\Projects\TestConvertToT4\VisualStudio.ParsingSolution\Projects\Codes\EnumInfo.cs
+
+// start : C:\Users\gael\Documents\Visual Studio 2015\Projects\TestConvertToT4\VisualStudio.ParsingSolution\Projects\Codes\ClassInfo.cs
+    [System.Diagnostics.DebuggerDisplay("{FullName}")]
+	public class ClassInfo : BaseInfo
+	{
+
+		/// <summary>
+        /// Initializes a new instance of the <see cref="ClassInfo"/> class.
+		/// </summary>
+        /// <param name="parent"></param>
+        /// <param name="item"></param>
+	    protected ClassInfo(BaseInfo parent, CodeElement2 item)
+            : base(parent, item)
+		{
+            
+
+		}
+	
+		/// <summary>
+        /// Initializes a new instance of the <see cref="ClassInfo"/> class.
+		/// </summary>
+        /// <param name="parent">The parent.</param>
+        /// <param name="item">The item.</param>
+		public ClassInfo(NodeItem parent, CodeClass2 item)
+			: base(null, item as CodeElement2)
+		{
+
+			this.Parent = parent;
+			this.item = item;
+            this.IsClass = true;
+
+			this.Access = ObjectFactory.Convert(this.item.Access);
+
+			this.IsAbstract = this.item.IsAbstract;
+		   
+			this.IsShared = this.item.IsShared;
+			this.IsGeneric = this.item.IsGeneric;
+			this.Namespace = item.Namespace.FullName;
+			this.DocComment = this.item.DocComment;
+
+			//this.item.Children
+			//this.item.DerivedTypes
+			//this.item.InfoLocation
+			//this.item.InheritanceKind
+			//this.item.Kind = vsCMElement.
+			//this.item.Parent
+			//this.item.PartialClasses
+			//this.item.Parts
+
+		}
+
+		private GenericArguments _genericArguments;
+		
+		/// <summary>
+		/// List the generics arguments if the class is generic 
+		/// </summary>
+		public GenericArguments GenericArguments 
+		{
+			get
+			{
+				if (this._genericArguments == null)
+				{
+					if (this.IsGeneric)
+						this._genericArguments = ProjectHelper.ParseGenericArguments(this.item.FullName, this.Parent.LocalPath, this.item.StartPoint.AbsoluteCharOffset);
+					else
+						this._genericArguments = new GenericArguments();
+				}
+				return _genericArguments;
+			}
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		protected readonly CodeClass2 item;
+		private List<CodeFunctionInfo> _methods;
+		private List<CodePropertyInfo> _properties;
+		private List<CodeEventInfo> _events;
+		private List<AttributeInfo> _attributes;
+		private ClassInfo _base;
+		
+		/// <summary>
+		/// 
+		/// </summary>
+		public NodeItem Parent { get; private set; }
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public CMAccess Access { get; private set; }
+
+		/// <summary>
+		/// Is abstract
+		/// </summary>
+		public bool IsAbstract { get; private set; }
+
+		/// <summary>
+		/// Is generic
+		/// </summary>
+		public bool IsGeneric { get; private set; }
+		
+		/// <summary>
+		/// 
+		/// </summary>
+		public bool IsShared { get; private set; }
+
+		/// <summary>
+		/// return true if the class is derived from
+		/// </summary>
+		public bool IsDerivedFrom(string fullName)
+		{
+			return this.item.IsDerivedFrom[fullName];
+		}
+
+		/// <summary>
+		/// return the base class
+		/// </summary>
+        /// <returns></returns>
+		public ClassInfo GetBase()
+		{
+
+			foreach (EnvDTE.CodeElement item in this.item.Bases)
+			{
+				if (item.Kind == EnvDTE.vsCMElement.vsCMElementClass)
+				{
+					NodeItem parent = new NodeItem(this.item.ProjectItem);
+					EnvDTE80.CodeClass2 i = item as EnvDTE80.CodeClass2;
+					ClassInfo _result = ObjectFactory.Instance.CreateClass(parent, i);
+					return _result;
+				}
+			}
+
+			return null;
+
+		}
+
+		/// <summary>
+		/// return the list of derived interface.
+		/// </summary>
+        /// <returns></returns>
+		public IEnumerable<InterfaceInfo> ImplementedInterfaces()
+		{
+
+			foreach (EnvDTE.CodeElement item in this.item.Bases)
+			{
+				if (item.Kind == EnvDTE.vsCMElement.vsCMElementInterface)
+				{
+					NodeItem parent = new NodeItem(this.item.ProjectItem);
+					EnvDTE80.CodeInterface2 i = item as EnvDTE80.CodeInterface2;
+					InterfaceInfo _result = ObjectFactory.Instance.CreateInterface(parent , i);
+					yield return _result;
+				}
+			}
+
+		}
+
+		/// <summary>
+        /// Gets the methods.
+		/// </summary>
+        /// <returns></returns>
+		public IEnumerable<CodeFunctionInfo> GetMethods()
+		{
+
+			if (_methods == null)
+			{
+
+				_methods = new  List<CodeFunctionInfo>();
+				CodeClass2 i = item;
+
+				while(i != null) 
+				{
+
+					var _members = i.Members.OfType<CodeFunction2>()
+						.Where(f => AcceptMethod(f))
+						.Select(c => ObjectFactory.Instance.CreateMethod(this, c))
+						.Where(d => d != null)
+						.ToList();
+
+					_methods.AddRange(_members);
+
+					if (i.Bases.Count == 0)
+						break;
+
+					i = i.Bases.Item(1) as CodeClass2;
+
+					if (i == null || !AcceptAncestor(i.Namespace.FullName, i.Name))
+						break;
+
+				}
+
+				InitializeMethods(_methods);
+
+			}
+
+			return _methods;
+
+		}
+
+
+		/// <summary>
+        /// Gets the properties.
+		/// </summary>
+        /// <returns></returns>
+		public IEnumerable<CodePropertyInfo> GetProperties()
+		{
+
+			if (_properties == null)
+			{
+
+				_properties = new  List<CodePropertyInfo>();
+				CodeClass2 i = item;
+
+				while(i != null) 
+				{
+				
+					var _members = i.Members.OfType<CodeProperty2>()
+						.Where(f => AcceptProperty(f))
+						.Select(c => ObjectFactory.Instance.CreateProperty(this, c))
+						.Where(d => d != null)
+						.ToList();
+
+					_properties.AddRange(_members);
+
+					if (i.Bases.Count == 0)
+						break;
+
+					i = i.Bases.Item(1) as CodeClass2;
+
+					if (i == null || !AcceptAncestor(i.Namespace.FullName, i.Name))
+						break;
+
+				}
+
+				InitializeProperties(_properties);
+
+			}
+
+			return _properties;
+
+		}
+
+		/// <summary>
+        /// Gets the events.
+		/// </summary>
+        /// <returns></returns>
+		public IEnumerable<CodeEventInfo> GetEvents()
+		{
+
+			if (_events == null)
+			{
+
+				_events = new  List<CodeEventInfo>();
+
+				CodeClass2 i = item;
+
+				while(i != null) 
+				{
+								 
+					var _members = i.Members.OfType<EnvDTE80.CodeEvent>()
+							.Where(f => AcceptEvent(f))
+							.Select(c => ObjectFactory.Instance.CreateEvent(this, c))
+							.Where(d => d != null)
+							.ToList();
+
+					_events.AddRange(_members);
+
+					if (i.Bases.Count == 0)
+						break;
+
+					i = i.Bases.Item(1) as CodeClass2;
+
+					if (i == null || !AcceptAncestor(i.Namespace.FullName, i.Name))
+						break;
+
+				}
+
+				InitializeEvents(_events);
+
+			}
+
+			return _events;
+
+		}
+
+		/// <summary>
+        /// Gets the attributes.
+		/// </summary>
+        /// <value>
+        /// The attributes.
+        /// </value>
+		public IEnumerable<AttributeInfo> Attributes 
+		{
+			get
+			{
+				if (_attributes == null)
+				{
+					try
+					{
+						_attributes = ObjectFactory.GetAttributes(item.Attributes);
+					}
+					catch(Exception)
+					{
+						_attributes = new List<AttributeInfo>();
+					}
+
+					InitializeAttributes(_attributes);
+
+				}
+				return _attributes;
+			}
+		}
+
+		/// <summary>
+        /// Accepts the ancestor.
+		/// </summary>
+        /// <param name="_namespace">The _namespace.</param>
+        /// <param name="name">The name.</param>
+        /// <returns></returns>
+		protected virtual bool AcceptAncestor(string _namespace, string name)
+		{
+			return true;
+		}
+
+		/// <summary>
+        /// Gets the attributes.
+		/// </summary>
+        /// <param name="attributeType">Type of the attribute.</param>
+        /// <returns></returns>
+		protected IEnumerable<AttributeInfo> GetAttributes(string attributeType)
+		{
+			return ObjectFactory.GetAttributes(Attributes, attributeType).ToList();
+		}
+
+		/// <summary>
+        /// Accepts the event.
+		/// </summary>
+        /// <param name="e">The e.</param>
+        /// <returns></returns>
+		protected virtual bool AcceptEvent(EnvDTE80.CodeEvent e)
+		{
+			return true;
+		}
+
+		/// <summary>
+        /// Determines whether the specified a is public.
+		/// </summary>
+        /// <param name="a">a.</param>
+        /// <returns></returns>
+		protected bool IsPublic(EnvDTE.vsCMAccess a)
+		{
+			return a == EnvDTE.vsCMAccess.vsCMAccessPublic;
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		protected bool IsPrivate(EnvDTE.vsCMAccess a)
+		{
+			return a == EnvDTE.vsCMAccess.vsCMAccessPrivate;
+		}
+
+		/// <summary>
+        /// Determines whether the specified a is protected.
+		/// </summary>
+        /// <param name="a">a.</param>
+        /// <returns></returns>
+		protected bool IsProtected(EnvDTE.vsCMAccess a)
+		{
+			return ( a & EnvDTE.vsCMAccess.vsCMAccessProtected) == EnvDTE.vsCMAccess.vsCMAccessProtected;
+		}
+
+		/// <summary>
+        /// Determines whether the specified a is family.
+		/// </summary>
+        /// <param name="a">a.</param>
+        /// <returns></returns>
+		protected bool IsFamily(EnvDTE.vsCMAccess a)
+		{
+			return (a & EnvDTE.vsCMAccess.vsCMAccessProject) == EnvDTE.vsCMAccess.vsCMAccessProject;
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		protected bool IsFamilyOrProtected(EnvDTE.vsCMAccess a)
+		{
+			return (a & EnvDTE.vsCMAccess.vsCMAccessProjectOrProtected) == EnvDTE.vsCMAccess.vsCMAccessProjectOrProtected;
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		protected virtual void InitializeEvents(List<CodeEventInfo> events)
+		{
+
+		}
+		
+		/// <summary>
+		/// 
+		/// </summary>
+		protected virtual bool AcceptMethod(CodeFunction2 method)
+		{
+			return method.FunctionKind == vsCMFunction.vsCMFunctionFunction;
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		protected virtual void InitializeMethods(List<CodeFunctionInfo> methods)
+		{
+
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		protected virtual bool AcceptProperty(CodeProperty2 property)
+		{
+			return true;
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		protected virtual void InitializeProperties(List<CodePropertyInfo> properties)
+		{
+
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		protected virtual void InitializeAttributes(List<AttributeInfo> attributes)
+		{
+
+		}
+
+
+	}
+// end : C:\Users\gael\Documents\Visual Studio 2015\Projects\TestConvertToT4\VisualStudio.ParsingSolution\Projects\Codes\ClassInfo.cs
+
+// start : C:\Users\gael\Documents\Visual Studio 2015\Projects\TestConvertToT4\VisualStudio.ParsingSolution\Projects\Codes\CMAccess.cs
+	public enum CMAccess
+	{
+		AssemblyOrFamily,
+		Default,
+		Private,
+		Project,
+		ProjectOrProtected,
+		Protected,
+		Public,
+		WithEvents,
+	}
+// end : C:\Users\gael\Documents\Visual Studio 2015\Projects\TestConvertToT4\VisualStudio.ParsingSolution\Projects\Codes\CMAccess.cs
+
+// start : C:\Users\gael\Documents\Visual Studio 2015\Projects\TestConvertToT4\VisualStudio.ParsingSolution\Projects\Codes\AttributeInfo.cs
+    [System.Diagnostics.DebuggerDisplay("{FullName}")]
+	public class AttributeInfo
+	{
+
+		private CodeAttribute2 _attr;
+		private List<AttributeArgumentInfo> _arguments;
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public AttributeInfo(CodeAttribute2 attribute)
+		{
+			this._attr = attribute;
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public string FullName
+		{ 
+			get 
+			{ 
+
+	            try 
+                {	        
+					return _attr.FullName; 
+                }
+                catch (Exception e)
+                {
+
+				}
+
+				return  string.Empty;
+
+			} 
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public IEnumerable<AttributeArgumentInfo> Arguments
+		{
+			get
+			{
+				if (_arguments == null)
+				{
+					_arguments = new List<AttributeArgumentInfo>();
+					foreach(EnvDTE80.CodeAttributeArgument arg in _attr.Arguments.OfType<EnvDTE80.CodeAttributeArgument>())
+						_arguments.Add(ObjectFactory.Instance.CreateAttributeArgument(arg));
+				}
+
+				return _arguments;
+
+			}
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+        public string GetValue(string name)
+        {
+
+            AttributeArgumentInfo item = Arguments.Where(c => c.Name == name).FirstOrDefault();
+
+            if (item != null)
+                return item.Value;
+
+            return string.Empty;
+
+        }
+
+		//public override bool Equals(object obj)
+		//{
+//
+			//if (_parameters == null)
+			//{
+				//var t = this.Parameters;
+			//}
+			//return obj != null && _attr.Name == ((CodeFunctionInfo)obj)._signature;
+		//}
+//
+		//public override int GetHashCode()
+		//{
+//
+			 //if (_parameters == null)
+			 //{
+				//var t = this.Parameters;
+			 //}
+//
+			//return _signature.GetHashCode();
+//
+		//}
+
+	}
+// end : C:\Users\gael\Documents\Visual Studio 2015\Projects\TestConvertToT4\VisualStudio.ParsingSolution\Projects\Codes\AttributeInfo.cs
+
+// start : C:\Users\gael\Documents\Visual Studio 2015\Projects\TestConvertToT4\VisualStudio.ParsingSolution\Projects\Codes\AttributeArgumentInfo.cs
+    [System.Diagnostics.DebuggerDisplay("{Name}")]
+	public class AttributeArgumentInfo
+	{
+
+		private EnvDTE80.CodeAttributeArgument item;
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public AttributeArgumentInfo(EnvDTE80.CodeAttributeArgument item)
+		{
+
+			this.item = item;
+			this.Name= this.item.Name;
+			this.Value= this.item.Value;
+
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public string Name { get; private set; } 
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public string Value { get; private set; } 
+
+	}
+// end : C:\Users\gael\Documents\Visual Studio 2015\Projects\TestConvertToT4\VisualStudio.ParsingSolution\Projects\Codes\AttributeArgumentInfo.cs
+
+// start : C:\Users\gael\Documents\Visual Studio 2015\Projects\TestConvertToT4\VisualStudio.ParsingSolution\Projects\Codes\BaseInfo.cs
+    [System.Diagnostics.DebuggerDisplay("{FullName}")]
+	public class BaseInfo
+	{
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public BaseInfo(BaseInfo parent, CodeElement2 item)
+		{
+			this.Name = item.Name;
+			this.FullName = item.FullName;
+			this.IsCodeType = item.IsCodeType;
+			this.Root = parent;
+            this.Source = item; 
+            this.Location = new LocationInfo(item.StartPoint, item.EndPoint);
+			
+		}
+		
+		/// <summary>
+        /// Gets the source.
+		/// </summary>
+        /// <value>
+        /// The source.
+        /// </value>
+        protected CodeElement2 Source { get; private set;}
+
+		/// <summary>
+		/// Namespace
+		/// </summary>
+		public string Namespace { get; protected set; }
+
+		/// <summary>
+		/// Code documentation
+		/// </summary>
+		public string DocComment { get; protected set; }
+
+		/// <summary>
+        /// Gets the name.
+		/// </summary>
+        /// <value>
+        /// The name.
+        /// </value>
+		public string Name { get ; private set; }
+
+		/// <summary>
+        /// Gets or sets the summary.
+		/// </summary>
+        /// <value>
+        /// The summary.
+        /// </value>
+		public string Summary { get; protected set; }
+
+		/// <summary>
+        /// Gets the full name.
+		/// </summary>
+        /// <value>
+        /// The full name.
+        /// </value>
+		public string FullName { get; private set; }
+
+		/// <summary>
+        /// Gets a value indicating whether this instance is code type.
+		/// </summary>
+        /// <value>
+        /// <c>true</c> if this instance is code type; otherwise, <c>false</c>.
+        /// </value>
+		public bool IsCodeType { get; private set; }
+
+		/// <summary>
+        /// Gets the root.
+		/// </summary>
+        /// <value>
+        /// The root.
+        /// </value>
+		public BaseInfo Root { get; private set; }
+
+		/// <summary>
+        /// Gets or sets a value indicating whether this instance is enum.
+		/// </summary>
+        /// <value>
+        ///   <c>true</c> if this instance is enum; otherwise, <c>false</c>.
+        /// </value>
+		public bool IsEnum { get; protected set; }
+
+		
+		/// <summary>
+        /// Gets or sets a value indicating whether this instance is interface.
+		/// </summary>
+        /// <value>
+        /// <c>true</c> if this instance is interface; otherwise, <c>false</c>.
+        /// </value>
+		public bool IsInterface { get; protected set; }  
+
+		/// <summary>
+        /// Gets or sets a value indicating whether this instance is class.
+		/// </summary>
+        /// <value>
+        ///   <c>true</c> if this instance is class; otherwise, <c>false</c>.
+        /// </value>
+		public bool IsClass { get; protected set; }  
+
+		/// <summary>
+        /// Gets the location of the code.
+        /// </summary>
+        /// <value>
+        /// The location.
+        /// </value>
+        public LocationInfo Location { get; private set; }
+
+	}
+// end : C:\Users\gael\Documents\Visual Studio 2015\Projects\TestConvertToT4\VisualStudio.ParsingSolution\Projects\Codes\BaseInfo.cs
+
+// start : C:\Users\gael\Documents\Visual Studio 2015\Projects\TestConvertToT4\VisualStudio.ParsingSolution\Projects\Codes\LocationInfo.cs
+    public class LocationInfo
+    {
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="LocationInfo"/> class.
+        /// </summary>
+        /// <param name="startPoint">The start point.</param>
+        /// <param name="endPoint">The end point.</param>
+        internal LocationInfo(TextPoint startPoint, TextPoint endPoint)
+        {
+            this.Start = new LocationPoint(startPoint);
+            this.End = new LocationPoint(endPoint);
+        }
+
+        /// <summary>
+        /// Gets the end point location of the code.
+        /// </summary>
+        /// <value>
+        /// The end.
+        /// </value>
+        public LocationPoint End { get; private set; }
+
+        /// <summary>
+        /// Gets the start point location of the code.
+        /// </summary>
+        /// <value>
+        /// The start.
+        /// </value>
+        public LocationPoint Start { get; private set; }
+
+    }
+// end : C:\Users\gael\Documents\Visual Studio 2015\Projects\TestConvertToT4\VisualStudio.ParsingSolution\Projects\Codes\LocationInfo.cs
+
+// start : C:\Users\gael\Documents\Visual Studio 2015\Projects\TestConvertToT4\VisualStudio.ParsingSolution\Projects\Codes\LocationPoint.cs
+    public class LocationPoint
+    {
+
+        private TextPoint point;
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="LocationPoint"/> class.
+        /// </summary>
+        /// <param name="point">The point.</param>
+        public LocationPoint(TextPoint point)
+        {
+            this.point = point;
+        }
+
+        /// <summary>
+        /// Gets the absolute character offset.
+        /// </summary>
+        /// <value>
+        /// The absolute character offset.
+        /// </value>
+        public int AbsoluteCharOffset { get { return this.point.AbsoluteCharOffset; } }
+
+        /// <summary>
+        /// Gets a value indicating whether [at end of document].
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if [at end of document]; otherwise, <c>false</c>.
+        /// </value>
+        public bool AtEndOfDocument { get { return this.point.AtEndOfDocument; } }
+
+        /// <summary>
+        /// Gets a value indicating whether [at end of line].
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if [at end of line]; otherwise, <c>false</c>.
+        /// </value>
+        public bool AtEndOfLine { get { return this.point.AtEndOfLine; } }
+
+        /// <summary>
+        /// Gets a value indicating whether [at start of document].
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if [at start of document]; otherwise, <c>false</c>.
+        /// </value>
+        public bool AtStartOfDocument { get { return this.point.AtStartOfDocument; } }
+
+        /// <summary>
+        /// Gets a value indicating whether [at start of line].
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if [at start of line]; otherwise, <c>false</c>.
+        /// </value>
+        public bool AtStartOfLine { get { return this.point.AtStartOfLine; } }
+
+        /// <summary>
+        /// Gets the line.
+        /// </summary>
+        /// <value>
+        /// The line.
+        /// </value>
+        public int Line { get { return this.point.Line; } }
+
+        /// <summary>
+        /// Gets the line character offset.
+        /// </summary>
+        /// <value>
+        /// The line character offset.
+        /// </value>
+        public int LineCharOffset { get { return this.point.LineCharOffset; } }
+
+        /// <summary>
+        /// Gets the length of the line.
+        /// </summary>
+        /// <value>
+        /// The length of the line.
+        /// </value>
+        public int LineLength { get { return this.point.LineLength; } }
+
+        public int ResolveRealOffset(string code, bool isStart)
+        {
+
+			int compense = isStart ? 1 : 0;
+            int index = -1;
+            int _line = 0;
+            var e = code.Length;
+            for (index = 0; index < e; index++)
+            {
+                char c = code[index];
+                if (c == '\r')
+                {
+                    _line++;
+                    if (_line == Line - compense)
+                    {
+                        index++;
+                        break;
+                    }
+                }
+            }
+
+            return index;
+
+        }
+
+
+    }
+// end : C:\Users\gael\Documents\Visual Studio 2015\Projects\TestConvertToT4\VisualStudio.ParsingSolution\Projects\Codes\LocationPoint.cs
+
+// start : C:\Users\gael\Documents\Visual Studio 2015\Projects\TestConvertToT4\VisualStudio.ParsingSolution\Projects\Codes\CodeMemberInfo.cs
+	public abstract class CodeMemberInfo : BaseInfo
+	{
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public CodeMemberInfo(BaseInfo parent, CodeElement2 item)
+			: base (parent, item)
+		{
+			Parent = parent;
+		}
+		
+		/// <summary>
+		/// 
+		/// </summary>
+		public abstract TypeInfo Type { get; }
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public CMAccess Access { get; protected set; }
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public BaseInfo Parent { get; private set; }
+
+		/// <summary>
+		/// 
+		/// </summary>
+		protected virtual void InitializeAttributes(List<AttributeInfo> attributes)
+		{
+
+		}
+
+	}
+// end : C:\Users\gael\Documents\Visual Studio 2015\Projects\TestConvertToT4\VisualStudio.ParsingSolution\Projects\Codes\CodeMemberInfo.cs
+
+// start : C:\Users\gael\Documents\Visual Studio 2015\Projects\TestConvertToT4\VisualStudio.ParsingSolution\Projects\Codes\CodeEventInfo.cs
+	[System.Diagnostics.DebuggerDisplay("event {FullName}")]
+	public class CodeEventInfo : CodeMemberInfo
+	{
+
+		private EnvDTE80.CodeEvent _item;
+		private TypeInfo _returnType;
+		private IEnumerable<AttributeInfo> _attributes;
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public CodeEventInfo(BaseInfo parent, EnvDTE80.CodeEvent item)
+			: base(parent, item as CodeElement2)
+		{
+			this._item = item;
+			this.Access = ObjectFactory.Convert(this._item.Access);
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public override TypeInfo Type
+		{
+			get
+			{
+				if (_returnType == null)
+					_returnType = TypeInfo.Create(_item.Type);
+				return _returnType;
+			}
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public IEnumerable<AttributeInfo> Attributes 
+		{
+			get
+			{
+				if (_attributes == null)
+				{
+					try
+					{
+						_attributes = ObjectFactory.GetAttributes(_item.Attributes);
+					}
+					catch(Exception)
+					{
+						_attributes = new List<AttributeInfo>();
+					}
+
+					InitializeAttributes(_attributes as List<AttributeInfo>);
+
+				}
+				return _attributes;
+			}
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		protected IEnumerable<AttributeInfo> GetAttributes(string attributeType)
+		{
+			return ObjectFactory.GetAttributes(Attributes, attributeType).ToList();
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		protected AttributeInfo GetAttribute(string attributeType)
+		{
+			return ObjectFactory.GetAttributes(Attributes, attributeType).FirstOrDefault();
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		protected void ForAttributes(string attributeType, Action<AttributeInfo> act)
+		{
+			foreach(AttributeInfo attr in ObjectFactory.GetAttributes(Attributes, attributeType))
+				act(attr);
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		protected string GetArgumentFromAttribute(string attributeType, string argumentName)
+		{
+			AttributeInfo attr = ObjectFactory.GetAttributes(Attributes, attributeType).FirstOrDefault();
+			if (attr != null)
+			{
+				AttributeArgumentInfo arg = attr.Arguments.FirstOrDefault(a => a.Name == argumentName);
+				if (arg != null)
+					return arg.Value;
+			}
+			return string.Empty;
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		protected string GetArgumentFromAttribute(string attributeType, int indexArgument)
+		{
+			AttributeInfo attr = ObjectFactory.GetAttributes(Attributes, attributeType).FirstOrDefault();
+			if (attr != null)
+			{
+				AttributeArgumentInfo arg = (attr.Arguments as List<AttributeArgumentInfo>)[indexArgument];
+				if (arg != null)
+					return arg.Value;
+			}
+			return string.Empty;
+		}
+
+	}
+// end : C:\Users\gael\Documents\Visual Studio 2015\Projects\TestConvertToT4\VisualStudio.ParsingSolution\Projects\Codes\CodeEventInfo.cs
+
+// start : C:\Users\gael\Documents\Visual Studio 2015\Projects\TestConvertToT4\VisualStudio.ParsingSolution\Projects\Codes\CodeFieldInfo.cs
+	[System.Diagnostics.DebuggerDisplay("field {FullName}")]
+	public class CodeFieldInfo : CodeMemberInfo
+	{
+
+		private CodeElement _item;
+		private TypeInfo _type;
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public CodeFieldInfo(BaseInfo parent, CodeElement item, TypeInfo type)
+			: base(parent, item as CodeElement2)
+		{
+			this._item = item;
+			this.Access = CMAccess.Public; // ObjectFactory.Convert(this._item.Access);
+			this._type = type;
+		}
+
+ 		/// <summary>
+		/// 
+		/// </summary>
+		public override TypeInfo Type 
+		{ 
+			get
+			{
+				return _type;
+			}
+		}
+
+
+		public object Value
+        {
+			get
+			{
+                try 
+                {	     
+					
+					if (this._item.Kind == vsCMElement.vsCMElementVariable)
+                    {
+						EnvDTE80.CodeVariable2 variable = this._item as EnvDTE80.CodeVariable2 ;
+						if (variable != null && variable.IsConstant && variable.InitExpression != null)
+							return variable.InitExpression;
+                    }
+                }
+                catch (Exception e)
+                {
+		
+                }
+
+				return string.Empty;
+
+            }
+        }
+
+	}
+// end : C:\Users\gael\Documents\Visual Studio 2015\Projects\TestConvertToT4\VisualStudio.ParsingSolution\Projects\Codes\CodeFieldInfo.cs
+
+// start : C:\Users\gael\Documents\Visual Studio 2015\Projects\TestConvertToT4\VisualStudio.ParsingSolution\Projects\Codes\CodePropertyInfo.cs
+    [System.Diagnostics.DebuggerDisplay("property {FullName}")]
+	public class CodePropertyInfo : CodeMemberInfo
+	{
+
+		private CodeProperty2 _item;
+		private TypeInfo _returnType;
+		private IEnumerable<AttributeInfo> _attributes;
+
+		/// <summary>
+		/// constructor
+		/// </summary>
+		public CodePropertyInfo(BaseInfo parent, CodeProperty2 item)
+			: base(parent, item as CodeElement2)
+		{
+			this._item = item;
+			this.Access = ObjectFactory.Convert(this._item.Access);
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public override TypeInfo Type
+		{
+			get
+			{
+				if (_returnType == null)
+					_returnType = TypeInfo.Create(_item.Type);
+				return _returnType;
+			}
+		}
+		/// <summary>
+		/// 
+		/// </summary>
+
+		public IEnumerable<AttributeInfo> Attributes 
+		{
+			get
+			{
+				if (_attributes == null)
+				{
+					try
+					{
+						_attributes = ObjectFactory.GetAttributes(_item.Attributes);
+					}
+					catch(Exception)
+					{
+						_attributes = new List<AttributeInfo>();
+					}
+
+					InitializeAttributes(_attributes as List<AttributeInfo>);
+
+				}
+				return _attributes;
+			}
+		}
+
+
+		/// <summary>
+		/// 
+		/// </summary>
+		protected IEnumerable<AttributeInfo> GetAttributes(string attributeType)
+		{
+			return ObjectFactory.GetAttributes(Attributes, attributeType).ToList();
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		protected AttributeInfo GetAttribute(string attributeType)
+		{
+			return ObjectFactory.GetAttributes(Attributes, attributeType).FirstOrDefault();
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		protected void ForAttributes(string attributeType, Action<AttributeInfo> act)
+		{
+			foreach(AttributeInfo attr in ObjectFactory.GetAttributes(Attributes, attributeType))
+				act(attr);
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		protected string GetArgumentFromAttribute(string attributeType, string argumentName)
+		{
+			AttributeInfo attr = ObjectFactory.GetAttributes(Attributes, attributeType).FirstOrDefault();
+			if (attr != null)
+			{
+				AttributeArgumentInfo arg = attr.Arguments.FirstOrDefault(a => a.Name == argumentName);
+				if (arg != null)
+					return arg.Value;
+			}
+			return string.Empty;
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		protected string GetArgumentFromAttribute(string attributeType, int indexArgument)
+		{
+			AttributeInfo attr = ObjectFactory.GetAttributes(Attributes, attributeType).FirstOrDefault();
+			if (attr != null)
+			{
+				AttributeArgumentInfo arg = (attr.Arguments as List<AttributeArgumentInfo>)[indexArgument];
+				if (arg != null)
+					return arg.Value;
+			}
+			return string.Empty;
+		}
+
+	}
+// end : C:\Users\gael\Documents\Visual Studio 2015\Projects\TestConvertToT4\VisualStudio.ParsingSolution\Projects\Codes\CodePropertyInfo.cs
+
+// start : C:\Users\gael\Documents\Visual Studio 2015\Projects\TestConvertToT4\VisualStudio.ParsingSolution\Projects\Codes\CodeFunctionInfo.cs
+    [System.Diagnostics.DebuggerDisplay("Method {FullName}")]
+	public class CodeFunctionInfo : CodeMemberInfo
+	{
+
+		protected CodeFunction2 _item;
+		private string _signature;
+		private Dictionary<string, string> parameters = new Dictionary<string, string>();
+		private TypeInfo _returnType;
+		private IEnumerable<MethodParamInfo> _parameters;
+		private IEnumerable<AttributeInfo> _attributes;
+			
+		/// <summary>
+		/// 
+		/// </summary>
+		public CodeFunctionInfo(BaseInfo parent, CodeFunction2 method)
+			: base(parent, method as CodeElement2)
+		{
+
+			// Can be null when an custom ActionResult has no ctor
+			if (method == null)
+				return;
+
+			_item = method;
+			Summary = string.Empty;
+			_signature = method.Name;
+			this.IsGeneric = method.IsGeneric;
+
+			try
+			{
+				BuildComment(_item.DocComment);
+			}
+			catch(Exception)
+			{
+
+			}
+
+			this.Access = ObjectFactory.Convert(this._item.Access);
+
+			Parameters.ToList();
+
+		}
+
+		private void BuildComment(string docs)
+		{
+			try     
+			{
+
+				if (!string.IsNullOrEmpty(docs))
+				{
+
+					System.Xml.Linq.XElement _element;
+
+					var comment = System.Xml.Linq.XElement.Parse(_item.DocComment);
+
+					if ((_element = comment.Element("summary")) != null)
+						Summary = _element.Value;
+
+					if ((_element = comment.Element("param")) != null)
+					{
+						var p = _element.Attribute("name");
+						if (p != null)
+							parameters.Add(p.Value, _element.Value);
+					}
+				}
+			}
+			catch
+			{
+			}
+		}
+
+		public bool IsGeneric { get; private set; }
+		
+
+		private GenericArguments _genericArguments;
+
+		/// <summary>
+		/// List the generics arguments if the method is generic 
+		/// </summary>
+		public GenericArguments GenericArguments 
+		{
+			get
+			{
+				if (this._genericArguments == null)
+				{
+					if (this.IsGeneric)
+					{
+
+						string localPath = string.Empty;
+						ClassInfo cls = this.Parent as ClassInfo;
+						if (cls != null)
+							localPath = cls.Parent.LocalPath;
+						else
+						{
+							InterfaceInfo cls2 = this.Parent as InterfaceInfo;
+							if (cls2 != null)
+								localPath= cls2.Parent.LocalPath;
+					}
+
+						this._genericArguments = ProjectHelper.ParseGenericArguments(this._item.FullName, localPath , this._item.StartPoint.AbsoluteCharOffset);
+					
+					}
+					else
+						this._genericArguments = new GenericArguments();
+				}
+				return _genericArguments;
+			}
+		}
+
+		/// <summary>
+		/// result type of the method
+		/// </summary>
+		public override TypeInfo Type
+		{
+			get
+			{
+				if (_returnType == null)
+					_returnType = TypeInfo.Create(_item.Type);
+
+				return _returnType;
+			}
+		}
+
+		/// <summary>
+		/// Attributes of the method
+		/// </summary>
+		public IEnumerable<AttributeInfo> Attributes 
+		{
+			get
+			{
+				if (_attributes == null)
+				{
+					try
+					{
+						_attributes = ObjectFactory.GetAttributes(_item.Attributes);
+					}
+					catch(Exception)
+					{
+						_attributes = new List<AttributeInfo>();
+					}
+
+					InitializeAttributes(_attributes as List<AttributeInfo>);
+
+				}
+				return _attributes;
+			}
+		}
+
+		protected IEnumerable<AttributeInfo> GetAttributes(string attributeType)
+		{
+			return ObjectFactory.GetAttributes(Attributes, attributeType).ToList();
+		}
+
+		protected AttributeInfo GetAttribute(string attributeType)
+		{
+			return ObjectFactory.GetAttributes(Attributes, attributeType).FirstOrDefault();
+		}
+
+		protected void ForAttributes(string attributeType, Action<AttributeInfo> act)
+		{
+			foreach(AttributeInfo attr in ObjectFactory.GetAttributes(Attributes, attributeType))
+				act(attr);
+		}
+
+		protected string GetArgumentFromAttribute(string attributeType, string argumentName)
+		{
+			AttributeInfo attr = ObjectFactory.GetAttributes(Attributes, attributeType).FirstOrDefault();
+			if (attr != null)
+			{
+				AttributeArgumentInfo arg = attr.Arguments.FirstOrDefault(a => a.Name == argumentName);
+				if (arg != null)
+					return arg.Value;
+			}
+			return string.Empty;
+		}
+
+		protected string GetArgumentFromAttribute(string attributeType, int indexArgument)
+		{
+			AttributeInfo attr = ObjectFactory.GetAttributes(Attributes, attributeType).FirstOrDefault();
+			if (attr != null)
+			{
+				AttributeArgumentInfo arg = (attr.Arguments as List<AttributeArgumentInfo>)[indexArgument];
+				if (arg != null)
+					return arg.Value;
+			}
+			return string.Empty;
+		}
+
+		/// <summary>
+		/// Parameters of the method
+		/// </summary>
+		public IEnumerable<MethodParamInfo> Parameters 
+		{ 
+			get 
+			{
+
+				if (_parameters == null)
+				{
+					var _Parameters = new List<MethodParamInfo>();
+					// Process all the parameters
+					foreach (CodeParameter2 p in _item.Parameters.OfType<CodeParameter2>())
+					{
+			
+						string parameterComment = string.Empty;
+						parameters.TryGetValue(p.Name, out  parameterComment);
+
+						_Parameters.Add(ObjectFactory.Instance.CreatParameter(this, p, parameterComment));
+						_signature += "," + p.Type.AsString;
+					}
+
+					_parameters = _Parameters;
+
+				}
+
+				return _parameters;
+
+			} 
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public override bool Equals(object obj)
+		{
+
+			if (_parameters == null)
+			{
+				var t = this.Parameters;
+			}
+			return obj != null && _signature == ((CodeFunctionInfo)obj)._signature;
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public override string ToString()
+		{
+
+			return _signature;
+
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public override int GetHashCode()
+		{
+
+			 if (_parameters == null)
+			 {
+				var t = this.Parameters;
+			 }
+
+			return _signature.GetHashCode();
+
+		}
+
+	}
+// end : C:\Users\gael\Documents\Visual Studio 2015\Projects\TestConvertToT4\VisualStudio.ParsingSolution\Projects\Codes\CodeFunctionInfo.cs
+
+// start : C:\Users\gael\Documents\Visual Studio 2015\Projects\TestConvertToT4\VisualStudio.ParsingSolution\Projects\Codes\MethodParamInfo.cs
+    [System.Diagnostics.DebuggerDisplay("parameter {Name}")]
+	/// <summary>
+	/// 
+	/// </summary>
+	public class MethodParamInfo
+	{
+
+		private IEnumerable<AttributeInfo> _attributes;
+		private CodeParameter2 item;
+		private CodeFunctionInfo parent;
+
+		/// <summary>
+		/// constructor
+		/// </summary>
+		public MethodParamInfo(CodeFunctionInfo parent, CodeParameter2 item, string comment)
+		{
+			this.parent = parent;
+			this.item = item;
+			this.Comment = comment;
+			Name = item.Name;
+			Type = TypeInfo.Create(item.Type);
+			DefaultValue = item.DefaultValue;
+		}
+
+		/// <summary>
+		/// name of the parameter
+		/// </summary>
+		public string Name { get; private set; }
+
+		/// <summary>
+		/// type of the parameter
+		/// </summary>
+		public TypeInfo Type { get; private set; }
+
+		/// <summary>
+        /// default value if not specified in the arguments
+		/// </summary>
+		public string DefaultValue { get; set; }
+
+		/// <summary>
+		/// comment of the parameter
+		/// </summary>
+		public string Comment { get; private set; }
+
+		/// <summary>
+		/// Attributes of the parameter
+		/// </summary>
+		public IEnumerable<AttributeInfo> Attributes 
+		{
+			get
+			{
+				if (_attributes == null)
+				{
+					try
+					{
+						_attributes = ObjectFactory.GetAttributes(item.Attributes);
+					}
+					catch(Exception)
+					{
+						_attributes = new List<AttributeInfo>();
+					}
+
+					InitializeAttributes(_attributes as List<AttributeInfo>);
+
+				}
+				return _attributes;
+			}
+		}
+
+		protected virtual void InitializeAttributes(List<AttributeInfo> attributes)
+		{
+
+		}
+
+		protected IEnumerable<AttributeInfo> GetAttributes(string attributeType)
+		{
+			return ObjectFactory.GetAttributes(Attributes, attributeType).ToList();
+		}
+
+		protected AttributeInfo GetAttribute(string attributeType)
+		{
+			return ObjectFactory.GetAttributes(Attributes, attributeType).FirstOrDefault();
+		}
+
+		protected void ForAttributes(string attributeType, Action<AttributeInfo> act)
+		{
+			foreach(AttributeInfo attr in ObjectFactory.GetAttributes(Attributes, attributeType))
+				act(attr);
+		}
+
+		protected string GetArgumentFromAttribute(string attributeType, string argumentName)
+		{
+			AttributeInfo attr = ObjectFactory.GetAttributes(Attributes, attributeType).FirstOrDefault();
+			if (attr != null)
+			{
+				AttributeArgumentInfo arg = attr.Arguments.FirstOrDefault(a => a.Name == argumentName);
+				if (arg != null)
+					return arg.Value;
+			}
+			return string.Empty;
+		}
+
+		protected string GetArgumentFromAttribute(string attributeType, int indexArgument)
+		{
+			AttributeInfo attr = ObjectFactory.GetAttributes(Attributes, attributeType).FirstOrDefault();
+			if (attr != null)
+			{
+				AttributeArgumentInfo arg = (attr.Arguments as List<AttributeArgumentInfo>)[indexArgument];
+				if (arg != null)
+					return arg.Value;
+			}
+			return string.Empty;
+		}
+
+	}
+// end : C:\Users\gael\Documents\Visual Studio 2015\Projects\TestConvertToT4\VisualStudio.ParsingSolution\Projects\Codes\MethodParamInfo.cs
+
+// start : C:\Users\gael\Documents\Visual Studio 2015\Projects\TestConvertToT4\VisualStudio.ParsingSolution\Projects\Codes\TypeInfo.cs
+    [System.Diagnostics.DebuggerDisplay("{ClassName}")]
+	public class TypeInfo
+	{
+
+		private List<TypeInfo> _list = new List<TypeInfo>();
+		private int _rank = 0;
+		private CodeTypeRef type;
+		private IEnumerable<AttributeInfo> _attributes;
+		private BaseInfo _classRef;
+        private List<CodePropertyInfo> PropertyInfolst;
+        private List<CodeEventInfo> EventInfolst;
+        private List<CodeFunctionInfo> MethodInfolst;
+        private Project project;
+
+		TypeInfo()
+		{
+
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public TypeInfo(CodeTypeRef type)
+        {
+
+            Set(type);
+        }
+
+		/// <summary>
+		/// 
+		/// </summary>
+        private void Set(CodeTypeRef type)
+        {
+
+            this._list = new List<TypeInfo>();
+		    this._rank = 0;
+		    this._attributes = null;
+		    this._classRef = null;
+            this.IsVoid = false;
+            this.IsEnumerable = false;
+            this.IsClass = false;
+            this.MethodInfolst = null;
+            this.EventInfolst = null;
+            this.PropertyInfolst = null;
+
+            this.type = type;
+
+            switch(type.TypeKind)
+            {
+
+                case vsCMTypeRef.vsCMTypeRefArray:
+                case vsCMTypeRef.vsCMTypeRefCodeType:
+                case vsCMTypeRef.vsCMTypeRefBool:
+                case vsCMTypeRef.vsCMTypeRefByte:
+                case vsCMTypeRef.vsCMTypeRefDecimal:
+                case vsCMTypeRef.vsCMTypeRefDouble:
+                case vsCMTypeRef.vsCMTypeRefFloat:
+                case vsCMTypeRef.vsCMTypeRefInt:
+                case vsCMTypeRef.vsCMTypeRefLong:
+                case vsCMTypeRef.vsCMTypeRefShort:
+                case vsCMTypeRef.vsCMTypeRefVariant:
+                case vsCMTypeRef.vsCMTypeRefChar:
+                case vsCMTypeRef.vsCMTypeRefString:
+                    Name = type.AsString;
+                    break;
+
+                case vsCMTypeRef.vsCMTypeRefVoid:
+                    Name = "void";
+                    break;
+
+                case vsCMTypeRef.vsCMTypeRefOther:
+                case vsCMTypeRef.vsCMTypeRefPointer:
+                case vsCMTypeRef.vsCMTypeRefObject:
+                    Name = type.AsFullName;
+                    break;
+
+	}
+
+	this.KindType = type.TypeKind.ToString().Substring(11);
+
+	if (!(this.IsVoid = (type.TypeKind == vsCMTypeRef.vsCMTypeRefVoid)))
+	{
+
+		this.IsClass = (type.TypeKind == vsCMTypeRef.vsCMTypeRefCodeType) || type.TypeKind == vsCMTypeRef.vsCMTypeRefString;
+
+		if (!this.IsClass && type.TypeKind == vsCMTypeRef.vsCMTypeRefArray)
+			this.IsClass = (type.Rank > 0 && type.ElementType.TypeKind == vsCMTypeRef.vsCMTypeRefCodeType);
+
+		else if (!this.IsClass && type.TypeKind != vsCMTypeRef.vsCMTypeRefOther)
+			this.IsEnumerable = type.CodeType.get_IsDerivedFrom(typeof(System.Collections.IEnumerable).FullName);
+
+		if (type.TypeKind == vsCMTypeRef.vsCMTypeRefCodeType)
+			if (type.CodeType.InfoLocation != vsCMInfoLocation.vsCMInfoLocationExternal)
+				this.project = this.type.CodeType.ProjectItem.ContainingProject;
+
+	}
+
+	int i = 0;
+	Parse(Name, this, ref i);
+	DispatchType();
+	OnCreated();
+
+			/*
+				vsCMTypeRefOther,
+				vsCMTypeRefCodeType,
+				vsCMTypeRefArray,
+				vsCMTypeRefVoid,
+				vsCMTypeRefPointer,
+				vsCMTypeRefString,
+				vsCMTypeRefObject,
+				vsCMTypeRefByte,
+				vsCMTypeRefChar,
+				vsCMTypeRefShort,
+				vsCMTypeRefInt,
+				vsCMTypeRefLong,
+				vsCMTypeRefFloat,
+				vsCMTypeRefDouble,
+				vsCMTypeRefDecimal,
+				vsCMTypeRefBool,
+				vsCMTypeRefVariant
+			*/
+        }
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public CodeTypeRef Source
+		{
+			get
+			{
+				return type;
+			}
+            private set
+            {
+                Set(value);
+            }
+
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+        public IEnumerable<CodeFunctionInfo> Methods()
+        {
+
+            if (MethodInfolst == null)
+            {
+                if (type != null)
+                {
+
+                    if (type.TypeKind == vsCMTypeRef.vsCMTypeRefCodeType)
+                        MethodInfolst = type.CodeType.Members.OfType<CodeFunction2>().Select(c => ObjectFactory.Instance.CreateMethod(null, c)).ToList();
+                    else if (type.TypeKind == vsCMTypeRef.vsCMTypeRefArray)
+                        MethodInfolst = type.ElementType.CodeType.Members.OfType<CodeFunction2>().Select(c => ObjectFactory.Instance.CreateMethod(null, c)).ToList();
+                }
+            }
+
+            return MethodInfolst;
+
+        }
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public IEnumerable<CodePropertyInfo> Properties()
+		{
+
+			if (PropertyInfolst == null)
+			{
+				if (type != null)
+				{
+					if (type.TypeKind == vsCMTypeRef.vsCMTypeRefCodeType)
+						PropertyInfolst = type.CodeType.Members.OfType<CodeProperty2>().Select(c => ObjectFactory.Instance.CreateProperty(null, c)).ToList();
+					else if (type.TypeKind == vsCMTypeRef.vsCMTypeRefArray)
+						PropertyInfolst = type.ElementType.CodeType.Members.OfType<CodeProperty2>().Select(c => ObjectFactory.Instance.CreateProperty(null, c)).ToList();
+				}
+			}
+
+			return PropertyInfolst;
+
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+        public IEnumerable<CodeEventInfo> Events()
+        {
+
+            if (EventInfolst == null)
+            {
+                if (type != null)
+                {
+
+                    if (type.TypeKind == vsCMTypeRef.vsCMTypeRefCodeType)
+                        EventInfolst = type.CodeType.Members.OfType<EnvDTE80.CodeEvent>().Select(c => ObjectFactory.Instance.CreateEvent(null, c)).ToList();
+                    else if (type.TypeKind == vsCMTypeRef.vsCMTypeRefArray)
+                        EventInfolst = type.ElementType.CodeType.Members.OfType<EnvDTE80.CodeEvent>().Select(c => ObjectFactory.Instance.CreateEvent(null, c)).ToList();
+                }
+            }
+
+            return EventInfolst;
+            
+        }
+
+		/// <summary>
+        /// Gets the class reference.
+		/// </summary>
+        /// <value>
+        /// The class reference.
+        /// </value>
+		public BaseInfo ClassRef
+		{
+			get
+			{
+
+				if (_classRef == null)
+				{
+					_classRef = ProjectHelper.GetContext().ResolveType(this).FirstOrDefault();
+				}
+
+				return _classRef;
+
+			}
+		}
+
+ 
+
+		/// <summary>
+		/// Creates the specified type.
+		/// </summary>
+		/// <param name="type">The type.</param>
+		/// <returns></returns>
+		public static TypeInfo Create(CodeTypeRef type)
+		{
+			TypeInfo t = ObjectFactory.Instance.CreateType(type);
+			return t;
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+        protected virtual void DispatchType()
+        {
+
+            if (this.project == null && ObjectFactory.Instance.DefaultProject != null)
+            {
+                this.project = ObjectFactory.Instance.DefaultProject.Source;
+            }
+
+            if (this.project != null)
+            {
+                
+                foreach(TypeInfo t in this.ElementItems)
+                {
+                    if (t.Source == null)
+                        t.Source = this.project.CodeModel.CreateCodeTypeRef(t.ToString());
+
+                }
+            }
+
+        }
+
+		/// <summary>
+		/// 
+		/// </summary>
+        protected virtual void OnCreated()
+        {
+
+        }
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public bool IsDerivedFrom(string type)
+		{
+
+			try
+			{
+				return this.type.CodeType.get_IsDerivedFrom(type);
+			}
+			catch
+			{
+
+			}
+
+			return false;
+
+		} 
+
+
+		private void Parse(string type, TypeInfo t, ref int p)
+        {
+			
+
+            System.Text.StringBuilder s = new System.Text.StringBuilder();
+            for (int i = p; i < type.Length; i++)
+            {
+
+			deb:
+                var c = type[i];
+                switch (c)
+                {
+
+                    case '<':
+                        i++;
+                        p = i;
+                        t.Name = s.ToString();
+                        var t2 = new TypeInfo();
+                        t.Add(t2);
+                        Parse(type, t2, ref p);
+                        i = p;
+
+                        if (i < type.Length)
+                        {
+
+                            c = type[p];
+
+                            if (c != ',')
+                                goto deb;
+
+                            while ((c = type[p]) == ',')
+                            {
+                                p++;
+                                t2 = new TypeInfo();
+                                t.Add(t2);
+                                Parse(type, t2, ref p);
+                                i = p;
+                                if (i >= type.Length)
+                                    return;
+                            }
+
+                            c = type[p];
+
+                            if (c != ',')
+                                goto deb;
+
+                        }
+
+                        return;
+
+                    case '>':
+                        p = i;
+                        p++;
+                        t.Name = s.ToString();
+                        return;
+
+                    case '[':
+                        t.Name = s.ToString();
+                        p = i;
+                        t.ParseArray(type, ref p);
+                        i = p;
+                        break;
+
+                    case ',':
+                        t.Name = s.ToString();
+                        p = i;
+                        return;
+
+                    case ' ':
+                    case '\t':
+                    case '\r':
+                    case '\n':
+                        break;
+
+
+                    case '0':
+                    case '1':
+                    case '2':
+                    case '3':
+                    case '4':
+                    case '5':
+                    case '6':
+                    case '7':
+                    case '8':
+                    case '9':
+                    case 'a':
+                    case 'b':
+                    case 'c':
+                    case 'd':
+                    case 'e':
+                    case 'f':
+                    case 'g':
+                    case 'h':
+                    case 'i':
+                    case 'j':
+                    case 'k':
+                    case 'l':
+                    case 'm':
+                    case 'n':
+                    case 'o':
+                    case 'p':
+                    case 'q':
+                    case 'r':
+                    case 's':
+                    case 't':
+                    case 'u':
+                    case 'v':
+                    case 'w':
+                    case 'x':
+                    case 'y':
+                    case 'z':
+                    case 'A':
+                    case 'B':
+                    case 'C':
+                    case 'D':
+                    case 'E':
+                    case 'F':
+                    case 'G':
+                    case 'H':
+                    case 'I':
+                    case 'J':
+                    case 'K':
+                    case 'L':
+                    case 'M':
+                    case 'N':
+                    case 'O':
+                    case 'P':
+                    case 'Q':
+                    case 'R':
+                    case 'S':
+                    case 'T':
+                    case 'U':
+                    case 'V':
+                    case 'W':
+                    case 'X':
+                    case 'Y':
+                    case 'Z':
+                    case '.':
+                    case '_':
+                        s.Append(c);
+                        break;
+
+                    case '?':
+                        t.IsNullable = true;
+                        s.Append(c);
+                        break;
+                    default:
+                        throw new FormatException(type);
+
+                }
+
+            }
+
+        }
+
+		private void ParseArray(string type, ref int p)
+		{
+			for (int i = p + 1; i < type.Length; i++)
+			{
+				p = i;
+				_rank++;
+				var c = type[i];
+				if (c == ']')
+					break;
+			}
+		}
+
+		private void Add(TypeInfo t2)
+		{
+			this._list.Add(t2);
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public bool IsNullable { get; set; }
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public string Name { get; private set; }
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public string KindType { get; set; }
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public bool IsVoid { get; private set; }
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public bool IsClass { get; private set; }
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public bool IsEnumerable { get; private set; }
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public bool IsGeneric { get { return this.ElementItems.Any(); } }
+		
+		/// <summary>
+		/// 
+		/// </summary>
+		public string AsFullName 
+		{ 
+			get 
+			{ 
+				return this.type.AsFullName; 
+			} 
+		}
+		
+		/// <summary>
+		/// 
+		/// </summary>
+        public int Rank { get { return _rank; } }
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public string ClassName
+		{
+			get
+			{
+				var i = Name.LastIndexOf('.');
+				if (i > 0)
+					return Name.Substring(i + 1);
+
+				return Name;
+
+			}
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public bool ContainsType(string type)
+		{
+			if (Name == type)
+				return true;
+			foreach (var item in ElementItems)
+			{
+				var t = item.ContainsType(type);
+				if (t)
+					return true;
+			}
+
+			return false;
+
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public IEnumerable<TypeInfo> ElementItems { get { return this._list; } }
+
+		/// <summary>
+		/// 
+		/// </summary>
+	    public IEnumerable<AttributeInfo> Attributes 
+		{
+			get
+			{
+				if (_attributes == null)
+					_attributes = ObjectFactory.GetAttributes(type.CodeType.Attributes);
+				return _attributes;
+
+			}
+		}
+
+		protected IEnumerable<AttributeInfo> GetAttributes(string attributeType)
+		{
+			return ObjectFactory.GetAttributes(Attributes, attributeType).ToList();
+		}
+
+		protected AttributeInfo GetAttribute(string attributeType)
+		{
+			return ObjectFactory.GetAttributes(Attributes, attributeType).FirstOrDefault();
+		}
+
+		protected void ForAttributes(string attributeType, Action<AttributeInfo> act)
+		{
+			foreach(AttributeInfo attr in ObjectFactory.GetAttributes(Attributes, attributeType))
+				act(attr);
+		}
+
+		protected string GetArgumentFromAttribute(string attributeType, string argumentName)
+		{
+			AttributeInfo attr = ObjectFactory.GetAttributes(Attributes, attributeType).FirstOrDefault();
+			if (attr != null)
+			{
+				AttributeArgumentInfo arg = attr.Arguments.FirstOrDefault(a => a.Name == argumentName);
+				if (arg != null)
+					return arg.Value;
+			}
+			return string.Empty;
+		}
+
+		protected string GetArgumentFromAttribute(string attributeType, int indexArgument)
+		{
+			AttributeInfo attr = ObjectFactory.GetAttributes(Attributes, attributeType).FirstOrDefault();
+			if (attr != null)
+			{
+				AttributeArgumentInfo arg = (attr.Arguments as List<AttributeArgumentInfo>)[indexArgument];
+				if (arg != null)
+					return arg.Value;
+			}
+			return string.Empty;
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public override string ToString()
+		{
+
+			System.Text.StringBuilder s = new System.Text.StringBuilder();
+
+			s.Append(Name);
+
+			if (this.ElementItems.Count() > 0)
+			{
+
+				s.Append("<");
+				bool a = false;
+
+				foreach (var item in this.ElementItems)
+				{
+					if (a)
+						s.Append(", ");
+					s.Append(item.ToString());
+					a = true;
+				}
+
+				s.Append(">");
+
+			}
+
+			if (_rank > 0)
+			{
+				s.Append("[");
+				for (int m = 1; m < _rank; m++)
+					s.Append(",");
+				s.Append("]");
+			}
+
+			return s.ToString();
+
+		}
+
+	}
+// end : C:\Users\gael\Documents\Visual Studio 2015\Projects\TestConvertToT4\VisualStudio.ParsingSolution\Projects\Codes\TypeInfo.cs
+
+// start : C:\Users\gael\Documents\Visual Studio 2015\Projects\TestConvertToT4\VisualStudio.ParsingSolution\Projects\Codes\GenericArguments.cs
+	public class GenericArguments : IEnumerable<GenericArgument>
+	{
+
+		private Dictionary<string, GenericArgument> _list;
+
+		/// <summary>
+		/// contructor
+		/// </summary>
+		public GenericArguments()
+		{
+			_list = new Dictionary<string, GenericArgument>();
+		}
+
+		/// <summary>
+		/// add an item
+		/// </summary>
+		public GenericArgument Add(string typeName)
+		{
+			var g = new GenericArgument(typeName);
+			_list.Add(typeName, g);
+			return g;
+		}
+
+		/// <summary>
+		/// resolve an item by typeName
+		/// </summary>
+		public GenericArgument Resolve(string typeName)
+		{
+			GenericArgument result;
+			_list.TryGetValue(typeName, out result);
+			return result;
+		}
+
+		
+		/// <summary>
+		/// Returns an enumerator that iterates through the collection.
+		/// </summary>
+		/// <returns>
+		/// An enumerator that can be used to iterate through the collection.
+		/// </returns>
+		/// <exception cref="System.NotImplementedException"></exception>
+		public IEnumerator<GenericArgument> GetEnumerator()
+		{
+			return this._list.Values.GetEnumerator();
+		}
+
+		System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
+		{
+			return this._list.Values.GetEnumerator();
+		}
+
+	}
+// end : C:\Users\gael\Documents\Visual Studio 2015\Projects\TestConvertToT4\VisualStudio.ParsingSolution\Projects\Codes\GenericArguments.cs
+
+// start : C:\Users\gael\Documents\Visual Studio 2015\Projects\TestConvertToT4\VisualStudio.ParsingSolution\Projects\Codes\GenericArgument.cs
+	public class GenericArgument
+	{
+
+		private List<string> _constraints;
+
+		/// <summary>
+		/// constructor
+		/// </summary>
+		public GenericArgument(string typeName)
+		{
+			_constraints = new List<string>();
+			this.Name = typeName;
+		}
+
+
+		public bool HasConstraint { get; private set; }
+
+
+		/// <summary>
+		/// Add constraint
+		/// </summary>
+		public void AddConstraint(string constraint)
+		{
+			if(!string.IsNullOrEmpty(constraint))
+			{
+
+				HasConstraint = true;
+
+				if (constraint == "new()")
+					this.HasEmptyConstructor = true;
+			
+				else if (constraint == "new()")
+					this.IsClass = true;
+			
+				else
+					_constraints.Add(constraint);
+			}
+		}
+
+		/// <summary>
+		/// name of the generic
+		/// </summary>
+		public string Name { get; private set; }
+
+
+		/// <summary>
+		/// the type maust have an empty contructor accessible
+		/// </summary>
+		public bool HasEmptyConstructor { get; private set; }
+
+		/// <summary>
+		/// the type is a class
+		/// </summary>
+		public bool IsClass { get; private set; }
+
+		/// <summary>
+		/// list of contraints
+		/// </summary>
+		public IEnumerable<string> Constraints { get { return _constraints; } }
+
+	}
+// end : C:\Users\gael\Documents\Visual Studio 2015\Projects\TestConvertToT4\VisualStudio.ParsingSolution\Projects\Codes\GenericArgument.cs
+
+// start : C:\Users\gael\Documents\Visual Studio 2015\Projects\TestConvertToT4\VisualStudio.ParsingSolution\Projects\ReferenceAssembly.cs
+	public class ReferenceAssembly
+    {
+
+		public ReferenceAssembly(string ass)
+        {
+			// Microsoft.VisualStudio.ComponentModelHost, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL"
+
+			var ar = ass.Split(',');
+			foreach(string txt in ar)
+            {
+
+				if (txt.Contains("="))
+                {
+
+					switch(txt)
+                    {
+
+						case "Version":
+							this.Version = txt.Trim().Split('=')[1].Trim();
+							break;
+
+						case "Culture":
+							this.Culture = txt.Trim().Split('=')[1].Trim();
+							break;
+
+						case "PublicKeyToken":
+							this.PublicKeyToken = txt.Trim().Split('=')[1].Trim();
+							break;
+
+						case "processorArchitecture":
+							this.ProcessorArchitecture = txt.Trim().Split('=')[1].Trim();
+							break;
+
+                    }
+
+                }
+				else
+                {
+					this.Name = txt.Trim();
+                }
+
+            }
+
+        }
+
+		public string Name { get; private set; }
+		public string Version { get; private set; }
+		public string Culture { get; private set; }
+		public string PublicKeyToken { get; private set; }
+		public string ProcessorArchitecture { get; private set; }
+
+    }
+// end : C:\Users\gael\Documents\Visual Studio 2015\Projects\TestConvertToT4\VisualStudio.ParsingSolution\Projects\ReferenceAssembly.cs
+	
+// start : C:\Users\gael\Documents\Visual Studio 2015\Projects\TestConvertToT4\VisualStudio.ParsingSolution\Projects\Manager\Block.cs
+    public class Block
+    {
+        public String Name;
+        public int Start, Length;
+        public string OutputPath;
+        public string Fullname; 
+        public EnvDTE.ProjectItem ParentProjectItem;
+        public EnvDTE.Project ParentProject;
+    }
+// end : C:\Users\gael\Documents\Visual Studio 2015\Projects\TestConvertToT4\VisualStudio.ParsingSolution\Projects\Manager\Block.cs
+
+// start : C:\Users\gael\Documents\Visual Studio 2015\Projects\TestConvertToT4\VisualStudio.ParsingSolution\Projects\Manager\Manager.cs
+    public class Manager
+    {
+
+        private Block currentBlock;
+        private List<Block> files = new List<Block>();
+        private Block footer = new Block();
+        private Block header = new Block();
+        private ITextTemplatingEngineHost host;
+        private StringBuilder template;
+        protected List<Block> generatedFileNames = new List<Block>();
+        public Func<FileInfo, bool> filterToDelete = file => file.Name.EndsWith(".generated" + file.Extension);
+        protected EnvDTE.DTE dte;
+        protected EnvDTE.ProjectItem templateProjectItem;
+        protected EnvDTE.Project ContainingProject;
+
+		/// <summary>
+		/// 
+		/// </summary>
+        public static Manager Create(ITextTemplatingEngineHost host, StringBuilder template)
+        {
+
+            return (host is IServiceProvider) 
+                ? new VSManager(host, template) 
+                : new Manager(host, template);
+        }
+
+		/// <summary>
+		/// 
+		/// </summary>
+        public virtual bool FileOkToWrite(String fileName)
+        {
+            return true;
+        }
+
+		/// <summary>
+		/// 
+		/// </summary>
+        public Block StartNewFile(String name)
+        {
+            if (name == null)
+                throw new ArgumentNullException("name");
+            CurrentBlock = new Block { Name = name, OutputPath = Path.GetDirectoryName(host.TemplateFile), ParentProjectItem = templateProjectItem, ParentProject = null };
+            return CurrentBlock;
+        }
+
+		/// <summary>
+		/// 
+		/// </summary>
+        public Block StartNewFile(String name, NodeProject project)
+        {
+            if (name == null)
+                throw new ArgumentNullException("name");
+            CurrentBlock = new Block { Name = name, OutputPath = Path.GetDirectoryName(project.FullPath), ParentProjectItem = templateProjectItem, ParentProject = project.Source };
+            return CurrentBlock;
+        }
+
+		/// <summary>
+		/// 
+		/// </summary>
+        public Block StartNewFile(String name, NodeItemFolder folder)
+        {
+
+			if (folder == null)
+                throw new ArgumentNullException("folder");
+
+            if (name == null)
+                throw new ArgumentNullException("name");
+
+			if (folder is NodeItemFolder)
+            {
+                EnvDTE.ProjectItem ProjectItem = folder.ProjectItem;
+            }
+
+            CurrentBlock = new Block { Name = name, OutputPath = folder.LocalPath, ParentProjectItem = folder.ProjectItem, ParentProject = null };
+            return CurrentBlock;
+        }
+
+		/// <summary>
+		/// 
+		/// </summary>
+        public EnvDTE.Project GetCurrentProject()
+        {
+            return ContainingProject;
+        }
+
+	/// <summary>
+	/// 
+	/// </summary>
+        public void StartFooter()
+        {
+            CurrentBlock = footer;
+        }
+
+		/// <summary>
+		/// 
+		/// </summary>
+        public void StartHeader()
+        {
+            CurrentBlock = header;
+        }
+
+		/// <summary>
+		/// 
+		/// </summary>
+        public void EndBlock()
+        {
+            if (CurrentBlock == null)
+                return;
+            CurrentBlock.Length = template.Length - CurrentBlock.Start;
+            if (CurrentBlock != header && CurrentBlock != footer)
+                files.Add(CurrentBlock);
+            currentBlock = null;
+        }
+
+		/// <summary>
+		/// 
+		/// </summary>
+        public virtual void Process(bool split)
+        {
+            if (split)
+            {
+                EndBlock();
+                String headerText = template.ToString(header.Start, header.Length);
+                String footerText = template.ToString(footer.Start, footer.Length);
+                files.Reverse();
+                foreach (Block block in files)
+                {
+                    block.Fullname = Path.Combine(block.OutputPath, block.Name);
+
+                    StringBuilder sb = new StringBuilder(template.Length);
+                    sb.Append(headerText);
+                    sb.Append(template.ToString(block.Start, block.Length));
+                    sb.Append(footerText);
+
+                    generatedFileNames.Add(block);
+
+                    if (!Directory.Exists(block.OutputPath))
+                        Directory.CreateDirectory(block.OutputPath);
+
+                    CreateFile(block.Fullname, sb.ToString());
+                    template.Remove(block.Start, block.Length);
+                }
+            }
+        }
+
+        protected virtual void CreateFile(String fileName, String content)
+        {
+            if (IsFileContentDifferent(fileName, content))
+                File.WriteAllText(fileName, content);
+        }
+
+		/// <summary>
+		/// 
+		/// </summary>
+        public virtual String GetCustomToolNamespace(String fileName)
+        {
+            return null;
+        }
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public virtual String DefaultProjectNamespace
+        {
+            get { return null; }
+        }
+
+        protected bool IsFileContentDifferent(String fileName, String newContent)
+        {
+            return !(File.Exists(fileName) && File.ReadAllText(fileName) == newContent);
+        }
+
+        private Manager(ITextTemplatingEngineHost host, StringBuilder template)
+        {
+            this.host = host;
+            this.template = template;
+        }
+
+        private Block CurrentBlock
+        {
+            get { return currentBlock; }
+            set
+            {
+                if (CurrentBlock != null)
+                    EndBlock();
+                if (value != null)
+                    value.Start = template.Length;
+                currentBlock = value;
+            }
+        }
+
+	private class VSManager : Manager
+	{
+		private Action<String> checkOutAction;
+		private Action<Func<FileInfo, bool>, IEnumerable<Block>> projectSyncAction;
+		private IVsQueryEditQuerySave2 queryEditSave;
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public override String DefaultProjectNamespace
+		{
+			get
+			{
+				return templateProjectItem.ContainingProject.Properties.Item("DefaultNamespace").Value.ToString();
+			}
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public override String GetCustomToolNamespace(string fileName)
+		{
+			return dte.Solution.FindProjectItem(fileName).Properties.Item("CustomToolNamespace").Value.ToString();
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public override void Process(bool split)
+		{
+			base.Process(split);
+			projectSyncAction.EndInvoke(projectSyncAction.BeginInvoke(filterToDelete, generatedFileNames, null, null));
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public override bool FileOkToWrite(String fileName)
+		{
+			CheckoutFileIfRequired(fileName);
+			return base.FileOkToWrite(fileName);
+		}
+
+		protected virtual void CreateFile(String fileName, String content)
+		{
+			try
+			{
+				if (IsFileContentDifferent(fileName, content))
+				{
+					CheckoutFileIfRequired(fileName);
+					File.WriteAllText(fileName, content);
+				}
+			}
+			catch(Exception e)
+			{
+				throw new Exception(e.Message + @"\t for the file : " + fileName, e); 
+			}
+		}
+
+		internal VSManager(ITextTemplatingEngineHost host, StringBuilder template)
+			: base(host, template)
+		{
+
+			var hostServiceProvider = (IServiceProvider)host;
+
+			if (hostServiceProvider == null)
+				throw new ArgumentNullException("Could not obtain IServiceProvider");
+
+			dte = (EnvDTE.DTE)hostServiceProvider.GetService(typeof(EnvDTE.DTE));
+			if (dte == null)
+				throw new ArgumentNullException("Could not obtain DTE from host");
+
+			checkOutAction = (String fileName) => dte.SourceControl.CheckOutItem(fileName);
+			projectSyncAction = (Func<FileInfo, bool> filterToDelete, IEnumerable<Block> fileNames) => ProjectSync(filterToDelete, fileNames);
+			queryEditSave = (IVsQueryEditQuerySave2)hostServiceProvider.GetService(typeof(SVsQueryEditQuerySave));
+
+			this.templateProjectItem = this.dte.Solution.FindProjectItem(host.TemplateFile);
+			this.ContainingProject = this.templateProjectItem.ContainingProject;
+
+		}
+
+		private static void ProjectSync(Func<FileInfo, bool> filterToDelete, IEnumerable<Block> keepFileNames)
+		{
+
+			var keepFileNameSet = new HashSet<String>(keepFileNames.Select(c => c.Fullname).ToList());
+
+			foreach(Block block in keepFileNames)
+			{
+
+					string filename1 = string.Empty;
+					var projectFiles = new Dictionary<String, EnvDTE.ProjectItem>();
+
+					//System.Diagnostics.Debugger.Break();
+
+					if (block.ParentProject == null)
+                    {
+
+						filename1 = block.ParentProjectItem.get_FileNames(0);
+						var originalFilePrefix = Path.GetFileNameWithoutExtension(filename1) + ".";
+
+						// On enumere le contenu du repertoire
+						foreach (EnvDTE.ProjectItem projectItem in block.ParentProjectItem.ProjectItems)
+						{
+							string filename = projectItem.get_FileNames(0);
+							projectFiles.Add(filename, projectItem);
+						}
+
+						// Remove unused items from the project
+						foreach (var pair in projectFiles)
+							if (!keepFileNameSet.Contains(pair.Key) && !(Path.GetFileNameWithoutExtension(pair.Key) + ".").StartsWith(originalFilePrefix))
+								if (filterToDelete(new FileInfo(pair.Key)))
+									pair.Value.Delete();
+
+						// Add missing files to the project
+						foreach (String fileName in keepFileNameSet)
+							if (!projectFiles.ContainsKey(fileName))
+								block.ParentProjectItem.ProjectItems.AddFromFile(fileName);
+
+                   }
+				   else
+                   {
+
+				   		filename1 = filename1 = new FileInfo(block.ParentProject.FileName).Directory.FullName;
+						var originalFilePrefix = Path.GetFileNameWithoutExtension(filename1) + ".";
+
+				   		// On enumere le contenu du repertoire
+						foreach (EnvDTE.ProjectItem projectItem in block.ParentProject.ProjectItems)
+						{
+							string filename = projectItem.get_FileNames(0);
+							projectFiles.Add(filename, projectItem);
+						}
+
+						// Remove unused items from the project
+						foreach (var pair in projectFiles)
+							if (!keepFileNameSet.Contains(pair.Key) && !(Path.GetFileNameWithoutExtension(pair.Key) + ".").StartsWith(originalFilePrefix))
+								if (filterToDelete(new FileInfo(pair.Key)))
+									pair.Value.Delete();
+
+												// Add missing files to the project
+						foreach (String fileName in keepFileNameSet)
+							if (!projectFiles.ContainsKey(fileName))
+								block.ParentProject.ProjectItems.AddFromFile(fileName);
+
+                   }
+
+                }
+
+            }
+
+            private void CheckoutFileIfRequired(String fileName)
+            {
+                if (queryEditSave != null)
+                {
+                    uint pfEditVerdict;
+                    queryEditSave.QuerySaveFile(fileName, 0, null, out pfEditVerdict);
+                }
+                else
+                {
+                    var sc = dte.SourceControl;
+                    if (sc != null && sc.IsItemUnderSCC(fileName) && !sc.IsItemCheckedOut(fileName)) 
+                        checkOutAction.EndInvoke(checkOutAction.BeginInvoke(fileName, null, null));
+                }
+            }
+        }
+
+	}
+// end : C:\Users\gael\Documents\Visual Studio 2015\Projects\TestConvertToT4\VisualStudio.ParsingSolution\Projects\Manager\Manager.cs
+
+// start : C:\Users\gael\Documents\Visual Studio 2015\Projects\TestConvertToT4\VisualStudio.ParsingSolution\Projects\Manager\ManagerScope.cs
+    public class ManagerScope : IDisposable
+    {
+
+        private static Manager manager;
+
+		/// <summary>
+		/// constructor
+		/// </summary>
+        public ManagerScope()
+        {
+            manager = Manager.Create(ProjectHelper.serviceProvider as ITextTemplatingEngineHost, ProjectHelper._generationEnvironment); 
+        }
+
+
+        public void SetFilterToDelete(Func<FileInfo, bool> filterToDelete)
+        {
+
+            manager.filterToDelete = filterToDelete;
+
+        }
+
+		/// <summary>
+		/// 
+		/// </summary>
+        public IDisposable StartHeader()
+        {
+            return new HeaderScope(manager);
+        }
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public IDisposable StartFooter()
+        {
+            return new FooterScope(manager);
+        }
+
+		/// <summary>
+		/// 
+		/// </summary>
+        public void Dispose()
+        {
+            manager.Process(true);
+        }
+
+		/// <summary>
+		/// 
+		/// </summary>
+        public ScriptFileScope NewFile(string filename)
+        {
+            return new ScriptFileScope(manager, filename);
+        }
+
+		/// <summary>
+		/// 
+		/// </summary>
+        public ScriptFileScope NewFile(string filename, NodeItemFolder folder)
+        {
+            return new ScriptFileScope(manager, filename, folder);
+        }
+
+		/// <summary>
+		/// 
+		/// </summary>
+        public ScriptFileScope NewFile(string filename, NodeProject project)
+        {
+            return new ScriptFileScope(manager, filename, project);
+        }
+
+		/// <summary>
+		/// 
+		/// </summary>
+        public NodeProject GetCurrentProject()
+        {
+            var p = manager.GetCurrentProject();
+            var sln = ProjectHelper.GetContext().Solution();
+            NodeProject prj = sln.GetProjects(c => c.Name == p.Name).FirstOrDefault();
+            return prj;
+        }
+
+		/// <summary>
+		/// 
+		/// </summary>
+        public NodeProject GetProject(string projectName)
+        {
+            var sln = ProjectHelper.GetContext().Solution();
+            NodeProject prj = sln.GetProjects(c => c.Name == projectName).FirstOrDefault();
+            return prj;
+        }
+
+    }
+// end : C:\Users\gael\Documents\Visual Studio 2015\Projects\TestConvertToT4\VisualStudio.ParsingSolution\Projects\Manager\ManagerScope.cs
+
+// start : C:\Users\gael\Documents\Visual Studio 2015\Projects\TestConvertToT4\VisualStudio.ParsingSolution\Projects\Manager\ScriptFileScope.cs
+	public class ScriptFileScope : IDisposable
+	{
+	
+		private Manager manager;
+		private Block block;
+
+		internal ScriptFileScope(object manager, string name)
+		{
+			string _name = AppliPatternToFilname(name);
+			this.manager = manager as Manager;
+			block = this.manager.StartNewFile(_name);
+		}
+
+		internal ScriptFileScope(object manager, string name, NodeItemFolder folder)
+		{
+			string _name = AppliPatternToFilname(name);
+			this.manager = manager as Manager;
+			block = this.manager.StartNewFile(_name, folder);
+		}
+
+		internal ScriptFileScope(object manager, string name, NodeProject project)
+		{
+			string _name = AppliPatternToFilname(name);
+			this.manager = manager as Manager;
+			block = this.manager.StartNewFile(_name, project);
+		}
+
+		private string AppliPatternToFilname(string name)
+		{
+
+			string _name;
+
+			string e = Path.GetExtension(name);
+			string mask = ".generated" + e;
+
+			if (!name.EndsWith(mask))
+			{
+				e = mask;
+				_name = Path.ChangeExtension(name, e);
+			}
+			else
+				_name = name;
+
+			return _name;
+		}
+
+		public void Dispose()
+		{
+			manager.EndBlock();
+		}
+
+		public String Name { get { return this.block.Name; } }
+
+		public string OutputPath  { get { return this.block.OutputPath; } }
+
+		public string Fullname { get { return this.block.Fullname; } }
+
+		public EnvDTE.ProjectItem ParentProjectItem { get { return this.block.ParentProjectItem; } }
+
+		public EnvDTE.Project ParentProject { get { return this.block.ParentProject; } }
+
+    }
+// end : C:\Users\gael\Documents\Visual Studio 2015\Projects\TestConvertToT4\VisualStudio.ParsingSolution\Projects\Manager\ScriptFileScope.cs
+
+// start : C:\Users\gael\Documents\Visual Studio 2015\Projects\TestConvertToT4\VisualStudio.ParsingSolution\Projects\Manager\HeaderScope.cs
+    class HeaderScope : IDisposable
+    {
+    
+        private Manager manager;
+
+        public HeaderScope(Manager manager)
+        {
+            this.manager = manager;
+            manager.StartHeader();
+        }
+
+        public void Dispose()
+        {
+            manager.EndBlock();   
+        }
+
+    }
+// end : C:\Users\gael\Documents\Visual Studio 2015\Projects\TestConvertToT4\VisualStudio.ParsingSolution\Projects\Manager\HeaderScope.cs
+
+// start : C:\Users\gael\Documents\Visual Studio 2015\Projects\TestConvertToT4\VisualStudio.ParsingSolution\Projects\Manager\FooterScope.cs
+    class FooterScope : IDisposable
+    {
+    
+        private Manager manager;
+
+        public FooterScope(Manager manager)
+        {
+            this.manager = manager;
+            manager.StartFooter();
+        }
+
+        public void Dispose()
+        {
+            manager.EndBlock();
+        }
+
+    }
+// end : C:\Users\gael\Documents\Visual Studio 2015\Projects\TestConvertToT4\VisualStudio.ParsingSolution\Projects\Manager\FooterScope.cs
+
+// start : C:\Users\gael\Documents\Visual Studio 2015\Projects\TestConvertToT4\VisualStudio.ParsingSolution\Projects\Manager\ScopeHelper.cs
+    public static class ScopeHelper
+    {
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public static ManagerScope StartManager()
+        {
+            ManagerScope m = new ManagerScope();
+            return m;
+        }
+
+    }
+// end : C:\Users\gael\Documents\Visual Studio 2015\Projects\TestConvertToT4\VisualStudio.ParsingSolution\Projects\Manager\ScopeHelper.cs
+
+
+#>
