@@ -4,47 +4,40 @@
 <#@ Assembly Name="EnvDTE80" #>
 <#@ Assembly Name="Microsoft.Build" #>
 <#@ Assembly Name="Microsoft.CSharp" #>
-<#@ Assembly Name="Microsoft.VisualStudio.ArchitectureTools.Extensibility" #>
 <#@ Assembly Name="Microsoft.VisualStudio.ComponentModelHost" #>
-<#@ Assembly Name="Microsoft.VisualStudio.CoreUtility" #>
 <#@ Assembly Name="Microsoft.VisualStudio.OLE.Interop" #>
 <#@ Assembly Name="Microsoft.VisualStudio.Shell.10.0" #>
+<#@ Assembly Name="Microsoft.VisualStudio.Shell.Design" #>
 <#@ Assembly Name="Microsoft.VisualStudio.Shell.Immutable.10.0" #>
 <#@ Assembly Name="Microsoft.VisualStudio.Shell.Interop" #>
-<#@ Assembly Name="Microsoft.VisualStudio.Shell.Interop.10.0" #>
 <#@ Assembly Name="Microsoft.VisualStudio.Shell.Interop.8.0" #>
 <#@ Assembly Name="Microsoft.VisualStudio.Shell.Interop.9.0" #>
-<#@ Assembly Name="Microsoft.VisualStudio.TextManager.Interop" #>
-<#@ Assembly Name="Microsoft.VisualStudio.TextTemplating.Interfaces.10.0" #>
-<#@ Assembly Name="Microsoft.VisualStudio.Uml.Interfaces" #>
 <#@ Assembly Name="System" #>
-<#@ Assembly Name="System.ComponentModel.Composition" #>
-<#@ Assembly Name="System.ComponentModel.DataAnnotations" #>
 <#@ Assembly Name="System.Core" #>
-<#@ Assembly Name="System.Data" #>
 <#@ Assembly Name="System.Design" #>
-<#@ Assembly Name="System.Runtime.Serialization" #>
+<#@ Assembly Name="System.Windows.Forms" #>
 <#@ Assembly Name="System.Xml" #>
 <#@ Assembly Name="System.Xml.Linq" #>
-<#@ Assembly Name="WindowsBase" #>
+<#@ Assembly Name="VSLangProj" #>
 <#@ import namespace="EnvDTE" #>
 <#@ import namespace="EnvDTE80" #>
 <#@ import namespace="Microsoft.VisualStudio.Shell" #>
-<#@ import namespace="Microsoft.VisualStudio.Shell.Interop" #>
-<#@ import namespace="Microsoft.VisualStudio.TextTemplating" #>
 <#@ import namespace="System" #>
 <#@ import namespace="System.Collections.Generic" #>
+<#@ import namespace="System.Diagnostics.Contracts" #>
 <#@ import namespace="System.IO" #>
 <#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Reflection" #>
 <#@ import namespace="System.Text" #>
 <#@ import namespace="System.Threading.Tasks" #>
+<#@ import namespace="VSLangProj" #>
 <#
 
 	ProjectHelper.InitializeSolution(this.Host as IServiceProvider, GenerationEnvironment);	
 
 #>
 <#+
-// start : D:\github\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\ProjectHelper.cs
+// start : C:\Users\gael_Pc\Documents\GitHub\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\ProjectHelper.cs
     public static class ProjectHelper
     {
 
@@ -335,9 +328,9 @@
 
                 foreach (NodeProject file in sln.GetItem<NodeProject>())
                 {
-                    if (!string.IsNullOrEmpty(file.Source.FullName))
+                    if (!string.IsNullOrEmpty(file.Project.FullName))
                     {
-                        var f = new FileInfo(file.Source.FullName).Directory.FullName;
+                        var f = new FileInfo(file.Project.FullName).Directory.FullName;
                         var keyValuePair = new KeyValuePair<string, NodeProject>(f, file);
                         Projects.Add(keyValuePair);
                     }
@@ -525,9 +518,9 @@
         private static System.Text.RegularExpressions.Regex r = new System.Text.RegularExpressions.Regex(pattern);
 
     }
-// end : D:\github\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\ProjectHelper.cs
+// end : C:\Users\gael_Pc\Documents\GitHub\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\ProjectHelper.cs
 
-// start : D:\github\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\NodeItemBase.cs
+// start : C:\Users\gael_Pc\Documents\GitHub\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\NodeItemBase.cs
     public abstract class NodeItemBase
     {
 
@@ -548,9 +541,9 @@
         public abstract KindItem KindItem { get; }
 
     }
-// end : D:\github\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\NodeItemBase.cs
+// end : C:\Users\gael_Pc\Documents\GitHub\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\NodeItemBase.cs
 
-// start : D:\github\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\KindItem.cs
+// start : C:\Users\gael_Pc\Documents\GitHub\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\KindItem.cs
     public enum KindItem
     {
         Solution,
@@ -559,9 +552,9 @@
         Folder,
         VirtualFolder,
     }
-// end : D:\github\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\KindItem.cs
+// end : C:\Users\gael_Pc\Documents\GitHub\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\KindItem.cs
 
-// start : D:\github\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\NodeSolutionItem.cs
+// start : C:\Users\gael_Pc\Documents\GitHub\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\NodeSolutionItem.cs
     [System.Diagnostics.DebuggerDisplay("{Name}")]
     public abstract class NodeSolutionItem : NodeItemBase
     {
@@ -671,10 +664,10 @@
                     }
 
                     else if (s.Kind == "{66A26720-8FB5-11D2-AA7E-00C04F688DDE}" && proj != null)
-                        fld = new NodeFolderSolution(s as EnvDTE.Project);
+                        fld = new NodeFolderSolution(s.SubProject);
 
                     else if (s.Kind == "{66A26722-8FB5-11D2-AA7E-00C04F688DDE}" && proj !=null)
-                        fld = new NodeFolderSolution(s as EnvDTE.Project);
+                        fld = new NodeFolderSolution(s.SubProject);
 
                     else if (s.Kind == "{EA6618E8-6E24-4528-94BE-6889FE16485C}" && proj != null)
                         fld = new NodeVirtualFolder(s as EnvDTE.Project);
@@ -758,9 +751,9 @@
         public virtual DateTime GetLastWriteTime { get { return File.GetLastWriteTime(this.project.FullName); } }
 
     }
-// end : D:\github\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\NodeSolutionItem.cs
+// end : C:\Users\gael_Pc\Documents\GitHub\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\NodeSolutionItem.cs
 
-// start : D:\github\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\NodeVirtualFolder.cs
+// start : C:\Users\gael_Pc\Documents\GitHub\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\NodeVirtualFolder.cs
     [System.Diagnostics.DebuggerDisplay("{FullName}")]
     public class NodeVirtualFolder : NodeSolutionItem
     {
@@ -798,9 +791,9 @@
         public override KindItem KindItem { get { return KindItem.VirtualFolder; } }
 
     }
-// end : D:\github\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\NodeVirtualFolder.cs
+// end : C:\Users\gael_Pc\Documents\GitHub\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\NodeVirtualFolder.cs
 
-// start : D:\github\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\NodeSolution.cs
+// start : C:\Users\gael_Pc\Documents\GitHub\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\NodeSolution.cs
     [System.Diagnostics.DebuggerDisplay("{Name}")]
     public class NodeSolution : NodeSolutionItem
     {
@@ -814,8 +807,11 @@
         /// <param name="dte">The DTE.</param>
         public NodeSolution(EnvDTE.DTE dte) : base()
         {
+            if (dte == null)
+                this.dte = (EnvDTE.DTE)Package.GetGlobalService(typeof(EnvDTE.DTE));
+            else
             this.dte = dte;
-            this.solution = dte.Solution;
+            this.solution = this.dte.Solution;
             this.BuildProperties();
         }
 
@@ -825,7 +821,6 @@
         public NodeSolution()
             : base()
         {
-
             EnvDTE.DTE dte = (EnvDTE.DTE)Package.GetGlobalService(typeof(EnvDTE.DTE));
             this.dte = dte;
             this.solution = dte.Solution;
@@ -1083,9 +1078,9 @@
         }
 
     }
-// end : D:\github\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\NodeSolution.cs
+// end : C:\Users\gael_Pc\Documents\GitHub\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\NodeSolution.cs
 
-// start : D:\github\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\NodeItemProperty.cs
+// start : C:\Users\gael_Pc\Documents\GitHub\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\NodeItemProperty.cs
     [System.Diagnostics.DebuggerDisplay("{Name}")]
     public class NodeItemProperty
     {
@@ -1157,9 +1152,9 @@
         private bool Undefine { get { return undefine != null ? (bool)undefine : (PropertyObject == null); } }
 
     }
-// end : D:\github\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\NodeItemProperty.cs
+// end : C:\Users\gael_Pc\Documents\GitHub\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\NodeItemProperty.cs
 
-// start : D:\github\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\GenericNodeProperty.cs
+// start : C:\Users\gael_Pc\Documents\GitHub\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\GenericNodeProperty.cs
     [System.Diagnostics.DebuggerDisplay("{Value}")]
     public class GenericNodeProperty<T> : INodeProperty<T>
     {
@@ -1197,9 +1192,9 @@
         }
 
     }
-// end : D:\github\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\GenericNodeProperty.cs
+// end : C:\Users\gael_Pc\Documents\GitHub\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\GenericNodeProperty.cs
 
-// start : D:\github\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\NodeProperty.cs
+// start : C:\Users\gael_Pc\Documents\GitHub\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\NodeProperty.cs
     [System.Diagnostics.DebuggerDisplay("{Name}: {Value}")]
     public class NodeProperty<T> : NodeItemProperty, INodeProperty<T>
     {
@@ -1237,18 +1232,18 @@
         public static implicit operator T(NodeProperty<T> property) { return property.Value; }
 
     }
-// end : D:\github\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\NodeProperty.cs
+// end : C:\Users\gael_Pc\Documents\GitHub\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\NodeProperty.cs
 
-// start : D:\github\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\INodeProperty.cs
+// start : C:\Users\gael_Pc\Documents\GitHub\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\INodeProperty.cs
     public interface INodeProperty<T>
     {
 
         T Value { get; set; }
 
     }
-// end : D:\github\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\INodeProperty.cs
+// end : C:\Users\gael_Pc\Documents\GitHub\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\INodeProperty.cs
 
-// start : D:\github\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\NodeProject.cs
+// start : C:\Users\gael_Pc\Documents\GitHub\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\NodeProject.cs
     [System.Diagnostics.DebuggerDisplay("{Name}")]
     public class NodeProject : NodeSolutionItem
     {
@@ -1264,7 +1259,6 @@
         public const string ContentResource = "Resource";
         public const string ContentClassName = "classname";
         private Microsoft.Build.Construction.ProjectRootElement _projectContent;
-        private string configurationFile;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="NodeProject"/> class.
@@ -1277,7 +1271,60 @@
 
         }
 
+        public Project Project { get { return this.project; } }
 
+        public VSProject VSProject { get { return this.project.Object as VSProject; } }
+
+        /// <summary>
+        /// Add the file in the project
+        /// </summary>
+        /// <param name="folderPath">The folder path in the project</param>
+        /// <param name="name">The name of the file.</param>
+        /// <param name="content">The content of the file.</param>
+        public NodeItem AddFile(string folderPath, string name, string content)
+        {
+
+            NodeItemFolder folder = this.GetFolder(folderPath);
+            var file = new FileInfo(Path.Combine(folder.LocalPath, name));
+            if (!file.Exists)
+            {
+
+                var ar = System.Text.Encoding.UTF8.GetBytes(content);
+
+                using (var stream = file.OpenWrite())
+                {
+                    stream.Write(ar, 0, ar.Length);
+                    stream.Flush();
+                }
+            }
+
+            return folder.AddFile(file.FullName);
+
+        }
+
+        /// <summary>
+        /// Add the file in the project
+        /// </summary>
+        /// <param name="folderPath">The folder path in the project</param>
+        /// <param name="name">The name of the file.</param>
+        /// <param name="content">The content of the file.</param>
+        public NodeItem AddFile(string folderPath, string name, byte[] content)
+        {
+
+            NodeItemFolder folder = this.GetFolder(folderPath);
+            var file = new FileInfo(Path.Combine(folder.LocalPath, name));
+            if (!file.Exists)
+            {
+                using (var stream = file.OpenWrite())
+                {
+                    stream.Write(content, 0, content.Length);
+                    stream.Flush();
+                }
+            }
+
+            return folder.AddFile(file.FullName);
+
+        }
 
         /// <summary>
         /// add a new file in the folder to the solution
@@ -1377,6 +1424,29 @@
 
         }
 
+        public NodeItem GetNode(string FullName)
+        {
+            return GetItem<NodeItem>(c => c.Name == FullName).FirstOrDefault();
+        }
+
+        /// <summary>
+        /// return the path of the specified file in the project
+        /// </summary>
+        /// <param name="FullName">The full name.</param>
+        /// <returns></returns>
+        public string GetProjectPath(string FullName)
+        {
+
+            var file = new FileInfo(FullPath);
+            var project = new FileInfo(this.FullPath);
+
+            if (file.Directory.FullName.Length >= project.Directory.FullName.Length)
+                return file.Directory.FullName.Substring(this.FullPath.Length).Trim('\\').Trim();
+
+            return string.Empty;
+
+        }
+
         /// <summary>
         /// Creates the code type reference.
         /// </summary>
@@ -1450,7 +1520,7 @@
                 {
                     if (_h.Add(ass.Include) && !ass.Include.Contains("$") && !ass.Include.Contains(")"))
                     {
-                        var a = new ReferenceAssembly(ass.Include);
+                        var a = new ReferenceAssembly(ass.Include, ass.FirstChild);
                         _result.Add(a);
                     }
                 }
@@ -2345,16 +2415,16 @@
             set { FindProperty<string>("SignAssembly").Value = value; }
         }
 
-        /// <summary>
-        /// return the reference object com
-        /// </summary>
-        public EnvDTE.Project Source
-        {
-            get
-            {
-                return project;
-            }
-        }
+        ///// <summary>
+        ///// return the reference object com
+        ///// </summary>
+        //public EnvDTE.Project Source
+        //{
+        //    get
+        //    {
+        //        return project;
+        //    }
+        //}
 
         /// <summary>
         /// full filename
@@ -2367,10 +2437,165 @@
             }
         }
 
-    }
-// end : D:\github\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\NodeProject.cs
+        /// <summary>
+        /// Gets a new node solution that reference the current project..
+        /// </summary>
+        /// <value>
+        /// The solution.
+        /// </value>
+        public NodeSolution Solution { get { return new NodeSolution(this.project.DTE); } }
 
-// start : D:\github\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\NodeItemFolder.cs
+        /// <summary>
+        /// Is the project hosting the Store actually referencing an assembly?
+        /// </summary>
+        /// <param name="assembly">Assembly for which we want to know if it is referenced by the 
+        /// project hosting the model contained in the store
+        /// </param>
+        /// <returns><c>true</c> if the assembly is referenced by the project hosting the store, and <c>false</c> otherwise</returns>
+        public bool IsReferencingAssembly(Assembly assembly)
+        {
+            Contract.Requires(assembly != null);
+            return IsReferencingAssembly(assembly.GetName().Name);
+        }
+
+        /// <summary>
+        /// Is the project hosting the Store actually referencing an assembly?
+        /// </summary>
+        /// <param name="assemblyName">Assembly name for which we want to know if it is referenced by the 
+        /// project hosting the model contained in the store
+        /// </param>
+        /// <returns><c>true</c> if the assembly is referenced by the project hosting the store, and <c>false</c> otherwise</returns>
+        public bool IsReferencingAssembly(string assemblyName)
+        {
+            // Add references.
+            VSProject vsProject = this.project.Object as VSProject;
+            return (vsProject.References.OfType<Reference>().Any(reference => reference.Name == assemblyName));
+
+        }
+
+        /// <summary>
+        /// Ensures that the VS project hosting a modeling store references a given assembly
+        /// </summary>
+        /// <param name="assembly">Asssembly for which we want to ensure that it is referenced by the VS project hosting the <paramref name="store"/></param>
+        public void EnsureReferencesAssembly(Assembly assembly)
+        {
+            Contract.Requires(assembly != null);
+            EnsureReferencesAssembly(assembly.GetName().Name);
+        }
+
+        /// <summary>
+        /// Ensures that the VS project hosting a modeling store references a given assembly (by name)
+        /// </summary>
+        /// <param name="assemblyName">Name of the asssembly for which we want to ensure that it is referenced by the VS project hosting the <paramref name="store"/></param>
+        public void EnsureReferencesAssembly(string assemblyName)
+        {
+
+            // Add references.
+            VSProject vsProject = project.Object as VSProject;
+
+            if (!vsProject.References.OfType<Reference>().Any(reference => reference.Name == assemblyName))
+                vsProject.References.Add(assemblyName);
+
+        }
+
+        /// <summary>
+        /// Ensures that the VS project hosting a modeling store references a given assembly (by name)
+        /// </summary>
+        /// <param name="project">project instance</param>
+        /// <returns></returns>
+        public IEnumerable<Assembly> ReferencesAssemblies()
+        {
+
+            OutputWriter wr = new OutputWriter();
+
+            VSProject vsProject = project.Object as VSProject;
+            foreach (Reference item in vsProject.References)
+            {
+
+                // si la Source project n'est pas null c'est que le type est contenu dans la solution.
+                //la charger va locker la librairie.
+                if (item.SourceProject == null)
+                {
+                    var path = item.Path;
+                    if (!string.IsNullOrEmpty(path) && File.Exists(path))
+                    {
+
+                        Assembly ass = null;
+
+                        try
+                        {
+                            ass = Assembly.LoadFile(path);
+                        }
+                        catch (Exception e)
+                        {
+                            wr.WriteLine(e);
+                        }
+
+                        if (ass != null)
+                            yield return ass;
+
+                    }
+
+                }
+            }
+
+        }
+
+        /// <summary>
+        /// return the list of the Referencings the projects.
+        /// </summary>
+        /// <returns></returns>
+        public IEnumerable<NodeProject> ReferencingProjects()
+        {
+
+            VSProject vsProject = project.Object as VSProject;
+            foreach (Reference item in vsProject.References)
+            {
+                // si la Source project n'est pas null c est que le type est contenu dans la solution.
+                if (item.SourceProject != null)
+                    yield return new NodeProject(item.SourceProject);
+            }
+
+        }
+
+        /// <summary>
+        /// Ensures that a VS project in the same solution as the project hosting a modeling store references a given project in the same solution (by name)
+        /// </summary>
+        /// <param name="uniqueProjectNameReferencing">Unique project name of the project that needs to reference <paramref name="uniqueProjectNameToReference"/>. Can be null, in that
+        /// case the project is the project holding the model in the store</param>
+        /// <param name="uniqueProjectNameToReference">Unique project nameof the project for which we want to ensure that it is referenced by the VS project hosting the <paramref name="store"/></param>
+        public void EnsureProjectReferencesProject(string uniqueProjectNameReferencing, string uniqueProjectNameToReference)
+        {
+
+            // Get the referencing project
+            NodeProject referencingProject = null;
+
+            var sln = new NodeSolution(project.DTE);
+
+            if (!string.IsNullOrWhiteSpace(uniqueProjectNameReferencing))
+                referencingProject = sln.Projects.FirstOrDefault(p => p.Name == uniqueProjectNameReferencing);
+
+            if (referencingProject == null)
+                return;
+
+            // Add reference to the other project if it is not already referenced
+            VSProject vsProject = referencingProject.VSProject;
+            if (vsProject.References.OfType<Reference>().FirstOrDefault(reference => reference.SourceProject != null && reference.SourceProject.UniqueName == uniqueProjectNameToReference) == null)
+            {
+
+                NodeProject otherProject = sln.Projects.FirstOrDefault(p => p.Name == uniqueProjectNameToReference);
+
+                if (otherProject != null)
+                    vsProject.References.AddProject(otherProject.Project);
+
+            }
+
+        }
+
+    }
+// end : C:\Users\gael_Pc\Documents\GitHub\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\NodeProject.cs
+
+// start : C:\Users\gael_Pc\Documents\GitHub\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\NodeItemFolder.cs
     [System.Diagnostics.DebuggerDisplay("{Name}")]
     public class NodeItemFolder : NodeItem
     {
@@ -2460,10 +2685,28 @@
 
         }
 
-    }
-// end : D:\github\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\NodeItemFolder.cs
+        ///// <summary>
+        ///// return the path of the current folder in the project
+        ///// </summary>
+        ///// <param name="FullName">The full name.</param>
+        ///// <returns></returns>
+        //public string GetProjectPath(string FullName)
+        //{
 
-// start : D:\github\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\NodeItem.cs
+        //    var p = new NodeProject(this.ProjectItem.ContainingProject);
+        //    var project = new FileInfo(p.LocalPath);
+
+        //    if (this.LocalPath.Length >= project.Directory.FullName.Length)
+        //        return p.LocalPath.Substring(p.LocalPath.Length).Trim('\\').Trim();
+
+        //    return string.Empty;
+
+        //}
+
+    }
+// end : C:\Users\gael_Pc\Documents\GitHub\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\NodeItemFolder.cs
+
+// start : C:\Users\gael_Pc\Documents\GitHub\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\NodeItem.cs
     [System.Diagnostics.DebuggerDisplay("{Name}")]
     public class NodeItem : NodeSolutionItem
     {
@@ -2770,11 +3013,76 @@
         /// </summary>
         public string Name2 { get { return s.FileNames[0]; } }
 
+        /// <summary>
+        /// add a new file in the folder to the solution
+        /// </summary>
+        public NodeItem AddFile(FileInfo file)
+        {
+            return AddFile(file.FullName);
+        }
+
+        /// <summary>
+        /// add a new file in the folder to the solution
+        /// </summary>
+        public NodeItem AddFile(string FullName)
+        {
+            return new NodeItem(this.s.ProjectItems.AddFromFile(FullName));
+        }
+
+
+        /// <summary>
+        /// Add the file in the project
+        /// </summary>
+        /// <param name="folderPath">The folder path in the project</param>
+        /// <param name="name">The name of the file.</param>
+        /// <param name="content">The content of the file.</param>
+        public NodeItem AddFile(string name, string content)
+        {
+
+            var file = new FileInfo(Path.Combine(this.LocalPath, name));
+            if (!file.Exists)
+            {
+
+                var ar = System.Text.Encoding.UTF8.GetBytes(content);
+
+                using (var stream = file.OpenWrite())
+                {
+                    stream.Write(ar, 0, ar.Length);
+                    stream.Flush();
+                }
+            }
+
+            return this.AddFile(file.FullName);
+
+        }
+
+        /// <summary>
+        /// Add the file in the project
+        /// </summary>
+        /// <param name="folderPath">The folder path in the project</param>
+        /// <param name="name">The name of the file.</param>
+        /// <param name="content">The content of the file.</param>
+        public NodeItem AddFile(string name, byte[] content)
+        {
+
+            var file = new FileInfo(Path.Combine(this.LocalPath, name));
+            if (!file.Exists)
+            {
+                using (var stream = file.OpenWrite())
+                {
+                    stream.Write(content, 0, content.Length);
+                    stream.Flush();
+                }
+            }
+
+            return this.AddFile(file.FullName);
+
+        }
 
     }
-// end : D:\github\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\NodeItem.cs
+// end : C:\Users\gael_Pc\Documents\GitHub\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\NodeItem.cs
 
-// start : D:\github\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\NodeFolderSolution.cs
+// start : C:\Users\gael_Pc\Documents\GitHub\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\NodeFolderSolution.cs
     [System.Diagnostics.DebuggerDisplay("{FullName}")]
     public class NodeFolderSolution : NodeSolutionItem
     {
@@ -2838,9 +3146,9 @@
         public override KindItem KindItem { get { return KindItem.Folder; } }
 
     }
-// end : D:\github\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\NodeFolderSolution.cs
+// end : C:\Users\gael_Pc\Documents\GitHub\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\NodeFolderSolution.cs
 
-// start : D:\github\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\Codes\ObjectFactory.cs
+// start : C:\Users\gael_Pc\Documents\GitHub\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\Codes\ObjectFactory.cs
     public class ObjectFactory
     {
 
@@ -2922,6 +3230,15 @@
         /// <summary>
         /// 
         /// </summary>
+        public virtual CodeFieldInfo CreateField(ClassInfo parent, CodeElement2 item)
+        {
+            return new CodeFieldInfo(parent, item);
+        }
+
+
+        /// <summary>
+        /// 
+        /// </summary>
         public virtual ClassInfo CreateClass(NodeItem parent, CodeClass2 item)
         {
             return new ClassInfo(parent, item);
@@ -2959,12 +3276,17 @@
             return new AttributeArgumentInfo(item);
         }
 
+        public virtual ParamInfo CreateParameter(CodePropertyInfo parent, CodeParameter2 item, int position, string parameterComment)
+        {
+            return new ParamInfo(parent, item, position, parameterComment);
+        }
+
         /// <summary>
         /// 
         /// </summary>
-        public virtual MethodParamInfo CreatParameter(CodeFunctionInfo parent, CodeParameter2 item, string parameterComment)
+        public virtual ParamInfo CreateParameter(CodeFunctionInfo parent, CodeParameter2 item, int position, string parameterComment)
         {
-            return new MethodParamInfo(parent, item, parameterComment);
+            return new ParamInfo(parent, item, position, parameterComment);
         }
 
         /// <summary>
@@ -2984,8 +3306,24 @@
         }
 
         /// <summary>
-        /// 
+        /// Gets the attributes.
         /// </summary>
+        /// <param name="attributes">The attributes.</param>
+        /// <param name="attributeType">Type of the attribute.</param>
+        /// <returns></returns>
+        public static IEnumerable<AttributeInfo> GetAttributes(IEnumerable<AttributeInfo> attributes, Type attributeType)
+        {
+
+            return GetAttributes(attributes, attributeType.AssemblyQualifiedName);
+
+        }
+
+        /// <summary>
+        /// Gets the attributes.
+        /// </summary>
+        /// <param name="attributes">The attributes.</param>
+        /// <param name="attributeType">Type of the attribute.</param>
+        /// <returns></returns>
         public static IEnumerable<AttributeInfo> GetAttributes(IEnumerable<AttributeInfo> attributes, string attributeType)
         {
 
@@ -3074,29 +3412,37 @@
 
         }
     }
-// end : D:\github\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\Codes\ObjectFactory.cs
+// end : C:\Users\gael_Pc\Documents\GitHub\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\Codes\ObjectFactory.cs
 
-// start : D:\github\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\Codes\InterfaceInfo.cs
+// start : C:\Users\gael_Pc\Documents\GitHub\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\Codes\InterfaceInfo.cs
     [System.Diagnostics.DebuggerDisplay("{Namespace}.{Name}")]
     public class InterfaceInfo : BaseInfo
-	{
-	
-		/// <summary>
-		/// 
-		/// </summary>
-		public InterfaceInfo(NodeItem parent, CodeInterface2 item)
-			: base(null, item as CodeElement2)
-		{
+    {
 
-			this.Parent = parent;
-			this.item = item;
+        /// <summary>
+        /// 
+        /// </summary>
+        public InterfaceInfo(NodeItem parent, CodeInterface2 item)
+            : base(null, item as CodeElement2)
+        {
+
+            this.Parent = parent;
+            this.item = item;
             this.IsInterface = true;
-			this.Access = ObjectFactory.Convert(this.item.Access);
-			this.IsAbstract = true;
-			this.IsShared = false;
-			this.IsGeneric = this.item.IsGeneric;
-			this.Namespace = item.Namespace.FullName;
+            this.Access = ObjectFactory.Convert(this.item.Access);
+            this.IsAbstract = true;
+            this.IsShared = false;
+            this.IsGeneric = this.item.IsGeneric;
+            this.Namespace = item.Namespace.FullName;
             this.DocComment = this.item.DocComment;
+
+            IsPublic = this.IsPublic_Impl(this.item.Access);
+            IsPrivate = this.IsPrivate_Impl(this.item.Access);
+            IsProtected = this.IsProtected_Impl(this.item.Access);
+            IsFamilyOrProtected = this.IsFamilyOrProtected_Impl(this.item.Access);
+
+            this.IsStatic = false;
+            this.IsStruct = false;
 
             //this.item.Children
             //this.item.DerivedTypes
@@ -3111,350 +3457,284 @@
 
         protected readonly CodeInterface2 item;
 
-		private List<CodeFunctionInfo> _methods;
-		private List<CodePropertyInfo> _properties;
-		private List<CodeEventInfo> _events;
-		private List<AttributeInfo> _attributes;
-		private ClassInfo _base;
-		private GenericArguments _genericArguments;
+        private List<CodeFunctionInfo> _methods;
+        private List<CodePropertyInfo> _properties;
+        private List<CodeEventInfo> _events;
+        private List<AttributeInfo> _attributes;
+        private GenericArguments _genericArguments;
 
-		/// <summary>
-		/// List the generics arguments if the interface is generic 
-		/// </summary>
-		public GenericArguments GenericArguments
-		{
-			get
-			{
-				if (this._genericArguments == null)
-				{
-					if (this.IsGeneric)
-						this._genericArguments = ProjectHelper.ParseGenericArguments(this.item.FullName, this.Parent.LocalPath, this.item.StartPoint.AbsoluteCharOffset);
-					else
-						this._genericArguments = new GenericArguments();
-				}
-				return _genericArguments;
-			}
-		}
+        /// <summary>
+        /// List the generics arguments if the interface is generic 
+        /// </summary>
+        public override GenericArguments GenericArguments
+        {
+            get
+            {
+                if (this._genericArguments == null)
+                {
+                    if (this.IsGeneric)
+                        this._genericArguments = ProjectHelper.ParseGenericArguments(this.item.FullName, this.Parent.LocalPath, this.item.StartPoint.AbsoluteCharOffset);
+                    else
+                        this._genericArguments = new GenericArguments();
+                }
+                return _genericArguments;
+            }
+        }
 
-		/// <summary>
-		/// 
-		/// </summary>
-		public NodeItem Parent { get; private set; }
+        /// <summary>
+        /// 
+        /// </summary>
+        public NodeItem Parent { get; private set; }
 
-		/// <summary>
-		/// 
-		/// </summary>
-		public CMAccess Access { get; private set; }
+        /// <summary>
+        /// Gets the access.
+        /// </summary>
+        /// <value>
+        /// The access.
+        /// </value>
+        public CMAccess Access { get; private set; }
 
-		/// <summary>
-		/// 
-		/// </summary>
-		public bool IsAbstract { get; private set; }
+        /// <summary>
+        /// Gets a value indicating whether this instance is generic.
+        /// </summary>
+        /// <value>
+        /// <c>true</c> if this instance is generic; otherwise, <c>false</c>.
+        /// </value>
+        public bool IsGeneric { get; private set; }
 
-		/// <summary>
-		/// 
-		/// </summary>
-		public bool IsGeneric { get; private set; }
-		
-		/// <summary>
-		/// 
-		/// </summary>
-		public bool IsShared { get; private set; }
+        /// <summary>
+        /// Gets a value indicating whether this instance is shared.
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if this instance is shared; otherwise, <c>false</c>.
+        /// </value>
+        public bool IsShared { get; private set; }
 
-		/// <summary>
-		/// return true if the current interface is derived from the specified type
-		/// </summary>
-		public bool IsDerivedFrom(string fullName)
-		{
-			return this.item.IsDerivedFrom[fullName];
-		}
+        /// <summary>
+        /// return true if the current interface is derived from the specified type
+        /// </summary>
+        public bool IsDerivedFrom(string fullName)
+        {
+            return this.item.IsDerivedFrom[fullName];
+        }
 
-		/// <summary>
-		/// return the list of derived interface.
-		/// </summary>
-		public IEnumerable<InterfaceInfo> ImplementedInterfaces()
+        /// <summary>
+        /// return the list of derived interface.
+        /// </summary>
+        public IEnumerable<InterfaceInfo> ImplementedInterfaces()
         {
 
             foreach (EnvDTE.CodeElement item in this.item.Bases)
             {
                 if (item.Kind == EnvDTE.vsCMElement.vsCMElementInterface)
                 {
-					NodeItem parent = new NodeItem(this.item.ProjectItem);
+                    NodeItem parent = new NodeItem(this.item.ProjectItem);
                     EnvDTE80.CodeInterface2 i = item as EnvDTE80.CodeInterface2;
-                    InterfaceInfo _result = ObjectFactory.Instance.CreateInterface(parent , i);
-					yield return _result;
+                    InterfaceInfo _result = ObjectFactory.Instance.CreateInterface(parent, i);
+                    yield return _result;
                 }
             }
 
         }
 
-		/// <summary>
-		/// return the list of the methods.
-		/// </summary>
-		public IEnumerable<CodeFunctionInfo> GetMethods()
-		{
+        /// <summary>
+        /// return the list of the methods.
+        /// </summary>
+        public IEnumerable<CodeFunctionInfo> GetMethods()
+        {
 
-			if (_methods == null)
-			{
+            if (_methods == null)
+            {
 
-				_methods = new  List<CodeFunctionInfo>();
-				CodeInterface2 i = item;
+                _methods = new List<CodeFunctionInfo>();
+                CodeInterface2 i = item;
 
-				while(i != null) 
-				{
+                while (i != null)
+                {
 
-					var _members = i.Members.OfType<CodeFunction2>()
-						.Where(f => AcceptMethod(f))
-						.Select(c => ObjectFactory.Instance.CreateMethod(this, c))
-						.Where(d => d != null)
-						.ToList();
+                    var _members = i.Members.OfType<CodeFunction2>()
+                        .Where(f => AcceptMethod(f))
+                        .Select(c => ObjectFactory.Instance.CreateMethod(this, c))
+                        .Where(d => d != null)
+                        .ToList();
 
-					_methods.AddRange(_members);
+                    _methods.AddRange(_members);
 
-					if (i.Bases.Count == 0)
-						break;
+                    if (i.Bases.Count == 0)
+                        break;
 
-					i = i.Bases.Item(1) as CodeInterface2;
+                    i = i.Bases.Item(1) as CodeInterface2;
 
-					if (i == null || !AcceptAncestor(i.Namespace.FullName, i.Name))
-						break;
+                    if (i == null || !AcceptAncestor(i.Namespace.FullName, i.Name))
+                        break;
 
-				}
+                }
 
-				InitializeMethods(_methods);
+                InitializeMethods(_methods);
 
-			}
+            }
 
-			return _methods;
+            return _methods;
 
-		}
-
-
-		/// <summary>
-		/// 
-		/// </summary>
-		public IEnumerable<CodePropertyInfo> GetProperties()
-		{
-
-			if (_properties == null)
-			{
-
-				_properties = new  List<CodePropertyInfo>();
-				CodeInterface2 i = item;
-
-				while(i != null) 
-				{
-				
-					var _members = i.Members.OfType<CodeProperty2>()
-						.Where(f => AcceptProperty(f))
-						.Select(c => ObjectFactory.Instance.CreateProperty(this, c))
-						.Where(d => d != null)
-						.ToList();
-
-					_properties.AddRange(_members);
-
-					if (i.Bases.Count == 0)
-						break;
-
-					i = i.Bases.Item(1) as CodeInterface2;
-
-					if (i == null || !AcceptAncestor(i.Namespace.FullName, i.Name))
-						break;
-
-				}
-
-				InitializeProperties(_properties);
-
-			}
-
-			return _properties;
-
-		}
-
-		/// <summary>
-		/// 
-		/// </summary>
-		public IEnumerable<CodeEventInfo> GetEvents()
-		{
-
-			if (_events == null)
-			{
-				
-				_events = new  List<CodeEventInfo>();
-
-				CodeInterface2 i = item;
-
-				while(i != null) 
-				{
-								 
-					var _members = i.Members.OfType<EnvDTE80.CodeEvent>()
-							.Where(f => AcceptEvent(f))
-							.Select(c => ObjectFactory.Instance.CreateEvent(this, c))
-							.Where(d => d != null)
-							.ToList();
-
-					_events.AddRange(_members);
-
-					if (i.Bases.Count == 0)
-						break;
-
-					i = i.Bases.Item(1) as CodeInterface2;
-
-					if (i == null || !AcceptAncestor(i.Namespace.FullName, i.Name))
-						break;
-
-				}
-
-				InitializeEvents(_events);
-
-			}
-
-			return _events;
-
-		}
-
-		/// <summary>
-		/// 
-		/// </summary>
-		public IEnumerable<AttributeInfo> Attributes 
-		{
-			get
-			{
-				if (_attributes == null)
-				{
-					try
-					{
-						_attributes = ObjectFactory.GetAttributes(item.Attributes);
-					}
-					catch(Exception)
-					{
-						_attributes = new List<AttributeInfo>();
-					}
-
-					InitializeAttributes(_attributes);
-
-				}
-				return _attributes;
-			}
-		}
-
-		/// <summary>
-		/// 
-		/// </summary>
-		protected virtual bool AcceptAncestor(string _namespace, string name)
-		{
-			return true;
-		}
-
-		/// <summary>
-		/// 
-		/// </summary>
-		protected IEnumerable<AttributeInfo> GetAttributes(string attributeType)
-		{
-			return ObjectFactory.GetAttributes(Attributes, attributeType).ToList();
-		}
-
-		/// <summary>
-		/// 
-		/// </summary>
-		protected virtual bool AcceptEvent(EnvDTE80.CodeEvent e)
-		{
-			return true;
-		}
-
-		/// <summary>
-		/// 
-		/// </summary>
-		protected bool IsPublic(EnvDTE.vsCMAccess a)
-		{
-			return a == EnvDTE.vsCMAccess.vsCMAccessPublic;
-		}
-
-		/// <summary>
-		/// 
-		/// </summary>
-		protected bool IsPrivate(EnvDTE.vsCMAccess a)
-		{
-			return a == EnvDTE.vsCMAccess.vsCMAccessPrivate;
-		}
-
-		/// <summary>
-		/// 
-		/// </summary>
-		protected bool IsProtected(EnvDTE.vsCMAccess a)
-		{
-			return ( a & EnvDTE.vsCMAccess.vsCMAccessProtected) == EnvDTE.vsCMAccess.vsCMAccessProtected;
-		}
-
-		/// <summary>
-		/// 
-		/// </summary>
-		protected bool IsFamily(EnvDTE.vsCMAccess a)
-		{
-			return (a & EnvDTE.vsCMAccess.vsCMAccessProject) == EnvDTE.vsCMAccess.vsCMAccessProject;
-		}
-
-		/// <summary>
-		/// 
-		/// </summary>
-		protected bool IsFamilyOrProtected(EnvDTE.vsCMAccess a)
-		{
-			return (a & EnvDTE.vsCMAccess.vsCMAccessProjectOrProtected) == EnvDTE.vsCMAccess.vsCMAccessProjectOrProtected;
-		}
-
-		/// <summary>
-		/// 
-		/// </summary>
-		protected virtual void InitializeEvents(List<CodeEventInfo> events)
-		{
-
-		}
-		
-		/// <summary>
-		/// 
-		/// </summary>
-		protected virtual bool AcceptMethod(CodeFunction2 method)
-		{
-			return method.FunctionKind == vsCMFunction.vsCMFunctionFunction;
-		}
-
-		/// <summary>
-		/// 
-		/// </summary>
-		protected virtual void InitializeMethods(List<CodeFunctionInfo> methods)
-		{
-
-		}
-
-		/// <summary>
-		/// 
-		/// </summary>
-		protected virtual bool AcceptProperty(CodeProperty2 property)
-		{
-			return true;
-		}
-
-		/// <summary>
-		/// 
-		/// </summary>
-		protected virtual void InitializeProperties(List<CodePropertyInfo> properties)
-		{
-
-		}
-
-		/// <summary>
-		/// 
-		/// </summary>
-		protected virtual void InitializeAttributes(List<AttributeInfo> attributes)
-		{
-
-		}
+        }
 
 
-	}
-// end : D:\github\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\Codes\InterfaceInfo.cs
+        /// <summary>
+        /// 
+        /// </summary>
+        public IEnumerable<CodePropertyInfo> GetProperties()
+        {
 
-// start : D:\github\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\Codes\EnumInfo.cs
+            if (_properties == null)
+            {
+
+                _properties = new List<CodePropertyInfo>();
+                CodeInterface2 i = item;
+
+                while (i != null)
+                {
+
+                    var _members = i.Members.OfType<CodeProperty2>()
+                        .Where(f => AcceptProperty(f))
+                        .Select(c => ObjectFactory.Instance.CreateProperty(this, c))
+                        .Where(d => d != null)
+                        .ToList();
+
+                    _properties.AddRange(_members);
+
+                    if (i.Bases.Count == 0)
+                        break;
+
+                    i = i.Bases.Item(1) as CodeInterface2;
+
+                    if (i == null || !AcceptAncestor(i.Namespace.FullName, i.Name))
+                        break;
+
+                }
+
+                InitializeProperties(_properties);
+
+            }
+
+            return _properties;
+
+        }
+
+        /// <summary>
+        /// Gets the events.
+        /// </summary>
+        /// <returns></returns>
+        public IEnumerable<CodeEventInfo> GetEvents()
+        {
+
+            if (_events == null)
+            {
+
+                _events = new List<CodeEventInfo>();
+
+                CodeInterface2 i = item;
+
+                while (i != null)
+                {
+
+                    var _members = i.Members.OfType<EnvDTE80.CodeEvent>()
+                            .Where(f => AcceptEvent(f))
+                            .Select(c => ObjectFactory.Instance.CreateEvent(this, c))
+                            .Where(d => d != null)
+                            .ToList();
+
+                    _events.AddRange(_members);
+
+                    if (i.Bases.Count == 0)
+                        break;
+
+                    i = i.Bases.Item(1) as CodeInterface2;
+
+                    if (i == null || !AcceptAncestor(i.Namespace.FullName, i.Name))
+                        break;
+
+                }
+
+                InitializeEvents(_events);
+
+            }
+
+            return _events;
+
+        }
+
+        /// <summary>
+        /// Gets the attributes.
+        /// </summary>
+        /// <value>
+        /// The attributes.
+        /// </value>
+        public override IEnumerable<AttributeInfo> Attributes
+        {
+            get
+            {
+                if (_attributes == null)
+                {
+                    try
+                    {
+                        _attributes = ObjectFactory.GetAttributes(item.Attributes);
+                    }
+                    catch (Exception)
+                    {
+                        _attributes = new List<AttributeInfo>();
+                    }
+
+                    InitializeAttributes(_attributes);
+
+                }
+                return _attributes;
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        protected virtual bool AcceptAncestor(string _namespace, string name)
+        {
+            return true;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        protected IEnumerable<AttributeInfo> GetAttributes(string attributeType)
+        {
+            return ObjectFactory.GetAttributes(Attributes, attributeType).ToList();
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        protected virtual bool AcceptEvent(EnvDTE80.CodeEvent e)
+        {
+            return true;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        protected virtual bool AcceptMethod(CodeFunction2 method)
+        {
+            return method.FunctionKind == vsCMFunction.vsCMFunctionFunction;
+        }
+        
+        /// <summary>
+        /// 
+        /// </summary>
+        protected virtual bool AcceptProperty(CodeProperty2 property)
+        {
+            return true;
+        }
+
+    }
+// end : C:\Users\gael_Pc\Documents\GitHub\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\Codes\InterfaceInfo.cs
+
+// start : C:\Users\gael_Pc\Documents\GitHub\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\Codes\EnumInfo.cs
     [System.Diagnostics.DebuggerDisplay("{FullName}")]
     public class EnumInfo : BaseInfo
     {
@@ -3462,10 +3742,13 @@
         private CodeEnum _enum;
         private List<CodeFieldInfo> _fields;
         private TypeInfo type = null;
+        private List<AttributeInfo> _attributes;
 
         /// <summary>
-        /// 
+        /// Initializes a new instance of the <see cref="EnumInfo"/> class.
         /// </summary>
+        /// <param name="parent">The parent.</param>
+        /// <param name="item">The item.</param>
         public EnumInfo(NodeItem parent, CodeEnum item)
             : base(null, item as CodeElement2)
         {
@@ -3475,13 +3758,22 @@
             this.Namespace = item.Namespace.FullName;
             this.DocComment = this._enum.DocComment;
 
+            IsPublic = this.IsPublic_Impl(this._enum.Access);
+            IsPrivate = this.IsPrivate_Impl(this._enum.Access);
+            IsProtected = this.IsProtected_Impl(this._enum.Access);
+            IsFamilyOrProtected = this.IsFamilyOrProtected_Impl(this._enum.Access);
+
+            this.IsStruct = true;
+            this.IsStatic = true;
+
             GetFields();
 
         }
 
         /// <summary>
-        /// 
+        /// Gets the fields.
         /// </summary>
+        /// <returns></returns>
         public IEnumerable<CodeFieldInfo> GetFields()
         {
 
@@ -3507,17 +3799,37 @@
         }
 
         /// <summary>
-        /// 
+        /// Gets the attributes.
         /// </summary>
-        public virtual void InitializeFields(List<CodeFieldInfo> fields)
+        /// <value>
+        /// The attributes.
+        /// </value>
+        public override IEnumerable<AttributeInfo> Attributes
         {
+            get
+            {
+                if (_attributes == null)
+                {
+                    try
+                    {
+                        _attributes = ObjectFactory.GetAttributes(_enum.Attributes);
+                    }
+                    catch (Exception)
+                    {
+                        _attributes = new List<AttributeInfo>();
+                    }
 
+                    InitializeAttributes(_attributes);
+
+                }
+                return _attributes;
+            }
         }
 
     }
-// end : D:\github\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\Codes\EnumInfo.cs
+// end : C:\Users\gael_Pc\Documents\GitHub\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\Codes\EnumInfo.cs
 
-// start : D:\github\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\Codes\ClassInfo.cs
+// start : C:\Users\gael_Pc\Documents\GitHub\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\Codes\ClassInfo.cs
     [System.Diagnostics.DebuggerDisplay("{FullName}")]
     public class ClassInfo : BaseInfo
     {
@@ -3556,6 +3868,14 @@
             this.Namespace = item.Namespace.FullName;
             this.DocComment = this.item.DocComment;
 
+            IsPublic = this.IsPublic_Impl(this.item.Access);
+            IsPrivate = this.IsPrivate_Impl(this.item.Access);
+            IsProtected = this.IsProtected_Impl(this.item.Access);
+            IsFamilyOrProtected = this.IsFamilyOrProtected_Impl(this.item.Access);
+
+            this.IsStatic = false;
+            this.IsStruct = false;
+
             //this.item.Children
             //this.item.DerivedTypes
             //this.item.InfoLocation
@@ -3567,12 +3887,11 @@
 
         }
 
-        private GenericArguments _genericArguments;
 
         /// <summary>
         /// List the generics arguments if the class is generic 
         /// </summary>
-        public GenericArguments GenericArguments
+        public override GenericArguments GenericArguments
         {
             get
             {
@@ -3591,11 +3910,13 @@
         /// 
         /// </summary>
         protected readonly CodeClass2 item;
+        private GenericArguments _genericArguments;
         private List<CodeFunctionInfo> _methods;
         private List<CodePropertyInfo> _properties;
         private List<CodeEventInfo> _events;
         private List<AttributeInfo> _attributes;
-        private ClassInfo _base;
+        private List<CodeFunctionInfo> _constructors;
+        private List<CodeFieldInfo> _fields;
 
         /// <summary>
         /// 
@@ -3606,11 +3927,6 @@
         /// 
         /// </summary>
         public CMAccess Access { get; private set; }
-
-        /// <summary>
-        /// Is abstract
-        /// </summary>
-        public bool IsAbstract { get; private set; }
 
         /// <summary>
         /// Is generic
@@ -3634,7 +3950,7 @@
         /// return the base class
         /// </summary>
         /// <returns></returns>
-        public ClassInfo GetBase()
+        public override ClassInfo GetBase()
         {
 
             foreach (EnvDTE.CodeElement item in this.item.Bases)
@@ -3651,6 +3967,49 @@
             return null;
 
         }
+
+        /// <summary>
+        /// Gets the properties.
+        /// </summary>
+        /// <returns></returns>
+        public IEnumerable<CodeFunctionInfo> GetConstructors()
+        {
+
+            if (_constructors == null)
+            {
+
+                _constructors = new List<CodeFunctionInfo>();
+                CodeClass2 i = item;
+
+                while (i != null)
+                {
+
+                    var _members = i.Members.OfType<CodeFunction2>()
+                        .Where(f => f.FunctionKind == vsCMFunction.vsCMFunctionConstructor && AcceptMethod(f))
+                        .Select(c => ObjectFactory.Instance.CreateMethod(this, c))
+                        .Where(d => d != null)
+                        .ToList();
+
+                    _constructors.AddRange(_members);
+
+                    if (i.Bases.Count == 0)
+                        break;
+
+                    i = i.Bases.Item(1) as CodeClass2;
+
+                    if (i == null || !AcceptAncestor(i.Namespace.FullName, i.Name))
+                        break;
+
+                }
+
+                InitializeConstructors(_constructors);
+
+            }
+
+            return _constructors;
+
+        }
+
 
         /// <summary>
         /// return the list of derived interface.
@@ -3689,7 +4048,7 @@
                 {
 
                     var _members = i.Members.OfType<CodeFunction2>()
-                        .Where(f => AcceptMethod(f))
+                        .Where(f => f.FunctionKind != vsCMFunction.vsCMFunctionConstructor && AcceptMethod(f))
                         .Select(c => ObjectFactory.Instance.CreateMethod(this, c))
                         .Where(d => d != null)
                         .ToList();
@@ -3713,7 +4072,6 @@
             return _methods;
 
         }
-
 
         /// <summary>
         /// Gets the properties.
@@ -3800,13 +4158,52 @@
 
         }
 
+        public IEnumerable<CodeFieldInfo> GetFields()
+        {
+
+            if (_fields == null)
+            {
+
+                _fields = new List<CodeFieldInfo>();
+
+                CodeClass2 i = item;
+
+                while (i != null)
+                {
+
+                    var _members = i.Members.OfType<EnvDTE80.CodeElement2>()
+                            .Where(f => AcceptField(f))
+                            .Select(c => ObjectFactory.Instance.CreateField(this, c))
+                            .Where(d => d != null)
+                            .ToList();
+
+                    _fields.AddRange(_members);
+
+                    if (i.Bases.Count == 0)
+                        break;
+
+                    i = i.Bases.Item(1) as CodeClass2;
+
+                    if (i == null || !AcceptAncestor(i.Namespace.FullName, i.Name))
+                        break;
+
+                }
+
+                InitializeFields(_fields);
+
+            }
+
+            return _fields;
+
+        }
+        
         /// <summary>
         /// Gets the attributes.
         /// </summary>
         /// <value>
         /// The attributes.
         /// </value>
-        public IEnumerable<AttributeInfo> Attributes
+        public override IEnumerable<AttributeInfo> Attributes
         {
             get
             {
@@ -3840,13 +4237,13 @@
         }
 
         /// <summary>
-        /// Gets the attributes.
+        /// Accepts the event.
         /// </summary>
-        /// <param name="attributeType">Type of the attribute.</param>
+        /// <param name="e">The e.</param>
         /// <returns></returns>
-        protected IEnumerable<AttributeInfo> GetAttributes(string attributeType)
+        protected virtual bool AcceptField(EnvDTE80.CodeElement2 e)
         {
-            return ObjectFactory.GetAttributes(Attributes, attributeType).ToList();
+            return true;
         }
 
         /// <summary>
@@ -3858,61 +4255,7 @@
         {
             return true;
         }
-
-        /// <summary>
-        /// Determines whether the specified a is public.
-        /// </summary>
-        /// <param name="a">a.</param>
-        /// <returns></returns>
-        protected bool IsPublic(EnvDTE.vsCMAccess a)
-        {
-            return a == EnvDTE.vsCMAccess.vsCMAccessPublic;
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        protected bool IsPrivate(EnvDTE.vsCMAccess a)
-        {
-            return a == EnvDTE.vsCMAccess.vsCMAccessPrivate;
-        }
-
-        /// <summary>
-        /// Determines whether the specified a is protected.
-        /// </summary>
-        /// <param name="a">a.</param>
-        /// <returns></returns>
-        protected bool IsProtected(EnvDTE.vsCMAccess a)
-        {
-            return (a & EnvDTE.vsCMAccess.vsCMAccessProtected) == EnvDTE.vsCMAccess.vsCMAccessProtected;
-        }
-
-        /// <summary>
-        /// Determines whether the specified a is family.
-        /// </summary>
-        /// <param name="a">a.</param>
-        /// <returns></returns>
-        protected bool IsFamily(EnvDTE.vsCMAccess a)
-        {
-            return (a & EnvDTE.vsCMAccess.vsCMAccessProject) == EnvDTE.vsCMAccess.vsCMAccessProject;
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        protected bool IsFamilyOrProtected(EnvDTE.vsCMAccess a)
-        {
-            return (a & EnvDTE.vsCMAccess.vsCMAccessProjectOrProtected) == EnvDTE.vsCMAccess.vsCMAccessProjectOrProtected;
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        protected virtual void InitializeEvents(List<CodeEventInfo> events)
-        {
-
-        }
-
+        
         /// <summary>
         /// 
         /// </summary>
@@ -3920,15 +4263,7 @@
         {
             return method.FunctionKind == vsCMFunction.vsCMFunctionFunction;
         }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        protected virtual void InitializeMethods(List<CodeFunctionInfo> methods)
-        {
-
-        }
-
+        
         /// <summary>
         /// 
         /// </summary>
@@ -3937,27 +4272,10 @@
             return true;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        protected virtual void InitializeProperties(List<CodePropertyInfo> properties)
-        {
-
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        protected virtual void InitializeAttributes(List<AttributeInfo> attributes)
-        {
-
-        }
-
-
     }
-// end : D:\github\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\Codes\ClassInfo.cs
+// end : C:\Users\gael_Pc\Documents\GitHub\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\Codes\ClassInfo.cs
 
-// start : D:\github\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\Codes\CMAccess.cs
+// start : C:\Users\gael_Pc\Documents\GitHub\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\Codes\CMAccess.cs
     public enum CMAccess
     {
         AssemblyOrFamily,
@@ -3969,9 +4287,9 @@
         Public,
         WithEvents,
     }
-// end : D:\github\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\Codes\CMAccess.cs
+// end : C:\Users\gael_Pc\Documents\GitHub\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\Codes\CMAccess.cs
 
-// start : D:\github\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\Codes\AttributeInfo.cs
+// start : C:\Users\gael_Pc\Documents\GitHub\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\Codes\AttributeInfo.cs
     [System.Diagnostics.DebuggerDisplay("{FullName}")]
     public class AttributeInfo
     {
@@ -3999,7 +4317,7 @@
                 {
                     return _attr.FullName;
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
 
                 }
@@ -4066,9 +4384,9 @@
         //}
 
     }
-// end : D:\github\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\Codes\AttributeInfo.cs
+// end : C:\Users\gael_Pc\Documents\GitHub\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\Codes\AttributeInfo.cs
 
-// start : D:\github\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\Codes\AttributeArgumentInfo.cs
+// start : C:\Users\gael_Pc\Documents\GitHub\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\Codes\AttributeArgumentInfo.cs
     [System.Diagnostics.DebuggerDisplay("{Name}")]
     public class AttributeArgumentInfo
     {
@@ -4098,9 +4416,9 @@
         public string Value { get; private set; }
 
     }
-// end : D:\github\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\Codes\AttributeArgumentInfo.cs
+// end : C:\Users\gael_Pc\Documents\GitHub\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\Codes\AttributeArgumentInfo.cs
 
-// start : D:\github\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\Codes\BaseInfo.cs
+// start : C:\Users\gael_Pc\Documents\GitHub\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\Codes\BaseInfo.cs
     [System.Diagnostics.DebuggerDisplay("{FullName}")]
     public class BaseInfo
     {
@@ -4115,6 +4433,7 @@
             this.IsCodeType = item.IsCodeType;
             this.Root = parent;
             this.Source = item;
+            this.Project = new NodeProject(item.ProjectItem.ContainingProject);
 
             try
             {
@@ -4125,7 +4444,26 @@
                 this.Location = new LocationInfo(null, null);
             }
 
+            this.IsArray = false;
+            this.ElementType = null;
+
         }
+
+        public virtual GenericArguments GenericArguments
+        {
+            get
+            {
+                return new GenericArguments();
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether this instance is array.
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if this instance is array; otherwise, <c>false</c>.
+        /// </value>
+        public bool IsArray { get; protected set; }
 
         /// <summary>
         /// Gets the source.
@@ -4193,7 +4531,6 @@
         /// </value>
         public bool IsEnum { get; protected set; }
 
-
         /// <summary>
         /// Gets or sets a value indicating whether this instance is interface.
         /// </summary>
@@ -4218,10 +4555,273 @@
         /// </value>
         public LocationInfo Location { get; private set; }
 
-    }
-// end : D:\github\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\Codes\BaseInfo.cs
+        /// <summary>
+        /// Is abstract
+        /// </summary>
+        public bool IsAbstract { get; protected set; }
 
-// start : D:\github\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\Codes\LocationInfo.cs
+        /// <summary>
+        /// Gets the project.
+        /// </summary>
+        /// <value>
+        /// The project.
+        /// </value>
+        public NodeProject Project { get; private set; }
+
+        /// <summary>
+        /// Gets a value indicating whether this instance is public.
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if this instance is public; otherwise, <c>false</c>.
+        /// </value>
+        public bool IsPublic { get; protected set; }
+
+        /// <summary>
+        /// Gets a value indicating whether this instance is private.
+        /// </summary>
+        /// <value>
+        /// <c>true</c> if this instance is private; otherwise, <c>false</c>.
+        /// </value>
+        public bool IsPrivate { get; protected set; }
+
+
+        /// <summary>
+        /// Gets a value indicating whether this instance is protected.
+        /// </summary>
+        /// <value>
+        /// <c>true</c> if this instance is protected; otherwise, <c>false</c>.
+        /// </value>
+        public bool IsProtected { get; protected set; }
+
+        /// <summary>
+        /// Gets a value indicating whether this instance is family or protected.
+        /// </summary>
+        /// <value>
+        /// <c>true</c> if this instance is family or protected; otherwise, <c>false</c>.
+        /// </value>
+        public bool IsFamilyOrProtected { get; protected set; }
+        /// <summary>
+        /// Gets or sets a value indicating whether this instance is static.
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if this instance is static; otherwise, <c>false</c>.
+        /// </value>
+        public bool IsStatic { get; protected set; }
+
+        /// <summary>
+        /// Gets a value indicating whether this instance is structure.
+        /// </summary>
+        /// <value>
+        /// <c>true</c> if this instance is structure; otherwise, <c>false</c>.
+        /// </value>
+        public bool IsStruct { get; protected set; }
+
+        /// <summary>
+        /// Determines whether [is public_ implementation] [the specified a].
+        /// </summary>
+        /// <param name="a">a.</param>
+        /// <returns></returns>
+        protected bool IsPublic_Impl(EnvDTE.vsCMAccess a)
+        {
+            return (a & EnvDTE.vsCMAccess.vsCMAccessPublic) == EnvDTE.vsCMAccess.vsCMAccessPublic;
+        }
+
+        /// <summary>
+        /// Determines whether [is private_ implementation] [the specified a].
+        /// </summary>
+        /// <param name="a">a.</param>
+        /// <returns></returns>
+        protected bool IsPrivate_Impl(EnvDTE.vsCMAccess a)
+        {
+            return (a & EnvDTE.vsCMAccess.vsCMAccessPrivate) == EnvDTE.vsCMAccess.vsCMAccessPrivate;
+        }
+
+        /// <summary>
+        /// Determines whether [is protected_ implementation] [the specified a].
+        /// </summary>
+        /// <param name="a">a.</param>
+        /// <returns></returns>
+        protected bool IsProtected_Impl(EnvDTE.vsCMAccess a)
+        {
+            return (a & EnvDTE.vsCMAccess.vsCMAccessProtected) == EnvDTE.vsCMAccess.vsCMAccessProtected;
+        }
+
+        /// <summary>
+        /// Determines whether [is family_ implementation] [the specified a].
+        /// </summary>
+        /// <param name="a">a.</param>
+        /// <returns></returns>
+        protected bool IsFamily_Impl(EnvDTE.vsCMAccess a)
+        {
+            return (a & EnvDTE.vsCMAccess.vsCMAccessProject) == EnvDTE.vsCMAccess.vsCMAccessProject;
+        }
+
+        /// <summary>
+        /// Determines whether [is family or protected_ implementation] [the specified a].
+        /// </summary>
+        /// <param name="a">a.</param>
+        /// <returns></returns>
+        protected bool IsFamilyOrProtected_Impl(EnvDTE.vsCMAccess a)
+        {
+            return (a & EnvDTE.vsCMAccess.vsCMAccessProjectOrProtected) == EnvDTE.vsCMAccess.vsCMAccessProjectOrProtected;
+        }
+
+        public virtual ClassInfo GetBase()
+        {
+            return null;
+        }
+
+        public BaseInfo ElementType { get; protected set; }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        protected virtual void InitializeAttributes(List<AttributeInfo> attributes)
+        {
+
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        protected virtual void InitializeProperties(List<CodePropertyInfo> properties)
+        {
+
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        protected virtual void InitializeConstructors(List<CodeFunctionInfo> contructors)
+        {
+
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        protected virtual void InitializeMethods(List<CodeFunctionInfo> methods)
+        {
+
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        protected virtual void InitializeEvents(List<CodeEventInfo> events)
+        {
+
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        protected virtual void InitializeFields(List<CodeFieldInfo> fields)
+        {
+
+        }
+
+
+        /// <summary>
+        /// Gets the attributes.
+        /// </summary>
+        /// <value>
+        /// The attributes.
+        /// </value>
+        public virtual IEnumerable<AttributeInfo> Attributes
+        {
+            get
+            {
+                return new AttributeInfo[] { };
+            }
+        }
+
+        /// <summary>
+        /// Gets the attributes.
+        /// </summary>
+        /// <param name="attributeType">Type of the attribute.</param>
+        /// <returns></returns>
+        public IEnumerable<AttributeInfo> GetAttributes(bool inherit)
+        {
+
+            List<AttributeInfo> l = Attributes.ToList();
+
+            if (inherit)
+            {
+                var _t = this.GetBase();
+                while (_t != null)
+                {
+                    l.AddRange(_t.Attributes);
+                    _t = _t.GetBase();
+                }
+            }
+
+            return l;
+
+        }
+
+        /// <summary>
+        /// Gets the attributes.
+        /// </summary>
+        /// <param name="attributeType">Type of the attribute.</param>
+        /// <returns></returns>
+        public IEnumerable<AttributeInfo> GetAttributes(string attributeType, bool inherit)
+        {
+            return ObjectFactory.GetAttributes(GetAttributes(inherit), attributeType).ToList();
+        }
+
+        /// <summary>
+        /// Gets the attributes.
+        /// </summary>
+        /// <param name="attributeType">Type of the attribute.</param>
+        /// <returns></returns>
+        public IEnumerable<AttributeInfo> GetAttributes(Type attributeType, bool inherit)
+        {
+            return ObjectFactory.GetAttributes(GetAttributes(inherit), attributeType).ToList();
+        }
+
+        public string AssemblyQualifiedName
+        {
+            get
+            {
+
+                System.Text.StringBuilder sb = new System.Text.StringBuilder();
+
+                if (!string.IsNullOrEmpty(this.Namespace))
+                {
+                    sb.Append(this.Namespace);
+                    sb.Append(".");
+                }
+
+                // TODO: write embeded type
+
+                sb.Append(this.Name);
+
+                var generics = this.GenericArguments;
+
+                if (generics.Any())
+                    sb.AppendFormat("`{0}", generics.Count());
+
+                //sb.Append("[");
+                //foreach (GenericArgument g in generics)
+                //{
+
+                //}
+                //sb.Append("]");
+
+                sb.Append(", ");
+
+                sb.Append(this.Project.Name);
+
+                return sb.ToString();
+
+            }
+        }
+
+    }
+// end : C:\Users\gael_Pc\Documents\GitHub\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\Codes\BaseInfo.cs
+
+// start : C:\Users\gael_Pc\Documents\GitHub\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\Codes\LocationInfo.cs
     public class LocationInfo
     {
 
@@ -4253,9 +4853,9 @@
         public LocationPoint Start { get; private set; }
 
     }
-// end : D:\github\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\Codes\LocationInfo.cs
+// end : C:\Users\gael_Pc\Documents\GitHub\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\Codes\LocationInfo.cs
 
-// start : D:\github\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\Codes\LocationPoint.cs
+// start : C:\Users\gael_Pc\Documents\GitHub\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\Codes\LocationPoint.cs
     public class LocationPoint
     {
 
@@ -4369,9 +4969,9 @@
 
 
     }
-// end : D:\github\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\Codes\LocationPoint.cs
+// end : C:\Users\gael_Pc\Documents\GitHub\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\Codes\LocationPoint.cs
 
-// start : D:\github\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\Codes\CodeMemberInfo.cs
+// start : C:\Users\gael_Pc\Documents\GitHub\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\Codes\CodeMemberInfo.cs
     public abstract class CodeMemberInfo : BaseInfo
     {
 
@@ -4399,18 +4999,10 @@
         /// </summary>
         public BaseInfo Parent { get; private set; }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        protected virtual void InitializeAttributes(List<AttributeInfo> attributes)
-        {
-
-        }
-
     }
-// end : D:\github\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\Codes\CodeMemberInfo.cs
+// end : C:\Users\gael_Pc\Documents\GitHub\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\Codes\CodeMemberInfo.cs
 
-// start : D:\github\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\Codes\CodeEventInfo.cs
+// start : C:\Users\gael_Pc\Documents\GitHub\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\Codes\CodeEventInfo.cs
     [System.Diagnostics.DebuggerDisplay("event {FullName}")]
     public class CodeEventInfo : CodeMemberInfo
     {
@@ -4445,7 +5037,7 @@
         /// <summary>
         /// 
         /// </summary>
-        public IEnumerable<AttributeInfo> Attributes
+        public override IEnumerable<AttributeInfo> Attributes
         {
             get
             {
@@ -4523,15 +5115,25 @@
         }
 
     }
-// end : D:\github\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\Codes\CodeEventInfo.cs
+// end : C:\Users\gael_Pc\Documents\GitHub\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\Codes\CodeEventInfo.cs
 
-// start : D:\github\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\Codes\CodeFieldInfo.cs
+// start : C:\Users\gael_Pc\Documents\GitHub\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\Codes\CodeFieldInfo.cs
     [System.Diagnostics.DebuggerDisplay("field {FullName}")]
     public class CodeFieldInfo : CodeMemberInfo
     {
 
         private CodeElement _item;
         private TypeInfo _type;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public CodeFieldInfo(BaseInfo parent, CodeElement item)
+            : base(parent, item as CodeElement2)
+        {
+            this._item = item;
+            //this._type = type;
+        }
 
         /// <summary>
         /// 
@@ -4570,7 +5172,7 @@
                             return variable.InitExpression;
                     }
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
 
                 }
@@ -4581,9 +5183,9 @@
         }
 
     }
-// end : D:\github\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\Codes\CodeFieldInfo.cs
+// end : C:\Users\gael_Pc\Documents\GitHub\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\Codes\CodeFieldInfo.cs
 
-// start : D:\github\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\Codes\CodePropertyInfo.cs
+// start : C:\Users\gael_Pc\Documents\GitHub\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\Codes\CodePropertyInfo.cs
     [System.Diagnostics.DebuggerDisplay("property {FullName}")]
     public class CodePropertyInfo : CodeMemberInfo
     {
@@ -4600,6 +5202,35 @@
         {
             this._item = item;
             this.Access = ObjectFactory.Convert(this._item.Access);
+
+            switch (this._item.ReadWrite)
+            {
+                case vsCMPropertyKind.vsCMPropertyKindReadWrite:
+                    this.CanRead = true;
+                    this.CanWrite = true;
+                    break;
+                case vsCMPropertyKind.vsCMPropertyKindReadOnly:
+                    this.CanRead = true;
+                    this.CanWrite = false;
+                    break;
+                case vsCMPropertyKind.vsCMPropertyKindWriteOnly:
+                    this.CanRead = false;
+                    this.CanWrite = true;
+                    break;
+            }
+
+            List<ParamInfo> _parameters = new List<ParamInfo>();
+
+            int index = 0;
+            foreach (var p in this._item.Parameters.OfType<CodeParameter2>())
+            {
+                ParamInfo pinfo = ObjectFactory.Instance.CreateParameter(this, p, index++, p.DocComment);
+                _parameters.Add(pinfo);
+            }
+
+            this.Parameters = _parameters;
+            
+
         }
 
         /// <summary>
@@ -4615,10 +5246,12 @@
             }
         }
         /// <summary>
-        /// 
+        /// Gets the attributes.
         /// </summary>
-
-        public IEnumerable<AttributeInfo> Attributes
+        /// <value>
+        /// The attributes.
+        /// </value>
+        public override IEnumerable<AttributeInfo> Attributes
         {
             get
             {
@@ -4639,6 +5272,30 @@
                 return _attributes;
             }
         }
+
+        /// <summary>
+        /// Gets a value indicating whether this instance can read.
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if this instance can read; otherwise, <c>false</c>.
+        /// </value>
+        public bool CanRead { get; private set; }
+
+        /// <summary>
+        /// Gets a value indicating whether this instance can write.
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if this instance can write; otherwise, <c>false</c>.
+        /// </value>
+        public bool CanWrite { get; private set; }
+
+        /// <summary>
+        /// Gets the parameters.
+        /// </summary>
+        /// <value>
+        /// The parameters.
+        /// </value>
+        public IEnumerable<ParamInfo> Parameters { get; private set; }
 
 
         /// <summary>
@@ -4697,9 +5354,9 @@
         }
 
     }
-// end : D:\github\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\Codes\CodePropertyInfo.cs
+// end : C:\Users\gael_Pc\Documents\GitHub\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\Codes\CodePropertyInfo.cs
 
-// start : D:\github\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\Codes\CodeFunctionInfo.cs
+// start : C:\Users\gael_Pc\Documents\GitHub\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\Codes\CodeFunctionInfo.cs
     [System.Diagnostics.DebuggerDisplay("Method {FullName}")]
     public class CodeFunctionInfo : CodeMemberInfo
     {
@@ -4708,7 +5365,7 @@
         private string _signature;
         private Dictionary<string, string> parameters = new Dictionary<string, string>();
         private TypeInfo _returnType;
-        private IEnumerable<MethodParamInfo> _parameters;
+        private IEnumerable<ParamInfo> _parameters;
         private IEnumerable<AttributeInfo> _attributes;
 
         /// <summary>
@@ -4778,7 +5435,7 @@
         /// <summary>
         /// List the generics arguments if the method is generic 
         /// </summary>
-        public GenericArguments GenericArguments
+        public override GenericArguments GenericArguments
         {
             get
             {
@@ -4825,7 +5482,7 @@
         /// <summary>
         /// Attributes of the method
         /// </summary>
-        public IEnumerable<AttributeInfo> Attributes
+        public override IEnumerable<AttributeInfo> Attributes
         {
             get
             {
@@ -4890,22 +5547,21 @@
         /// <summary>
         /// Parameters of the method
         /// </summary>
-        public IEnumerable<MethodParamInfo> Parameters
+        public IEnumerable<ParamInfo> Parameters
         {
             get
             {
 
                 if (_parameters == null)
                 {
-                    var _Parameters = new List<MethodParamInfo>();
+                    var _Parameters = new List<ParamInfo>();
                     // Process all the parameters
+                    int index = 0;
                     foreach (CodeParameter2 p in _item.Parameters.OfType<CodeParameter2>())
                     {
-
                         string parameterComment = string.Empty;
                         parameters.TryGetValue(p.Name, out parameterComment);
-
-                        _Parameters.Add(ObjectFactory.Instance.CreatParameter(this, p, parameterComment));
+                        _Parameters.Add(ObjectFactory.Instance.CreateParameter(this, p, index++, parameterComment));
                         _signature += "," + p.Type.AsString;
                     }
 
@@ -4957,127 +5613,9 @@
         }
 
     }
-// end : D:\github\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\Codes\CodeFunctionInfo.cs
+// end : C:\Users\gael_Pc\Documents\GitHub\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\Codes\CodeFunctionInfo.cs
 
-// start : D:\github\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\Codes\MethodParamInfo.cs
-    [System.Diagnostics.DebuggerDisplay("parameter {Name}")]
-    /// <summary>
-    /// 
-    /// </summary>
-    public class MethodParamInfo
-    {
-
-        private IEnumerable<AttributeInfo> _attributes;
-        private CodeParameter2 item;
-        private CodeFunctionInfo parent;
-
-        /// <summary>
-        /// constructor
-        /// </summary>
-        public MethodParamInfo(CodeFunctionInfo parent, CodeParameter2 item, string comment)
-        {
-            this.parent = parent;
-            this.item = item;
-            this.Comment = comment;
-            Name = item.Name;
-            Type = TypeInfo.Create(item.Type);
-            DefaultValue = item.DefaultValue;
-        }
-
-        /// <summary>
-        /// name of the parameter
-        /// </summary>
-        public string Name { get; private set; }
-
-        /// <summary>
-        /// type of the parameter
-        /// </summary>
-        public TypeInfo Type { get; private set; }
-
-        /// <summary>
-        /// default value if not specified in the arguments
-        /// </summary>
-        public string DefaultValue { get; set; }
-
-        /// <summary>
-        /// comment of the parameter
-        /// </summary>
-        public string Comment { get; private set; }
-
-        /// <summary>
-        /// Attributes of the parameter
-        /// </summary>
-        public IEnumerable<AttributeInfo> Attributes
-        {
-            get
-            {
-                if (_attributes == null)
-                {
-                    try
-                    {
-                        _attributes = ObjectFactory.GetAttributes(item.Attributes);
-                    }
-                    catch (Exception)
-                    {
-                        _attributes = new List<AttributeInfo>();
-                    }
-
-                    InitializeAttributes(_attributes as List<AttributeInfo>);
-
-                }
-                return _attributes;
-            }
-        }
-
-        protected virtual void InitializeAttributes(List<AttributeInfo> attributes)
-        {
-
-        }
-
-        protected IEnumerable<AttributeInfo> GetAttributes(string attributeType)
-        {
-            return ObjectFactory.GetAttributes(Attributes, attributeType).ToList();
-        }
-
-        protected AttributeInfo GetAttribute(string attributeType)
-        {
-            return ObjectFactory.GetAttributes(Attributes, attributeType).FirstOrDefault();
-        }
-
-        protected void ForAttributes(string attributeType, Action<AttributeInfo> act)
-        {
-            foreach (AttributeInfo attr in ObjectFactory.GetAttributes(Attributes, attributeType))
-                act(attr);
-        }
-
-        protected string GetArgumentFromAttribute(string attributeType, string argumentName)
-        {
-            AttributeInfo attr = ObjectFactory.GetAttributes(Attributes, attributeType).FirstOrDefault();
-            if (attr != null)
-            {
-                AttributeArgumentInfo arg = attr.Arguments.FirstOrDefault(a => a.Name == argumentName);
-                if (arg != null)
-                    return arg.Value;
-            }
-            return string.Empty;
-        }
-
-        protected string GetArgumentFromAttribute(string attributeType, int indexArgument)
-        {
-            AttributeInfo attr = ObjectFactory.GetAttributes(Attributes, attributeType).FirstOrDefault();
-            if (attr != null)
-            {
-                AttributeArgumentInfo arg = (attr.Arguments as List<AttributeArgumentInfo>)[indexArgument];
-                if (arg != null)
-                    return arg.Value;
-            }
-            return string.Empty;
-        }
-
-    }
-// end : D:\github\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\Codes\MethodParamInfo.cs
-
-// start : D:\github\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\Codes\TypeInfo.cs
+// start : C:\Users\gael_Pc\Documents\GitHub\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\Codes\TypeInfo.cs
     [System.Diagnostics.DebuggerDisplay("{ClassName}")]
     public class TypeInfo
     {
@@ -5324,7 +5862,7 @@
 
             if (this.project == null && ObjectFactory.Instance.DefaultProject != null)
             {
-                this.project = ObjectFactory.Instance.DefaultProject.Source;
+                this.project = ObjectFactory.Instance.DefaultProject.Project;
             }
 
             if (this.project != null)
@@ -5725,9 +6263,9 @@
         }
 
     }
-// end : D:\github\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\Codes\TypeInfo.cs
+// end : C:\Users\gael_Pc\Documents\GitHub\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\Codes\TypeInfo.cs
 
-// start : D:\github\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\Codes\GenericArguments.cs
+// start : C:\Users\gael_Pc\Documents\GitHub\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\Codes\GenericArguments.cs
     public class GenericArguments : IEnumerable<GenericArgument>
     {
 
@@ -5780,9 +6318,9 @@
         }
 
     }
-// end : D:\github\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\Codes\GenericArguments.cs
+// end : C:\Users\gael_Pc\Documents\GitHub\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\Codes\GenericArguments.cs
 
-// start : D:\github\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\Codes\GenericArgument.cs
+// start : C:\Users\gael_Pc\Documents\GitHub\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\Codes\GenericArgument.cs
     public class GenericArgument
     {
 
@@ -5844,15 +6382,17 @@
         public IEnumerable<string> Constraints { get { return _constraints; } }
 
     }
-// end : D:\github\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\Codes\GenericArgument.cs
+// end : C:\Users\gael_Pc\Documents\GitHub\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\Codes\GenericArgument.cs
 
-// start : D:\github\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\ReferenceAssembly.cs
+// start : C:\Users\gael_Pc\Documents\GitHub\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\ReferenceAssembly.cs
     public class ReferenceAssembly
     {
 
-        public ReferenceAssembly(string ass)
+        internal ReferenceAssembly(string ass, Microsoft.Build.Construction.ProjectElement child)
         {
             // Microsoft.VisualStudio.ComponentModelHost, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL"
+
+            this.Fullname = ass;
 
             var ar = ass.Split(',');
             foreach (string txt in ar)
@@ -5888,612 +6428,182 @@
                     this.Name = txt.Trim();
                 }
 
+                if (child != null)
+                {
+                    var FileProject = child.ContainingProject.Location.File;
+                    FileInfo file1 = new FileInfo(FileProject);
+                    if (file1.Exists)
+                    {
+                        var metadata = child as Microsoft.Build.Construction.ProjectMetadataElement;
+                        if (metadata != null)
+                        {
+                            var file = Path.Combine(file1.Directory.FullName, metadata.Value);
+                            if (System.IO.File.Exists(file))
+                            {
+                                FileInfo f = new FileInfo(file);
+                                this.File = f.FullName;
+                            }
+                        }
+                    }
+                }
+
+
+
+
             }
 
         }
 
         public string Name { get; private set; }
+
         public string Version { get; private set; }
+
         public string Culture { get; private set; }
+
         public string PublicKeyToken { get; private set; }
+
         public string ProcessorArchitecture { get; private set; }
 
+        public string File { get; private set; }
+        public string Fullname { get; private set; }
     }
-// end : D:\github\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\ReferenceAssembly.cs
+// end : C:\Users\gael_Pc\Documents\GitHub\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\ReferenceAssembly.cs
 
-// start : D:\github\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\Manager\Block.cs
-    public class Block
-    {
-        public String Name;
-        public int Start, Length;
-        public string OutputPath;
-        public string Fullname;
-        public EnvDTE.ProjectItem ParentProjectItem;
-        public EnvDTE.Project ParentProject;
-    }
-// end : D:\github\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\Manager\Block.cs
-
-// start : D:\github\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\Manager\Manager.cs
-    public class Manager
+// start : C:\Users\gael_Pc\Documents\GitHub\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\Codes\ParamInfo.cs
+    [System.Diagnostics.DebuggerDisplay("parameter {Name}")]
+    /// <summary>
+    /// 
+    /// </summary>
+    public class ParamInfo
     {
 
-        // Manager.tt from Damien Guard: http://damieng.com/blog/2009/11/06/multiple-outputs-from-t4-made-easy-revisited
-
-        private Block currentBlock;
-        private List<Block> files = new List<Block>();
-        private Block footer = new Block();
-        private Block header = new Block();
-        private ITextTemplatingEngineHost host;
-        private StringBuilder template;
-        protected List<Block> generatedFileNames = new List<Block>();
-        public Func<FileInfo, bool> filterToDelete = file => file.Name.EndsWith(".generated" + file.Extension);
-        protected EnvDTE.DTE dte;
-        protected EnvDTE.ProjectItem templateProjectItem;
-        protected EnvDTE.Project ContainingProject;
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public static Manager Create(ITextTemplatingEngineHost host, StringBuilder template)
-        {
-
-            return (host is IServiceProvider)
-                ? new VSManager(host, template)
-                : new Manager(host, template);
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public virtual bool FileOkToWrite(String fileName)
-        {
-            return true;
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public Block StartNewFile(String name)
-        {
-            if (name == null)
-                throw new ArgumentNullException("name");
-            CurrentBlock = new Block { Name = name, OutputPath = Path.GetDirectoryName(host.TemplateFile), ParentProjectItem = templateProjectItem, ParentProject = null };
-            return CurrentBlock;
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public Block StartNewFile(String name, NodeProject project)
-        {
-            if (name == null)
-                throw new ArgumentNullException("name");
-            CurrentBlock = new Block { Name = name, OutputPath = Path.GetDirectoryName(project.FullPath), ParentProjectItem = templateProjectItem, ParentProject = project.Source };
-            return CurrentBlock;
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public Block StartNewFile(String name, NodeItemFolder folder)
-        {
-
-            if (folder == null)
-                throw new ArgumentNullException("folder");
-
-            if (name == null)
-                throw new ArgumentNullException("name");
-
-            if (folder is NodeItemFolder)
-            {
-                EnvDTE.ProjectItem ProjectItem = folder.ProjectItem;
-            }
-
-            CurrentBlock = new Block { Name = name, OutputPath = folder.LocalPath, ParentProjectItem = folder.ProjectItem, ParentProject = null };
-            return CurrentBlock;
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public EnvDTE.Project GetCurrentProject()
-        {
-            return ContainingProject;
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public void StartFooter()
-        {
-            CurrentBlock = footer;
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public void StartHeader()
-        {
-            CurrentBlock = header;
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public void EndBlock()
-        {
-            if (CurrentBlock == null)
-                return;
-            CurrentBlock.Length = template.Length - CurrentBlock.Start;
-            if (CurrentBlock != header && CurrentBlock != footer)
-                files.Add(CurrentBlock);
-            currentBlock = null;
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public virtual void Process(bool split)
-        {
-            if (split)
-            {
-                EndBlock();
-                String headerText = template.ToString(header.Start, header.Length);
-                String footerText = template.ToString(footer.Start, footer.Length);
-                files.Reverse();
-                foreach (Block block in files)
-                {
-                    block.Fullname = Path.Combine(block.OutputPath, block.Name);
-
-                    StringBuilder sb = new StringBuilder(template.Length);
-                    sb.Append(headerText);
-                    sb.Append(template.ToString(block.Start, block.Length));
-                    sb.Append(footerText);
-
-                    generatedFileNames.Add(block);
-
-                    if (!Directory.Exists(block.OutputPath))
-                        Directory.CreateDirectory(block.OutputPath);
-
-                    CreateFile(block.Fullname, sb.ToString());
-                    template.Remove(block.Start, block.Length);
-                }
-            }
-        }
-
-        protected virtual void CreateFile(String fileName, String content)
-        {
-            if (IsFileContentDifferent(fileName, content))
-                File.WriteAllText(fileName, content);
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public virtual String GetCustomToolNamespace(String fileName)
-        {
-            return null;
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public virtual String DefaultProjectNamespace
-        {
-            get { return null; }
-        }
-
-        protected bool IsFileContentDifferent(String fileName, String newContent)
-        {
-            return !(File.Exists(fileName) && File.ReadAllText(fileName) == newContent);
-        }
-
-        private Manager(ITextTemplatingEngineHost host, StringBuilder template)
-        {
-            this.host = host;
-            this.template = template;
-        }
-
-        private Block CurrentBlock
-        {
-            get { return currentBlock; }
-            set
-            {
-                if (CurrentBlock != null)
-                    EndBlock();
-                if (value != null)
-                    value.Start = template.Length;
-                currentBlock = value;
-            }
-        }
-
-        private class VSManager : Manager
-        {
-            private Action<String> checkOutAction;
-            private Action<Func<FileInfo, bool>, IEnumerable<Block>> projectSyncAction;
-            private IVsQueryEditQuerySave2 queryEditSave;
-
-            /// <summary>
-            /// 
-            /// </summary>
-            public override String DefaultProjectNamespace
-            {
-                get
-                {
-                    return templateProjectItem.ContainingProject.Properties.Item("DefaultNamespace").Value.ToString();
-                }
-            }
-
-            /// <summary>
-            /// 
-            /// </summary>
-            public override String GetCustomToolNamespace(string fileName)
-            {
-                return dte.Solution.FindProjectItem(fileName).Properties.Item("CustomToolNamespace").Value.ToString();
-            }
-
-            /// <summary>
-            /// 
-            /// </summary>
-            public override void Process(bool split)
-            {
-                base.Process(split);
-                projectSyncAction.EndInvoke(projectSyncAction.BeginInvoke(filterToDelete, generatedFileNames, null, null));
-            }
-
-            /// <summary>
-            /// 
-            /// </summary>
-            public override bool FileOkToWrite(String fileName)
-            {
-                CheckoutFileIfRequired(fileName);
-                return base.FileOkToWrite(fileName);
-            }
-
-            protected virtual void CreateFile(String fileName, String content)
-            {
-                try
-                {
-                    if (IsFileContentDifferent(fileName, content))
-                    {
-                        CheckoutFileIfRequired(fileName);
-                        File.WriteAllText(fileName, content);
-                    }
-                }
-                catch (Exception e)
-                {
-                    throw new Exception(e.Message + @"\t for the file : " + fileName, e);
-                }
-            }
-
-            internal VSManager(ITextTemplatingEngineHost host, StringBuilder template)
-                : base(host, template)
-            {
-
-                var hostServiceProvider = (IServiceProvider)host;
-
-                if (hostServiceProvider == null)
-                    throw new ArgumentNullException("Could not obtain IServiceProvider");
-
-                dte = (EnvDTE.DTE)hostServiceProvider.GetService(typeof(EnvDTE.DTE));
-                if (dte == null)
-                    throw new ArgumentNullException("Could not obtain DTE from host");
-
-                checkOutAction = (String fileName) => dte.SourceControl.CheckOutItem(fileName);
-                projectSyncAction = (Func<FileInfo, bool> filterToDelete, IEnumerable<Block> fileNames) => ProjectSync(filterToDelete, fileNames);
-                queryEditSave = (IVsQueryEditQuerySave2)hostServiceProvider.GetService(typeof(SVsQueryEditQuerySave));
-
-                this.templateProjectItem = this.dte.Solution.FindProjectItem(host.TemplateFile);
-                this.ContainingProject = this.templateProjectItem.ContainingProject;
-
-            }
-
-            private static void ProjectSync(Func<FileInfo, bool> filterToDelete, IEnumerable<Block> keepFileNames)
-            {
-
-                var keepFileNameSet = new HashSet<String>(keepFileNames.Select(c => c.Fullname).ToList());
-
-                foreach (Block block in keepFileNames)
-                {
-
-                    string filename1 = string.Empty;
-                    var projectFiles = new Dictionary<String, EnvDTE.ProjectItem>();
-
-                    //System.Diagnostics.Debugger.Break();
-
-                    if (block.ParentProject == null)
-                    {
-
-                        filename1 = block.ParentProjectItem.get_FileNames(0);
-                        var originalFilePrefix = Path.GetFileNameWithoutExtension(filename1) + ".";
-
-                        // On enumere le contenu du repertoire
-                        foreach (EnvDTE.ProjectItem projectItem in block.ParentProjectItem.ProjectItems)
-                        {
-                            string filename = projectItem.get_FileNames(0);
-                            projectFiles.Add(filename, projectItem);
-                        }
-
-                        // Remove unused items from the project
-                        foreach (var pair in projectFiles)
-                            if (!keepFileNameSet.Contains(pair.Key) && !(Path.GetFileNameWithoutExtension(pair.Key) + ".").StartsWith(originalFilePrefix))
-                                if (filterToDelete(new FileInfo(pair.Key)))
-                                    pair.Value.Delete();
-
-                        // Add missing files to the project
-                        foreach (String fileName in keepFileNameSet)
-                            if (!projectFiles.ContainsKey(fileName))
-                                block.ParentProjectItem.ProjectItems.AddFromFile(fileName);
-
-                    }
-                    else
-                    {
-
-                        filename1 = filename1 = new FileInfo(block.ParentProject.FileName).Directory.FullName;
-                        var originalFilePrefix = Path.GetFileNameWithoutExtension(filename1) + ".";
-
-                        // On enumere le contenu du repertoire
-                        foreach (EnvDTE.ProjectItem projectItem in block.ParentProject.ProjectItems)
-                        {
-                            string filename = projectItem.get_FileNames(0);
-                            projectFiles.Add(filename, projectItem);
-                        }
-
-                        // Remove unused items from the project
-                        foreach (var pair in projectFiles)
-                            if (!keepFileNameSet.Contains(pair.Key) && !(Path.GetFileNameWithoutExtension(pair.Key) + ".").StartsWith(originalFilePrefix))
-                                if (filterToDelete(new FileInfo(pair.Key)))
-                                    pair.Value.Delete();
-
-                        // Add missing files to the project
-                        foreach (String fileName in keepFileNameSet)
-                            if (!projectFiles.ContainsKey(fileName))
-                                block.ParentProject.ProjectItems.AddFromFile(fileName);
-
-                    }
-
-                }
-
-            }
-
-            private void CheckoutFileIfRequired(String fileName)
-            {
-                if (queryEditSave != null)
-                {
-                    uint pfEditVerdict;
-                    queryEditSave.QuerySaveFile(fileName, 0, null, out pfEditVerdict);
-                }
-                else
-                {
-                    var sc = dte.SourceControl;
-                    if (sc != null && sc.IsItemUnderSCC(fileName) && !sc.IsItemCheckedOut(fileName))
-                        checkOutAction.EndInvoke(checkOutAction.BeginInvoke(fileName, null, null));
-                }
-            }
-        }
-
-    }
-// end : D:\github\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\Manager\Manager.cs
-
-// start : D:\github\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\Manager\ManagerScope.cs
-    public class ManagerScope : IDisposable
-    {
-
-        private static Manager manager;
+        private IEnumerable<AttributeInfo> _attributes;
+        private CodeParameter2 item;
+        private CodeMemberInfo parent;
 
         /// <summary>
         /// constructor
         /// </summary>
-        public ManagerScope()
+        public ParamInfo(CodeFunctionInfo parent, CodeParameter2 item, int position, string comment)
         {
-            manager = Manager.Create(ProjectHelper.serviceProvider as ITextTemplatingEngineHost, ProjectHelper._generationEnvironment);
-        }
-
-
-        public void SetFilterToDelete(Func<FileInfo, bool> filterToDelete)
-        {
-
-            manager.filterToDelete = filterToDelete;
-
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public IDisposable StartHeader()
-        {
-            return new HeaderScope(manager);
+            this.parent = parent;
+            this.item = item;
+            this.Comment = comment;
+            Name = item.Name;
+            Type = TypeInfo.Create(item.Type);
+            DefaultValue = item.DefaultValue;
+            Position = position;
         }
 
         /// <summary>
-        /// 
+        /// constructor
         /// </summary>
-        public IDisposable StartFooter()
+        public ParamInfo(CodePropertyInfo parent, CodeParameter2 item, int position, string comment)
         {
-            return new FooterScope(manager);
+            this.parent = parent;
+            this.item = item;
+            this.Comment = comment;
+            Name = item.Name;
+            Type = TypeInfo.Create(item.Type);
+            DefaultValue = item.DefaultValue;
+            Position = position;
         }
+
 
         /// <summary>
-        /// 
+        /// name of the parameter
         /// </summary>
-        public void Dispose()
-        {
-            manager.Process(true);
-        }
+        public string Name { get; private set; }
 
         /// <summary>
-        /// 
+        /// type of the parameter
         /// </summary>
-        public ScriptFileScope NewFile(string filename)
-        {
-            return new ScriptFileScope(manager, filename);
-        }
+        public TypeInfo Type { get; private set; }
 
         /// <summary>
-        /// 
+        /// default value if not specified in the arguments
         /// </summary>
-        public ScriptFileScope NewFile(string filename, NodeItemFolder folder)
-        {
-            return new ScriptFileScope(manager, filename, folder);
-        }
+        public string DefaultValue { get; set; }
+
+        public int Position { get; private set; }
 
         /// <summary>
-        /// 
+        /// comment of the parameter
         /// </summary>
-        public ScriptFileScope NewFile(string filename, NodeProject project)
-        {
-            return new ScriptFileScope(manager, filename, project);
-        }
+        public string Comment { get; private set; }
 
         /// <summary>
-        /// 
+        /// Attributes of the parameter
         /// </summary>
-        public NodeProject GetCurrentProject()
+        public IEnumerable<AttributeInfo> Attributes
         {
-            var p = manager.GetCurrentProject();
-            NodeProject result = new NodeProject(p);
-            return result;
-            //var sln = ProjectHelper.GetContext().Solution();
-            //NodeProject prj = sln.GetProjects(c => c.Name == p.Name).FirstOrDefault();
-            //return prj;
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public NodeProject GetProject(string projectName)
-        {
-            var sln = ProjectHelper.GetContext().Solution();
-            NodeProject prj = sln.GetProjects(c => c.Name == projectName).FirstOrDefault();
-            return prj;
-        }
-
-    }
-// end : D:\github\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\Manager\ManagerScope.cs
-
-// start : D:\github\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\Manager\ScriptFileScope.cs
-    public class ScriptFileScope : IDisposable
-    {
-
-        private Manager manager;
-        private Block block;
-
-        internal ScriptFileScope(object manager, string name)
-        {
-            string _name = AppliPatternToFilname(name);
-            this.manager = manager as Manager;
-            block = this.manager.StartNewFile(_name);
-        }
-
-        internal ScriptFileScope(object manager, string name, NodeItemFolder folder)
-        {
-            string _name = AppliPatternToFilname(name);
-            this.manager = manager as Manager;
-            block = this.manager.StartNewFile(_name, folder);
-        }
-
-        internal ScriptFileScope(object manager, string name, NodeProject project)
-        {
-            string _name = AppliPatternToFilname(name);
-            this.manager = manager as Manager;
-            block = this.manager.StartNewFile(_name, project);
-        }
-
-        private string AppliPatternToFilname(string name)
-        {
-
-            string _name;
-
-            string e = Path.GetExtension(name);
-            string mask = ".generated" + e;
-
-            if (!name.EndsWith(mask))
+            get
             {
-                e = mask;
-                _name = Path.ChangeExtension(name, e);
+                if (_attributes == null)
+                {
+                    try
+                    {
+                        _attributes = ObjectFactory.GetAttributes(item.Attributes);
+                    }
+                    catch (Exception)
+                    {
+                        _attributes = new List<AttributeInfo>();
+                    }
+
+                    InitializeAttributes(_attributes as List<AttributeInfo>);
+
+                }
+                return _attributes;
             }
-            else
-                _name = name;
-
-            return _name;
         }
 
-        public void Dispose()
+        protected virtual void InitializeAttributes(List<AttributeInfo> attributes)
         {
-            manager.EndBlock();
+
         }
 
-        public String Name { get { return this.block.Name; } }
-
-        public string OutputPath { get { return this.block.OutputPath; } }
-
-        public string Fullname { get { return this.block.Fullname; } }
-
-        public EnvDTE.ProjectItem ParentProjectItem { get { return this.block.ParentProjectItem; } }
-
-        public EnvDTE.Project ParentProject { get { return this.block.ParentProject; } }
-
-    }
-// end : D:\github\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\Manager\ScriptFileScope.cs
-
-// start : D:\github\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\Manager\HeaderScope.cs
-    class HeaderScope : IDisposable
-    {
-
-        private Manager manager;
-
-        public HeaderScope(Manager manager)
+        protected IEnumerable<AttributeInfo> GetAttributes(string attributeType)
         {
-            this.manager = manager;
-            manager.StartHeader();
+            return ObjectFactory.GetAttributes(Attributes, attributeType).ToList();
         }
 
-        public void Dispose()
+        protected AttributeInfo GetAttribute(string attributeType)
         {
-            manager.EndBlock();
+            return ObjectFactory.GetAttributes(Attributes, attributeType).FirstOrDefault();
         }
 
-    }
-// end : D:\github\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\Manager\HeaderScope.cs
-
-// start : D:\github\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\Manager\FooterScope.cs
-    class FooterScope : IDisposable
-    {
-
-        private Manager manager;
-
-        public FooterScope(Manager manager)
+        protected void ForAttributes(string attributeType, Action<AttributeInfo> act)
         {
-            this.manager = manager;
-            manager.StartFooter();
+            foreach (AttributeInfo attr in ObjectFactory.GetAttributes(Attributes, attributeType))
+                act(attr);
         }
 
-        public void Dispose()
+        protected string GetArgumentFromAttribute(string attributeType, string argumentName)
         {
-            manager.EndBlock();
+            AttributeInfo attr = ObjectFactory.GetAttributes(Attributes, attributeType).FirstOrDefault();
+            if (attr != null)
+            {
+                AttributeArgumentInfo arg = attr.Arguments.FirstOrDefault(a => a.Name == argumentName);
+                if (arg != null)
+                    return arg.Value;
+            }
+            return string.Empty;
+        }
+
+        protected string GetArgumentFromAttribute(string attributeType, int indexArgument)
+        {
+            AttributeInfo attr = ObjectFactory.GetAttributes(Attributes, attributeType).FirstOrDefault();
+            if (attr != null)
+            {
+                AttributeArgumentInfo arg = (attr.Arguments as List<AttributeArgumentInfo>)[indexArgument];
+                if (arg != null)
+                    return arg.Value;
+            }
+            return string.Empty;
         }
 
     }
-// end : D:\github\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\Manager\FooterScope.cs
-
-// start : D:\github\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\_class.cs
-// end : D:\github\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\_class.cs
-
-// start : D:\github\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\Manager\ScopeHelper.cs
-    public static class ScopeHelper
-    {
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public static ManagerScope StartManager()
-        {
-            ManagerScope m = new ManagerScope();
-            return m;
-        }
-
-    }
-// end : D:\github\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\Manager\ScopeHelper.cs
+// end : C:\Users\gael_Pc\Documents\GitHub\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\Codes\ParamInfo.cs
 
 
  #>
