@@ -4,7 +4,7 @@ namespace VisualStudio.ParsingSolution
 {
 
 
-    [System.Diagnostics.DebuggerDisplay("{FullName}")]
+    [System.Diagnostics.DebuggerDisplay("{Name}")]
     public class NodeFolderSolution : NodeSolutionItem
     {
 

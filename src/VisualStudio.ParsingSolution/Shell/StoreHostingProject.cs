@@ -18,7 +18,7 @@ using System.Reflection;
 using EnvDTE;
 using VSLangProj;
 using System.Collections.Generic;
-//using Microsoft.VisualStudio.Modeling;
+using Microsoft.VisualStudio.Modeling;
 
 namespace VisualStudio.ParsingSolution.Shell
 {

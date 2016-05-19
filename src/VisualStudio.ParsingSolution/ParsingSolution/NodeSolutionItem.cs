@@ -111,9 +111,7 @@ namespace VisualStudio.ParsingSolution
                     EnvDTE.Project proj = s.SubProject as EnvDTE.Project;
 
                     if (proj != null && !string.IsNullOrEmpty(proj.FullName))
-                    {
                         fld = new NodeProject(proj);
-                    }
 
                     else if (s.Kind == "{66A26720-8FB5-11D2-AA7E-00C04F688DDE}" && proj != null)
                         fld = new NodeFolderSolution(s.SubProject);
@@ -123,6 +121,12 @@ namespace VisualStudio.ParsingSolution
 
                     else if (s.Kind == "{EA6618E8-6E24-4528-94BE-6889FE16485C}" && proj != null)
                         fld = new NodeVirtualFolder(s as EnvDTE.Project);
+
+                    //if (project.Kind == "{66A26720-8FB5-11D2-AA7E-00C04F688DDE}" && proj != null)
+                    //    fld = new NodeFolderSolution(project);
+
+                    //else if (project.Kind == "{66A2671D-8FB5-11D2-AA7E-00C04F688DDE}" && proj != null)  // is not the same that last test
+                    //    fld = new NodeFolderSolution(project);
 
                     else
                         fld = ProjectHelper.CreateNodeItem(s);
