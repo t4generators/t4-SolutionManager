@@ -34,14 +34,6 @@ namespace VisualStudio.ParsingSolution.Projects.Codes
         /// </summary>
         public BaseInfo Parent { get; private set; }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        protected virtual void InitializeAttributes(List<AttributeInfo> attributes)
-        {
-
-        }
-
     }
 
 }

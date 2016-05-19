@@ -17,6 +17,16 @@ namespace VisualStudio.ParsingSolution.Projects.Codes
         /// <summary>
         /// 
         /// </summary>
+        public CodeFieldInfo(BaseInfo parent, CodeElement item)
+            : base(parent, item as CodeElement2)
+        {
+            this._item = item;
+            //this._type = type;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
         public CodeFieldInfo(BaseInfo parent, CodeElement item, TypeInfo type)
             : base(parent, item as CodeElement2)
         {
@@ -51,7 +61,7 @@ namespace VisualStudio.ParsingSolution.Projects.Codes
                             return variable.InitExpression;
                     }
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
 
                 }

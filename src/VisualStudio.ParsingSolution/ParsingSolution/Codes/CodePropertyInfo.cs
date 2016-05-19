@@ -27,6 +27,35 @@ namespace VisualStudio.ParsingSolution.Projects.Codes
         {
             this._item = item;
             this.Access = ObjectFactory.Convert(this._item.Access);
+
+            switch (this._item.ReadWrite)
+            {
+                case vsCMPropertyKind.vsCMPropertyKindReadWrite:
+                    this.CanRead = true;
+                    this.CanWrite = true;
+                    break;
+                case vsCMPropertyKind.vsCMPropertyKindReadOnly:
+                    this.CanRead = true;
+                    this.CanWrite = false;
+                    break;
+                case vsCMPropertyKind.vsCMPropertyKindWriteOnly:
+                    this.CanRead = false;
+                    this.CanWrite = true;
+                    break;
+            }
+
+            List<ParamInfo> _parameters = new List<ParamInfo>();
+
+            int index = 0;
+            foreach (var p in this._item.Parameters.OfType<CodeParameter2>())
+            {
+                ParamInfo pinfo = ObjectFactory.Instance.CreateParameter(this, p, index++, p.DocComment);
+                _parameters.Add(pinfo);
+            }
+
+            this.Parameters = _parameters;
+            
+
         }
 
         /// <summary>
@@ -42,10 +71,12 @@ namespace VisualStudio.ParsingSolution.Projects.Codes
             }
         }
         /// <summary>
-        /// 
+        /// Gets the attributes.
         /// </summary>
-
-        public IEnumerable<AttributeInfo> Attributes
+        /// <value>
+        /// The attributes.
+        /// </value>
+        public override IEnumerable<AttributeInfo> Attributes
         {
             get
             {
@@ -66,6 +97,30 @@ namespace VisualStudio.ParsingSolution.Projects.Codes
                 return _attributes;
             }
         }
+
+        /// <summary>
+        /// Gets a value indicating whether this instance can read.
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if this instance can read; otherwise, <c>false</c>.
+        /// </value>
+        public bool CanRead { get; private set; }
+
+        /// <summary>
+        /// Gets a value indicating whether this instance can write.
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if this instance can write; otherwise, <c>false</c>.
+        /// </value>
+        public bool CanWrite { get; private set; }
+
+        /// <summary>
+        /// Gets the parameters.
+        /// </summary>
+        /// <value>
+        /// The parameters.
+        /// </value>
+        public IEnumerable<ParamInfo> Parameters { get; private set; }
 
 
         /// <summary>

@@ -1,0 +1,5 @@
+C:\Users\gael_Pc\Documents\GitHub\t4-SolutionManager\src\SolutionManagements\Samples\SplitFiles\bin\Debug\SplitFiles.dll
+C:\Users\gael_Pc\Documents\GitHub\t4-SolutionManager\src\SolutionManagements\Samples\SplitFiles\bin\Debug\SplitFiles.pdb
+C:\Users\gael_Pc\Documents\GitHub\t4-SolutionManager\src\SolutionManagements\Samples\SplitFiles\obj\Debug\SplitFiles.csprojResolveAssemblyReference.cache
+C:\Users\gael_Pc\Documents\GitHub\t4-SolutionManager\src\SolutionManagements\Samples\SplitFiles\obj\Debug\SplitFiles.dll
+C:\Users\gael_Pc\Documents\GitHub\t4-SolutionManager\src\SolutionManagements\Samples\SplitFiles\obj\Debug\SplitFiles.pdb

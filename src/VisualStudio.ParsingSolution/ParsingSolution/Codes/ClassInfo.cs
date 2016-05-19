@@ -45,6 +45,14 @@ namespace VisualStudio.ParsingSolution.Projects.Codes
             this.Namespace = item.Namespace.FullName;
             this.DocComment = this.item.DocComment;
 
+            IsPublic = this.IsPublic_Impl(this.item.Access);
+            IsPrivate = this.IsPrivate_Impl(this.item.Access);
+            IsProtected = this.IsProtected_Impl(this.item.Access);
+            IsFamilyOrProtected = this.IsFamilyOrProtected_Impl(this.item.Access);
+
+            this.IsStatic = false;
+            this.IsStruct = false;
+
             //this.item.Children
             //this.item.DerivedTypes
             //this.item.InfoLocation
@@ -56,12 +64,11 @@ namespace VisualStudio.ParsingSolution.Projects.Codes
 
         }
 
-        private GenericArguments _genericArguments;
 
         /// <summary>
         /// List the generics arguments if the class is generic 
         /// </summary>
-        public GenericArguments GenericArguments
+        public override GenericArguments GenericArguments
         {
             get
             {
@@ -80,11 +87,13 @@ namespace VisualStudio.ParsingSolution.Projects.Codes
         /// 
         /// </summary>
         protected readonly CodeClass2 item;
+        private GenericArguments _genericArguments;
         private List<CodeFunctionInfo> _methods;
         private List<CodePropertyInfo> _properties;
         private List<CodeEventInfo> _events;
         private List<AttributeInfo> _attributes;
-        private ClassInfo _base;
+        private List<CodeFunctionInfo> _constructors;
+        private List<CodeFieldInfo> _fields;
 
         /// <summary>
         /// 
@@ -95,11 +104,6 @@ namespace VisualStudio.ParsingSolution.Projects.Codes
         /// 
         /// </summary>
         public CMAccess Access { get; private set; }
-
-        /// <summary>
-        /// Is abstract
-        /// </summary>
-        public bool IsAbstract { get; private set; }
 
         /// <summary>
         /// Is generic
@@ -123,7 +127,7 @@ namespace VisualStudio.ParsingSolution.Projects.Codes
         /// return the base class
         /// </summary>
         /// <returns></returns>
-        public ClassInfo GetBase()
+        public override ClassInfo GetBase()
         {
 
             foreach (EnvDTE.CodeElement item in this.item.Bases)
@@ -140,6 +144,49 @@ namespace VisualStudio.ParsingSolution.Projects.Codes
             return null;
 
         }
+
+        /// <summary>
+        /// Gets the properties.
+        /// </summary>
+        /// <returns></returns>
+        public IEnumerable<CodeFunctionInfo> GetConstructors()
+        {
+
+            if (_constructors == null)
+            {
+
+                _constructors = new List<CodeFunctionInfo>();
+                CodeClass2 i = item;
+
+                while (i != null)
+                {
+
+                    var _members = i.Members.OfType<CodeFunction2>()
+                        .Where(f => f.FunctionKind == vsCMFunction.vsCMFunctionConstructor && AcceptMethod(f))
+                        .Select(c => ObjectFactory.Instance.CreateMethod(this, c))
+                        .Where(d => d != null)
+                        .ToList();
+
+                    _constructors.AddRange(_members);
+
+                    if (i.Bases.Count == 0)
+                        break;
+
+                    i = i.Bases.Item(1) as CodeClass2;
+
+                    if (i == null || !AcceptAncestor(i.Namespace.FullName, i.Name))
+                        break;
+
+                }
+
+                InitializeConstructors(_constructors);
+
+            }
+
+            return _constructors;
+
+        }
+
 
         /// <summary>
         /// return the list of derived interface.
@@ -178,7 +225,7 @@ namespace VisualStudio.ParsingSolution.Projects.Codes
                 {
 
                     var _members = i.Members.OfType<CodeFunction2>()
-                        .Where(f => AcceptMethod(f))
+                        .Where(f => f.FunctionKind != vsCMFunction.vsCMFunctionConstructor && AcceptMethod(f))
                         .Select(c => ObjectFactory.Instance.CreateMethod(this, c))
                         .Where(d => d != null)
                         .ToList();
@@ -202,7 +249,6 @@ namespace VisualStudio.ParsingSolution.Projects.Codes
             return _methods;
 
         }
-
 
         /// <summary>
         /// Gets the properties.
@@ -289,13 +335,52 @@ namespace VisualStudio.ParsingSolution.Projects.Codes
 
         }
 
+        public IEnumerable<CodeFieldInfo> GetFields()
+        {
+
+            if (_fields == null)
+            {
+
+                _fields = new List<CodeFieldInfo>();
+
+                CodeClass2 i = item;
+
+                while (i != null)
+                {
+
+                    var _members = i.Members.OfType<EnvDTE80.CodeElement2>()
+                            .Where(f => AcceptField(f))
+                            .Select(c => ObjectFactory.Instance.CreateField(this, c))
+                            .Where(d => d != null)
+                            .ToList();
+
+                    _fields.AddRange(_members);
+
+                    if (i.Bases.Count == 0)
+                        break;
+
+                    i = i.Bases.Item(1) as CodeClass2;
+
+                    if (i == null || !AcceptAncestor(i.Namespace.FullName, i.Name))
+                        break;
+
+                }
+
+                InitializeFields(_fields);
+
+            }
+
+            return _fields;
+
+        }
+        
         /// <summary>
         /// Gets the attributes.
         /// </summary>
         /// <value>
         /// The attributes.
         /// </value>
-        public IEnumerable<AttributeInfo> Attributes
+        public override IEnumerable<AttributeInfo> Attributes
         {
             get
             {
@@ -329,13 +414,13 @@ namespace VisualStudio.ParsingSolution.Projects.Codes
         }
 
         /// <summary>
-        /// Gets the attributes.
+        /// Accepts the event.
         /// </summary>
-        /// <param name="attributeType">Type of the attribute.</param>
+        /// <param name="e">The e.</param>
         /// <returns></returns>
-        protected IEnumerable<AttributeInfo> GetAttributes(string attributeType)
+        protected virtual bool AcceptField(EnvDTE80.CodeElement2 e)
         {
-            return ObjectFactory.GetAttributes(Attributes, attributeType).ToList();
+            return true;
         }
 
         /// <summary>
@@ -347,61 +432,7 @@ namespace VisualStudio.ParsingSolution.Projects.Codes
         {
             return true;
         }
-
-        /// <summary>
-        /// Determines whether the specified a is public.
-        /// </summary>
-        /// <param name="a">a.</param>
-        /// <returns></returns>
-        protected bool IsPublic(EnvDTE.vsCMAccess a)
-        {
-            return a == EnvDTE.vsCMAccess.vsCMAccessPublic;
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        protected bool IsPrivate(EnvDTE.vsCMAccess a)
-        {
-            return a == EnvDTE.vsCMAccess.vsCMAccessPrivate;
-        }
-
-        /// <summary>
-        /// Determines whether the specified a is protected.
-        /// </summary>
-        /// <param name="a">a.</param>
-        /// <returns></returns>
-        protected bool IsProtected(EnvDTE.vsCMAccess a)
-        {
-            return (a & EnvDTE.vsCMAccess.vsCMAccessProtected) == EnvDTE.vsCMAccess.vsCMAccessProtected;
-        }
-
-        /// <summary>
-        /// Determines whether the specified a is family.
-        /// </summary>
-        /// <param name="a">a.</param>
-        /// <returns></returns>
-        protected bool IsFamily(EnvDTE.vsCMAccess a)
-        {
-            return (a & EnvDTE.vsCMAccess.vsCMAccessProject) == EnvDTE.vsCMAccess.vsCMAccessProject;
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        protected bool IsFamilyOrProtected(EnvDTE.vsCMAccess a)
-        {
-            return (a & EnvDTE.vsCMAccess.vsCMAccessProjectOrProtected) == EnvDTE.vsCMAccess.vsCMAccessProjectOrProtected;
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        protected virtual void InitializeEvents(List<CodeEventInfo> events)
-        {
-
-        }
-
+        
         /// <summary>
         /// 
         /// </summary>
@@ -409,15 +440,7 @@ namespace VisualStudio.ParsingSolution.Projects.Codes
         {
             return method.FunctionKind == vsCMFunction.vsCMFunctionFunction;
         }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        protected virtual void InitializeMethods(List<CodeFunctionInfo> methods)
-        {
-
-        }
-
+        
         /// <summary>
         /// 
         /// </summary>
@@ -425,23 +448,6 @@ namespace VisualStudio.ParsingSolution.Projects.Codes
         {
             return true;
         }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        protected virtual void InitializeProperties(List<CodePropertyInfo> properties)
-        {
-
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        protected virtual void InitializeAttributes(List<AttributeInfo> attributes)
-        {
-
-        }
-
 
     }
 

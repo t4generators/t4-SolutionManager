@@ -36,7 +36,7 @@ namespace VisualStudio.ParsingSolution.Projects.Codes
                 {
                     return _attr.FullName;
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
 
                 }

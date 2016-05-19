@@ -258,7 +258,7 @@ namespace VisualStudio.ParsingSolution.Projects.Codes
 
             if (this.project == null && ObjectFactory.Instance.DefaultProject != null)
             {
-                this.project = ObjectFactory.Instance.DefaultProject.Source;
+                this.project = ObjectFactory.Instance.DefaultProject.Project;
             }
 
             if (this.project != null)

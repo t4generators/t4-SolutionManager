@@ -1,8 +1,11 @@
 ﻿using EnvDTE;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using System.IO;
 using System.Linq;
+using System.Reflection;
+using VSLangProj;
 
 namespace VisualStudio.ParsingSolution
 {
@@ -22,7 +25,6 @@ namespace VisualStudio.ParsingSolution
         public const string ContentResource = "Resource";
         public const string ContentClassName = "classname";
         private Microsoft.Build.Construction.ProjectRootElement _projectContent;
-        private string configurationFile;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="NodeProject"/> class.
@@ -35,7 +37,60 @@ namespace VisualStudio.ParsingSolution
 
         }
 
+        public Project Project { get { return this.project; } }
 
+        public VSProject VSProject { get { return this.project.Object as VSProject; } }
+
+        /// <summary>
+        /// Add the file in the project
+        /// </summary>
+        /// <param name="folderPath">The folder path in the project</param>
+        /// <param name="name">The name of the file.</param>
+        /// <param name="content">The content of the file.</param>
+        public NodeItem AddFile(string folderPath, string name, string content)
+        {
+
+            NodeItemFolder folder = this.GetFolder(folderPath);
+            var file = new FileInfo(Path.Combine(folder.LocalPath, name));
+            if (!file.Exists)
+            {
+
+                var ar = System.Text.Encoding.UTF8.GetBytes(content);
+
+                using (var stream = file.OpenWrite())
+                {
+                    stream.Write(ar, 0, ar.Length);
+                    stream.Flush();
+                }
+            }
+
+            return folder.AddFile(file.FullName);
+
+        }
+
+        /// <summary>
+        /// Add the file in the project
+        /// </summary>
+        /// <param name="folderPath">The folder path in the project</param>
+        /// <param name="name">The name of the file.</param>
+        /// <param name="content">The content of the file.</param>
+        public NodeItem AddFile(string folderPath, string name, byte[] content)
+        {
+
+            NodeItemFolder folder = this.GetFolder(folderPath);
+            var file = new FileInfo(Path.Combine(folder.LocalPath, name));
+            if (!file.Exists)
+            {
+                using (var stream = file.OpenWrite())
+                {
+                    stream.Write(content, 0, content.Length);
+                    stream.Flush();
+                }
+            }
+
+            return folder.AddFile(file.FullName);
+
+        }
 
         /// <summary>
         /// add a new file in the folder to the solution
@@ -135,6 +190,29 @@ namespace VisualStudio.ParsingSolution
 
         }
 
+        public NodeItem GetNode(string FullName)
+        {
+            return GetItem<NodeItem>(c => c.Name == FullName).FirstOrDefault();
+        }
+
+        /// <summary>
+        /// return the path of the specified file in the project
+        /// </summary>
+        /// <param name="FullName">The full name.</param>
+        /// <returns></returns>
+        public string GetProjectPath(string FullName)
+        {
+
+            var file = new FileInfo(FullPath);
+            var project = new FileInfo(this.FullPath);
+
+            if (file.Directory.FullName.Length >= project.Directory.FullName.Length)
+                return file.Directory.FullName.Substring(this.FullPath.Length).Trim('\\').Trim();
+
+            return string.Empty;
+
+        }
+
         /// <summary>
         /// Creates the code type reference.
         /// </summary>
@@ -208,7 +286,7 @@ namespace VisualStudio.ParsingSolution
                 {
                     if (_h.Add(ass.Include) && !ass.Include.Contains("$") && !ass.Include.Contains(")"))
                     {
-                        var a = new ReferenceAssembly(ass.Include);
+                        var a = new ReferenceAssembly(ass.Include, ass.FirstChild);
                         _result.Add(a);
                     }
                 }
@@ -1103,16 +1181,16 @@ namespace VisualStudio.ParsingSolution
             set { FindProperty<string>("SignAssembly").Value = value; }
         }
 
-        /// <summary>
-        /// return the reference object com
-        /// </summary>
-        public EnvDTE.Project Source
-        {
-            get
-            {
-                return project;
-            }
-        }
+        ///// <summary>
+        ///// return the reference object com
+        ///// </summary>
+        //public EnvDTE.Project Source
+        //{
+        //    get
+        //    {
+        //        return project;
+        //    }
+        //}
 
         /// <summary>
         /// full filename
@@ -1123,6 +1201,161 @@ namespace VisualStudio.ParsingSolution
             {
                 return project.FullName;
             }
+        }
+
+        /// <summary>
+        /// Gets a new node solution that reference the current project..
+        /// </summary>
+        /// <value>
+        /// The solution.
+        /// </value>
+        public NodeSolution Solution { get { return new NodeSolution(this.project.DTE); } }
+
+        /// <summary>
+        /// Is the project hosting the Store actually referencing an assembly?
+        /// </summary>
+        /// <param name="assembly">Assembly for which we want to know if it is referenced by the 
+        /// project hosting the model contained in the store
+        /// </param>
+        /// <returns><c>true</c> if the assembly is referenced by the project hosting the store, and <c>false</c> otherwise</returns>
+        public bool IsReferencingAssembly(Assembly assembly)
+        {
+            Contract.Requires(assembly != null);
+            return IsReferencingAssembly(assembly.GetName().Name);
+        }
+
+        /// <summary>
+        /// Is the project hosting the Store actually referencing an assembly?
+        /// </summary>
+        /// <param name="assemblyName">Assembly name for which we want to know if it is referenced by the 
+        /// project hosting the model contained in the store
+        /// </param>
+        /// <returns><c>true</c> if the assembly is referenced by the project hosting the store, and <c>false</c> otherwise</returns>
+        public bool IsReferencingAssembly(string assemblyName)
+        {
+            // Add references.
+            VSProject vsProject = this.project.Object as VSProject;
+            return (vsProject.References.OfType<Reference>().Any(reference => reference.Name == assemblyName));
+
+        }
+
+        /// <summary>
+        /// Ensures that the VS project hosting a modeling store references a given assembly
+        /// </summary>
+        /// <param name="assembly">Asssembly for which we want to ensure that it is referenced by the VS project hosting the <paramref name="store"/></param>
+        public void EnsureReferencesAssembly(Assembly assembly)
+        {
+            Contract.Requires(assembly != null);
+            EnsureReferencesAssembly(assembly.GetName().Name);
+        }
+
+        /// <summary>
+        /// Ensures that the VS project hosting a modeling store references a given assembly (by name)
+        /// </summary>
+        /// <param name="assemblyName">Name of the asssembly for which we want to ensure that it is referenced by the VS project hosting the <paramref name="store"/></param>
+        public void EnsureReferencesAssembly(string assemblyName)
+        {
+
+            // Add references.
+            VSProject vsProject = project.Object as VSProject;
+
+            if (!vsProject.References.OfType<Reference>().Any(reference => reference.Name == assemblyName))
+                vsProject.References.Add(assemblyName);
+
+        }
+
+        /// <summary>
+        /// Ensures that the VS project hosting a modeling store references a given assembly (by name)
+        /// </summary>
+        /// <param name="project">project instance</param>
+        /// <returns></returns>
+        public IEnumerable<Assembly> ReferencesAssemblies()
+        {
+
+            OutputWriter wr = new OutputWriter();
+
+            VSProject vsProject = project.Object as VSProject;
+            foreach (Reference item in vsProject.References)
+            {
+
+                // si la Source project n'est pas null c'est que le type est contenu dans la solution.
+                //la charger va locker la librairie.
+                if (item.SourceProject == null)
+                {
+                    var path = item.Path;
+                    if (!string.IsNullOrEmpty(path) && File.Exists(path))
+                    {
+
+                        Assembly ass = null;
+
+                        try
+                        {
+                            ass = Assembly.LoadFile(path);
+                        }
+                        catch (Exception e)
+                        {
+                            wr.WriteLine(e);
+                        }
+
+                        if (ass != null)
+                            yield return ass;
+
+                    }
+
+                }
+            }
+
+        }
+
+        /// <summary>
+        /// return the list of the Referencings the projects.
+        /// </summary>
+        /// <returns></returns>
+        public IEnumerable<NodeProject> ReferencingProjects()
+        {
+
+            VSProject vsProject = project.Object as VSProject;
+            foreach (Reference item in vsProject.References)
+            {
+                // si la Source project n'est pas null c est que le type est contenu dans la solution.
+                if (item.SourceProject != null)
+                    yield return new NodeProject(item.SourceProject);
+            }
+
+        }
+
+        /// <summary>
+        /// Ensures that a VS project in the same solution as the project hosting a modeling store references a given project in the same solution (by name)
+        /// </summary>
+        /// <param name="uniqueProjectNameReferencing">Unique project name of the project that needs to reference <paramref name="uniqueProjectNameToReference"/>. Can be null, in that
+        /// case the project is the project holding the model in the store</param>
+        /// <param name="uniqueProjectNameToReference">Unique project nameof the project for which we want to ensure that it is referenced by the VS project hosting the <paramref name="store"/></param>
+        public void EnsureProjectReferencesProject(string uniqueProjectNameReferencing, string uniqueProjectNameToReference)
+        {
+
+            // Get the referencing project
+            NodeProject referencingProject = null;
+
+            var sln = new NodeSolution(project.DTE);
+
+            if (!string.IsNullOrWhiteSpace(uniqueProjectNameReferencing))
+                referencingProject = sln.Projects.FirstOrDefault(p => p.Name == uniqueProjectNameReferencing);
+
+            if (referencingProject == null)
+                return;
+
+            // Add reference to the other project if it is not already referenced
+            VSProject vsProject = referencingProject.VSProject;
+            if (vsProject.References.OfType<Reference>().FirstOrDefault(reference => reference.SourceProject != null && reference.SourceProject.UniqueName == uniqueProjectNameToReference) == null)
+            {
+
+                NodeProject otherProject = sln.Projects.FirstOrDefault(p => p.Name == uniqueProjectNameToReference);
+
+                if (otherProject != null)
+                    vsProject.References.AddProject(otherProject.Project);
+
+            }
+
         }
 
     }

@@ -94,5 +94,23 @@ namespace VisualStudio.ParsingSolution
 
         }
 
+        ///// <summary>
+        ///// return the path of the current folder in the project
+        ///// </summary>
+        ///// <param name="FullName">The full name.</param>
+        ///// <returns></returns>
+        //public string GetProjectPath(string FullName)
+        //{
+
+        //    var p = new NodeProject(this.ProjectItem.ContainingProject);
+        //    var project = new FileInfo(p.LocalPath);
+
+        //    if (this.LocalPath.Length >= project.Directory.FullName.Length)
+        //        return p.LocalPath.Substring(p.LocalPath.Length).Trim('\\').Trim();
+
+        //    return string.Empty;
+
+        //}
+
     }
 }

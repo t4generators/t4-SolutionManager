@@ -17,7 +17,7 @@ namespace VisualStudio.ParsingSolution.Projects.Codes
         private string _signature;
         private Dictionary<string, string> parameters = new Dictionary<string, string>();
         private TypeInfo _returnType;
-        private IEnumerable<MethodParamInfo> _parameters;
+        private IEnumerable<ParamInfo> _parameters;
         private IEnumerable<AttributeInfo> _attributes;
 
         /// <summary>
@@ -87,7 +87,7 @@ namespace VisualStudio.ParsingSolution.Projects.Codes
         /// <summary>
         /// List the generics arguments if the method is generic 
         /// </summary>
-        public GenericArguments GenericArguments
+        public override GenericArguments GenericArguments
         {
             get
             {
@@ -134,7 +134,7 @@ namespace VisualStudio.ParsingSolution.Projects.Codes
         /// <summary>
         /// Attributes of the method
         /// </summary>
-        public IEnumerable<AttributeInfo> Attributes
+        public override IEnumerable<AttributeInfo> Attributes
         {
             get
             {
@@ -199,22 +199,21 @@ namespace VisualStudio.ParsingSolution.Projects.Codes
         /// <summary>
         /// Parameters of the method
         /// </summary>
-        public IEnumerable<MethodParamInfo> Parameters
+        public IEnumerable<ParamInfo> Parameters
         {
             get
             {
 
                 if (_parameters == null)
                 {
-                    var _Parameters = new List<MethodParamInfo>();
+                    var _Parameters = new List<ParamInfo>();
                     // Process all the parameters
+                    int index = 0;
                     foreach (CodeParameter2 p in _item.Parameters.OfType<CodeParameter2>())
                     {
-
                         string parameterComment = string.Empty;
                         parameters.TryGetValue(p.Name, out parameterComment);
-
-                        _Parameters.Add(ObjectFactory.Instance.CreatParameter(this, p, parameterComment));
+                        _Parameters.Add(ObjectFactory.Instance.CreateParameter(this, p, index++, parameterComment));
                         _signature += "," + p.Type.AsString;
                     }
 

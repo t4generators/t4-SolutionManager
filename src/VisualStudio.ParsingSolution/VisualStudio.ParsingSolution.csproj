@@ -18,7 +18,7 @@
     <ProjectGuid>{51357C80-D265-4E29-A792-82129768C1E8}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>VisualStudio</RootNamespace>
+    <RootNamespace>VisualStudio.ParsingSolution</RootNamespace>
     <AssemblyName>VisualStudio.ParsingSolution</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
@@ -64,47 +64,39 @@
       <HintPath>$(VS100COMNTOOLS)..\IDE\PublicAssemblies\Microsoft.VisualStudio.ComponentModelHost.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="Microsoft.VisualStudio.CoreUtility">
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="Microsoft.VisualStudio.ExtensibilityHosting">
-      <HintPath>$(VS100COMNTOOLS)..\IDE\PrivateAssemblies\Microsoft.VisualStudio.ExtensibilityHosting.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.VisualStudio.TextTemplating.Interfaces.10.0, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
-    <Reference Include="Microsoft.VisualStudio.ArchitectureTools.Extensibility" />
-    <Reference Include="Microsoft.VisualStudio.Modeling.Sdk$(DslToolsVersionSuffix)" />
-    <Reference Include="Microsoft.VisualStudio.Modeling.Sdk.Diagrams$(DslToolsVersionSuffix)" />
-    <Reference Include="Microsoft.VisualStudio.Uml.Interfaces">
-      <Private>False</Private>
+    <Reference Include="Microsoft.VisualStudio.Shell.Design, Version=12.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>C:\Program Files (x86)\Microsoft Visual Studio 12.0\VSSDK\VisualStudioIntegration\Common\Assemblies\v4.0\Microsoft.VisualStudio.Shell.Design.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="Microsoft.VisualStudio.OLE.Interop" />
     <Reference Include="Microsoft.VisualStudio.Shell.Interop" />
     <Reference Include="Microsoft.VisualStudio.Shell.Interop.8.0" />
     <Reference Include="Microsoft.VisualStudio.Shell.Interop.9.0" />
-    <Reference Include="Microsoft.VisualStudio.Shell.Interop.10.0" />
-    <Reference Include="Microsoft.VisualStudio.TextManager.Interop" />
     <Reference Include="Microsoft.VisualStudio.Shell.10.0">
       <Private>false</Private>
     </Reference>
     <Reference Include="Microsoft.VisualStudio.Shell.Immutable.10.0" />
     <Reference Include="System" />
-    <Reference Include="System.ComponentModel.Composition" />
-    <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Core" />
-    <Reference Include="System.Data" />
     <Reference Include="System.Design" />
+    <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
-    <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Xml.Linq" />
-    <Reference Include="WindowsBase" />
+    <Reference Include="VSLangProj, Version=7.0.3300.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Guard.cs" />
     <Compile Include="Generators\T4\Project2T4\GenerateFromProject.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>GenerateFromProject.t4</DependentUpon>
     </Compile>
+    <Compile Include="NativeMethods.cs" />
+    <Compile Include="Helpers\ParsedAssemblyQualifiedName.cs" />
+    <Compile Include="Shell\OutputWriter.cs" />
     <Compile Include="ParsingSolution\Codes\AttributeArgumentInfo.cs" />
     <Compile Include="ParsingSolution\Codes\AttributeInfo.cs" />
     <Compile Include="ParsingSolution\Codes\BaseInfo.cs" />
@@ -121,18 +113,10 @@
     <Compile Include="ParsingSolution\Codes\InterfaceInfo.cs" />
     <Compile Include="ParsingSolution\Codes\LocationInfo.cs" />
     <Compile Include="ParsingSolution\Codes\LocationPoint.cs" />
-    <Compile Include="ParsingSolution\Codes\MethodParamInfo.cs" />
+    <Compile Include="ParsingSolution\Codes\ParamInfo.cs" />
     <Compile Include="ParsingSolution\Codes\ObjectFactory.cs" />
     <Compile Include="ParsingSolution\Codes\TypeInfo.cs" />
     <Compile Include="ParsingSolution\GenericNodeProperty.cs" />
-    <Compile Include="ParsingSolution\Manager\Block.cs" />
-    <Compile Include="ParsingSolution\Manager\FooterScope.cs" />
-    <Compile Include="ParsingSolution\Manager\HeaderScope.cs" />
-    <Compile Include="ParsingSolution\Manager\Manager.cs" />
-    <Compile Include="ParsingSolution\Manager\ManagerScope.cs" />
-    <Compile Include="ParsingSolution\Manager\ScopeHelper.cs" />
-    <Compile Include="ParsingSolution\Manager\ScriptFileScope.cs" />
-    <Compile Include="ParsingSolution\ProjectHelper.cs" />
     <Compile Include="ParsingSolution\INodeProperty.cs" />
     <Compile Include="ParsingSolution\KindItem.cs" />
     <Compile Include="ParsingSolution\NodeFolderSolution.cs" />
@@ -145,9 +129,15 @@
     <Compile Include="ParsingSolution\NodeSolution.cs" />
     <Compile Include="ParsingSolution\NodeSolutionItem.cs" />
     <Compile Include="ParsingSolution\NodeVirtualFolder.cs" />
+    <Compile Include="ParsingSolution\ProjectHelper.cs" />
     <Compile Include="ParsingSolution\ReferenceAssembly.cs" />
-    <Compile Include="ParsingSolution\_class.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Shell\StoreHostingProject.cs" />
+    <Compile Include="Shell\VSErrorListWindow.cs" />
+    <Compile Include="Shell\VsShellHelper.cs" />
+    <Compile Include="Shell\WaitDialog.cs" />
+    <Compile Include="Utils.cs" />
+    <Compile Include="VsxFactoryConstants.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Generators\T4\Commons\SolutionManagement.t4" />
@@ -160,9 +150,6 @@
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>GenerateFromProject.cs</LastGenOutput>
     </None>
-  </ItemGroup>
-  <ItemGroup>
-    <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

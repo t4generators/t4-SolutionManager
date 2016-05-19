@@ -93,6 +93,15 @@ namespace VisualStudio.ParsingSolution.Projects.Codes
         /// <summary>
         /// 
         /// </summary>
+        public virtual CodeFieldInfo CreateField(ClassInfo parent, CodeElement2 item)
+        {
+            return new CodeFieldInfo(parent, item);
+        }
+
+
+        /// <summary>
+        /// 
+        /// </summary>
         public virtual ClassInfo CreateClass(NodeItem parent, CodeClass2 item)
         {
             return new ClassInfo(parent, item);
@@ -130,12 +139,17 @@ namespace VisualStudio.ParsingSolution.Projects.Codes
             return new AttributeArgumentInfo(item);
         }
 
+        public virtual ParamInfo CreateParameter(CodePropertyInfo parent, CodeParameter2 item, int position, string parameterComment)
+        {
+            return new ParamInfo(parent, item, position, parameterComment);
+        }
+
         /// <summary>
         /// 
         /// </summary>
-        public virtual MethodParamInfo CreatParameter(CodeFunctionInfo parent, CodeParameter2 item, string parameterComment)
+        public virtual ParamInfo CreateParameter(CodeFunctionInfo parent, CodeParameter2 item, int position, string parameterComment)
         {
-            return new MethodParamInfo(parent, item, parameterComment);
+            return new ParamInfo(parent, item, position, parameterComment);
         }
 
         /// <summary>
@@ -155,8 +169,24 @@ namespace VisualStudio.ParsingSolution.Projects.Codes
         }
 
         /// <summary>
-        /// 
+        /// Gets the attributes.
         /// </summary>
+        /// <param name="attributes">The attributes.</param>
+        /// <param name="attributeType">Type of the attribute.</param>
+        /// <returns></returns>
+        public static IEnumerable<AttributeInfo> GetAttributes(IEnumerable<AttributeInfo> attributes, Type attributeType)
+        {
+
+            return GetAttributes(attributes, attributeType.AssemblyQualifiedName);
+
+        }
+
+        /// <summary>
+        /// Gets the attributes.
+        /// </summary>
+        /// <param name="attributes">The attributes.</param>
+        /// <param name="attributeType">Type of the attribute.</param>
+        /// <returns></returns>
         public static IEnumerable<AttributeInfo> GetAttributes(IEnumerable<AttributeInfo> attributes, string attributeType)
         {
 

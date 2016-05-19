@@ -10,17 +10,17 @@ namespace VisualStudio.ParsingSolution.Projects.Codes
     /// <summary>
     /// 
     /// </summary>
-    public class MethodParamInfo
+    public class ParamInfo
     {
 
         private IEnumerable<AttributeInfo> _attributes;
         private CodeParameter2 item;
-        private CodeFunctionInfo parent;
+        private CodeMemberInfo parent;
 
         /// <summary>
         /// constructor
         /// </summary>
-        public MethodParamInfo(CodeFunctionInfo parent, CodeParameter2 item, string comment)
+        public ParamInfo(CodeFunctionInfo parent, CodeParameter2 item, int position, string comment)
         {
             this.parent = parent;
             this.item = item;
@@ -28,7 +28,23 @@ namespace VisualStudio.ParsingSolution.Projects.Codes
             Name = item.Name;
             Type = TypeInfo.Create(item.Type);
             DefaultValue = item.DefaultValue;
+            Position = position;
         }
+
+        /// <summary>
+        /// constructor
+        /// </summary>
+        public ParamInfo(CodePropertyInfo parent, CodeParameter2 item, int position, string comment)
+        {
+            this.parent = parent;
+            this.item = item;
+            this.Comment = comment;
+            Name = item.Name;
+            Type = TypeInfo.Create(item.Type);
+            DefaultValue = item.DefaultValue;
+            Position = position;
+        }
+
 
         /// <summary>
         /// name of the parameter
@@ -44,6 +60,8 @@ namespace VisualStudio.ParsingSolution.Projects.Codes
         /// default value if not specified in the arguments
         /// </summary>
         public string DefaultValue { get; set; }
+
+        public int Position { get; private set; }
 
         /// <summary>
         /// comment of the parameter

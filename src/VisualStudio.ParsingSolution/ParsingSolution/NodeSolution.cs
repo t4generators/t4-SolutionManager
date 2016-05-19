@@ -2,6 +2,7 @@
 using Microsoft.VisualStudio.Shell;
 using System;
 using System.Collections.Generic;
+using VSLangProj;
 
 namespace VisualStudio.ParsingSolution
 {
@@ -19,8 +20,11 @@ namespace VisualStudio.ParsingSolution
         /// <param name="dte">The DTE.</param>
         public NodeSolution(EnvDTE.DTE dte) : base()
         {
+            if (dte == null)
+                this.dte = (EnvDTE.DTE)Package.GetGlobalService(typeof(EnvDTE.DTE));
+            else
             this.dte = dte;
-            this.solution = dte.Solution;
+            this.solution = this.dte.Solution;
             this.BuildProperties();
         }
 
@@ -30,7 +34,6 @@ namespace VisualStudio.ParsingSolution
         public NodeSolution()
             : base()
         {
-
             EnvDTE.DTE dte = (EnvDTE.DTE)Package.GetGlobalService(typeof(EnvDTE.DTE));
             this.dte = dte;
             this.solution = dte.Solution;

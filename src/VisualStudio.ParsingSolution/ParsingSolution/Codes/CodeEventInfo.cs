@@ -43,7 +43,7 @@ namespace VisualStudio.ParsingSolution.Projects.Codes
         /// <summary>
         /// 
         /// </summary>
-        public IEnumerable<AttributeInfo> Attributes
+        public override IEnumerable<AttributeInfo> Attributes
         {
             get
             {

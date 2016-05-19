@@ -317,6 +317,71 @@ namespace VisualStudio.ParsingSolution
         /// </summary>
         public string Name2 { get { return s.FileNames[0]; } }
 
+        /// <summary>
+        /// add a new file in the folder to the solution
+        /// </summary>
+        public NodeItem AddFile(FileInfo file)
+        {
+            return AddFile(file.FullName);
+        }
+
+        /// <summary>
+        /// add a new file in the folder to the solution
+        /// </summary>
+        public NodeItem AddFile(string FullName)
+        {
+            return new NodeItem(this.s.ProjectItems.AddFromFile(FullName));
+        }
+
+
+        /// <summary>
+        /// Add the file in the project
+        /// </summary>
+        /// <param name="folderPath">The folder path in the project</param>
+        /// <param name="name">The name of the file.</param>
+        /// <param name="content">The content of the file.</param>
+        public NodeItem AddFile(string name, string content)
+        {
+
+            var file = new FileInfo(Path.Combine(this.LocalPath, name));
+            if (!file.Exists)
+            {
+
+                var ar = System.Text.Encoding.UTF8.GetBytes(content);
+
+                using (var stream = file.OpenWrite())
+                {
+                    stream.Write(ar, 0, ar.Length);
+                    stream.Flush();
+                }
+            }
+
+            return this.AddFile(file.FullName);
+
+        }
+
+        /// <summary>
+        /// Add the file in the project
+        /// </summary>
+        /// <param name="folderPath">The folder path in the project</param>
+        /// <param name="name">The name of the file.</param>
+        /// <param name="content">The content of the file.</param>
+        public NodeItem AddFile(string name, byte[] content)
+        {
+
+            var file = new FileInfo(Path.Combine(this.LocalPath, name));
+            if (!file.Exists)
+            {
+                using (var stream = file.OpenWrite())
+                {
+                    stream.Write(content, 0, content.Length);
+                    stream.Flush();
+                }
+            }
+
+            return this.AddFile(file.FullName);
+
+        }
 
     }
 

@@ -116,10 +116,10 @@ namespace VisualStudio.ParsingSolution
                     }
 
                     else if (s.Kind == "{66A26720-8FB5-11D2-AA7E-00C04F688DDE}" && proj != null)
-                        fld = new NodeFolderSolution(s as EnvDTE.Project);
+                        fld = new NodeFolderSolution(s.SubProject);
 
                     else if (s.Kind == "{66A26722-8FB5-11D2-AA7E-00C04F688DDE}" && proj !=null)
-                        fld = new NodeFolderSolution(s as EnvDTE.Project);
+                        fld = new NodeFolderSolution(s.SubProject);
 
                     else if (s.Kind == "{EA6618E8-6E24-4528-94BE-6889FE16485C}" && proj != null)
                         fld = new NodeVirtualFolder(s as EnvDTE.Project);

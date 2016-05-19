@@ -1,5 +1,6 @@
 ﻿using EnvDTE;
 using EnvDTE80;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -16,10 +17,13 @@ namespace VisualStudio.ParsingSolution.Projects.Codes
         private CodeEnum _enum;
         private List<CodeFieldInfo> _fields;
         private TypeInfo type = null;
+        private List<AttributeInfo> _attributes;
 
         /// <summary>
-        /// 
+        /// Initializes a new instance of the <see cref="EnumInfo"/> class.
         /// </summary>
+        /// <param name="parent">The parent.</param>
+        /// <param name="item">The item.</param>
         public EnumInfo(NodeItem parent, CodeEnum item)
             : base(null, item as CodeElement2)
         {
@@ -29,13 +33,22 @@ namespace VisualStudio.ParsingSolution.Projects.Codes
             this.Namespace = item.Namespace.FullName;
             this.DocComment = this._enum.DocComment;
 
+            IsPublic = this.IsPublic_Impl(this._enum.Access);
+            IsPrivate = this.IsPrivate_Impl(this._enum.Access);
+            IsProtected = this.IsProtected_Impl(this._enum.Access);
+            IsFamilyOrProtected = this.IsFamilyOrProtected_Impl(this._enum.Access);
+
+            this.IsStruct = true;
+            this.IsStatic = true;
+
             GetFields();
 
         }
 
         /// <summary>
-        /// 
+        /// Gets the fields.
         /// </summary>
+        /// <returns></returns>
         public IEnumerable<CodeFieldInfo> GetFields()
         {
 
@@ -61,11 +74,31 @@ namespace VisualStudio.ParsingSolution.Projects.Codes
         }
 
         /// <summary>
-        /// 
+        /// Gets the attributes.
         /// </summary>
-        public virtual void InitializeFields(List<CodeFieldInfo> fields)
+        /// <value>
+        /// The attributes.
+        /// </value>
+        public override IEnumerable<AttributeInfo> Attributes
         {
+            get
+            {
+                if (_attributes == null)
+                {
+                    try
+                    {
+                        _attributes = ObjectFactory.GetAttributes(_enum.Attributes);
+                    }
+                    catch (Exception)
+                    {
+                        _attributes = new List<AttributeInfo>();
+                    }
 
+                    InitializeAttributes(_attributes);
+
+                }
+                return _attributes;
+            }
         }
 
     }

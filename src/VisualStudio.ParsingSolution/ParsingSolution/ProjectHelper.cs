@@ -298,9 +298,9 @@ namespace VisualStudio.ParsingSolution
 
                 foreach (NodeProject file in sln.GetItem<NodeProject>())
                 {
-                    if (!string.IsNullOrEmpty(file.Source.FullName))
+                    if (!string.IsNullOrEmpty(file.Project.FullName))
                     {
-                        var f = new FileInfo(file.Source.FullName).Directory.FullName;
+                        var f = new FileInfo(file.Project.FullName).Directory.FullName;
                         var keyValuePair = new KeyValuePair<string, NodeProject>(f, file);
                         Projects.Add(keyValuePair);
                     }
