@@ -183,6 +183,7 @@
 			else
 				items = prj.GetItem<NodeItem>(c=> c.Filename.EndsWith(extension)).ToList();
 
+
 			result = Generator.CollectUsings(prj, extension, _usings, items, _excludeNamespaces);
 
 			Generator.WriteTemplate(sb, true, true, Generator.languageCS, null, null, null);

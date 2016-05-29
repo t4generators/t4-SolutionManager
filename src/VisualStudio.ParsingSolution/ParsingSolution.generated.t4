@@ -5,6 +5,7 @@
 <#@ Assembly Name="Microsoft.Build" #>
 <#@ Assembly Name="Microsoft.CSharp" #>
 <#@ Assembly Name="Microsoft.VisualStudio.ComponentModelHost" #>
+<#@ Assembly Name="Microsoft.VisualStudio.Modeling.Sdk.Diagrams.14.0" #>
 <#@ Assembly Name="Microsoft.VisualStudio.OLE.Interop" #>
 <#@ Assembly Name="Microsoft.VisualStudio.Shell.10.0" #>
 <#@ Assembly Name="Microsoft.VisualStudio.Shell.Design" #>
@@ -12,7 +13,9 @@
 <#@ Assembly Name="Microsoft.VisualStudio.Shell.Interop" #>
 <#@ Assembly Name="Microsoft.VisualStudio.Shell.Interop.8.0" #>
 <#@ Assembly Name="Microsoft.VisualStudio.Shell.Interop.9.0" #>
+<#@ Assembly Name="Microsoft.VisualStudio.TextTemplating.Interfaces.10.0" #>
 <#@ Assembly Name="System" #>
+<#@ Assembly Name="System.ComponentModel.DataAnnotations" #>
 <#@ Assembly Name="System.Core" #>
 <#@ Assembly Name="System.Design" #>
 <#@ Assembly Name="System.Windows.Forms" #>
@@ -22,6 +25,8 @@
 <#@ import namespace="EnvDTE" #>
 <#@ import namespace="EnvDTE80" #>
 <#@ import namespace="Microsoft.VisualStudio.Shell" #>
+<#@ import namespace="Microsoft.VisualStudio.Shell.Interop" #>
+<#@ import namespace="Microsoft.VisualStudio.TextTemplating" #>
 <#@ import namespace="System" #>
 <#@ import namespace="System.Collections.Generic" #>
 <#@ import namespace="System.Diagnostics.Contracts" #>
@@ -659,9 +664,7 @@
                     EnvDTE.Project proj = s.SubProject as EnvDTE.Project;
 
                     if (proj != null && !string.IsNullOrEmpty(proj.FullName))
-                    {
                         fld = new NodeProject(proj);
-                    }
 
                     else if (s.Kind == "{66A26720-8FB5-11D2-AA7E-00C04F688DDE}" && proj != null)
                         fld = new NodeFolderSolution(s.SubProject);
@@ -671,6 +674,12 @@
 
                     else if (s.Kind == "{EA6618E8-6E24-4528-94BE-6889FE16485C}" && proj != null)
                         fld = new NodeVirtualFolder(s as EnvDTE.Project);
+
+                    //if (project.Kind == "{66A26720-8FB5-11D2-AA7E-00C04F688DDE}" && proj != null)
+                    //    fld = new NodeFolderSolution(project);
+
+                    //else if (project.Kind == "{66A2671D-8FB5-11D2-AA7E-00C04F688DDE}" && proj != null)  // is not the same that last test
+                    //    fld = new NodeFolderSolution(project);
 
                     else
                         fld = ProjectHelper.CreateNodeItem(s);
@@ -810,7 +819,7 @@
             if (dte == null)
                 this.dte = (EnvDTE.DTE)Package.GetGlobalService(typeof(EnvDTE.DTE));
             else
-            this.dte = dte;
+                this.dte = dte;
             this.solution = this.dte.Solution;
             this.BuildProperties();
         }
@@ -1035,7 +1044,7 @@
 
             if (prjs != null)
             {
-                foreach (EnvDTE.Project project in prjs)
+                foreach (EnvDTE.Project project in prjs)    // 
                 {
 
                     NodeSolutionItem fld = null;
@@ -1043,7 +1052,7 @@
                     if (project.Kind == "{66A26720-8FB5-11D2-AA7E-00C04F688DDE}")
                         fld = new NodeFolderSolution(project);
 
-                    else if (project.Kind == "{66A26720-8FB5-11D2-AA7E-00C04F688DDE}")  // is not the same that last test
+                    else if (project.Kind == "{66A2671D-8FB5-11D2-AA7E-00C04F688DDE}")  // is not the same that last test
                         fld = new NodeFolderSolution(project);
 
                     else if (project.Kind == "{EA6618E8-6E24-4528-94BE-6889FE16485C}")
@@ -3083,7 +3092,7 @@
 // end : C:\Users\gael_Pc\Documents\GitHub\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\NodeItem.cs
 
 // start : C:\Users\gael_Pc\Documents\GitHub\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\NodeFolderSolution.cs
-    [System.Diagnostics.DebuggerDisplay("{FullName}")]
+    [System.Diagnostics.DebuggerDisplay("{Name}")]
     public class NodeFolderSolution : NodeSolutionItem
     {
 
@@ -6469,6 +6478,581 @@
     }
 // end : C:\Users\gael_Pc\Documents\GitHub\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\ReferenceAssembly.cs
 
+// start : C:\Users\gael_Pc\Documents\GitHub\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\Manager\Block.cs
+    public class Block
+    {
+        public String Name;
+        public int Start, Length;
+        public string OutputPath;
+        public string Fullname;
+        public EnvDTE.ProjectItem ParentProjectItem;
+        public EnvDTE.Project ParentProject;
+    }
+// end : C:\Users\gael_Pc\Documents\GitHub\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\Manager\Block.cs
+
+// start : C:\Users\gael_Pc\Documents\GitHub\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\Manager\Manager.cs
+    public class Manager
+    {
+
+        // Manager.tt from Damien Guard: http://damieng.com/blog/2009/11/06/multiple-outputs-from-t4-made-easy-revisited
+
+        private Block currentBlock;
+        private List<Block> files = new List<Block>();
+        private Block footer = new Block();
+        private Block header = new Block();
+        private ITextTemplatingEngineHost host;
+        private StringBuilder template;
+        protected List<Block> generatedFileNames = new List<Block>();
+        public Func<FileInfo, bool> filterToDelete = file => file.Name.EndsWith(".generated" + file.Extension);
+        protected EnvDTE.DTE dte;
+        protected EnvDTE.ProjectItem templateProjectItem;
+        protected EnvDTE.Project ContainingProject;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public static Manager Create(ITextTemplatingEngineHost host, StringBuilder template)
+        {
+
+            return (host is IServiceProvider)
+                ? new VSManager(host, template)
+                : new Manager(host, template);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public virtual bool FileOkToWrite(String fileName)
+        {
+            return true;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public Block StartNewFile(String name)
+        {
+            if (name == null)
+                throw new ArgumentNullException("name");
+            CurrentBlock = new Block { Name = name, OutputPath = Path.GetDirectoryName(host.TemplateFile), ParentProjectItem = templateProjectItem, ParentProject = null };
+            return CurrentBlock;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public Block StartNewFile(String name, NodeProject project)
+        {
+            if (name == null)
+                throw new ArgumentNullException("name");
+            CurrentBlock = new Block { Name = name, OutputPath = Path.GetDirectoryName(project.FullPath), ParentProjectItem = templateProjectItem, ParentProject = project.Project };
+            return CurrentBlock;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public Block StartNewFile(String name, NodeItemFolder folder)
+        {
+
+            if (folder == null)
+                throw new ArgumentNullException("folder");
+
+            if (name == null)
+                throw new ArgumentNullException("name");
+
+            if (folder is NodeItemFolder)
+            {
+                EnvDTE.ProjectItem ProjectItem = folder.ProjectItem;
+            }
+
+            CurrentBlock = new Block { Name = name, OutputPath = folder.LocalPath, ParentProjectItem = folder.ProjectItem, ParentProject = null };
+            return CurrentBlock;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public EnvDTE.Project GetCurrentProject()
+        {
+            return ContainingProject;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public void StartFooter()
+        {
+            CurrentBlock = footer;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public void StartHeader()
+        {
+            CurrentBlock = header;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public void EndBlock()
+        {
+            if (CurrentBlock == null)
+                return;
+            CurrentBlock.Length = template.Length - CurrentBlock.Start;
+            if (CurrentBlock != header && CurrentBlock != footer)
+                files.Add(CurrentBlock);
+            currentBlock = null;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public virtual void Process(bool split)
+        {
+            if (split)
+            {
+                EndBlock();
+                String headerText = template.ToString(header.Start, header.Length);
+                String footerText = template.ToString(footer.Start, footer.Length);
+                files.Reverse();
+                foreach (Block block in files)
+                {
+                    block.Fullname = Path.Combine(block.OutputPath, block.Name);
+
+                    StringBuilder sb = new StringBuilder(template.Length);
+                    sb.Append(headerText);
+                    sb.Append(template.ToString(block.Start, block.Length));
+                    sb.Append(footerText);
+
+                    generatedFileNames.Add(block);
+
+                    if (!Directory.Exists(block.OutputPath))
+                        Directory.CreateDirectory(block.OutputPath);
+
+                    CreateFile(block.Fullname, sb.ToString());
+                    template.Remove(block.Start, block.Length);
+                }
+            }
+        }
+
+        protected virtual void CreateFile(String fileName, String content)
+        {
+            if (IsFileContentDifferent(fileName, content))
+                File.WriteAllText(fileName, content);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public virtual String GetCustomToolNamespace(String fileName)
+        {
+            return null;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public virtual String DefaultProjectNamespace
+        {
+            get { return null; }
+        }
+
+        protected bool IsFileContentDifferent(String fileName, String newContent)
+        {
+            return !(File.Exists(fileName) && File.ReadAllText(fileName) == newContent);
+        }
+
+        private Manager(ITextTemplatingEngineHost host, StringBuilder template)
+        {
+            this.host = host;
+            this.template = template;
+        }
+
+        private Block CurrentBlock
+        {
+            get { return currentBlock; }
+            set
+            {
+                if (CurrentBlock != null)
+                    EndBlock();
+                if (value != null)
+                    value.Start = template.Length;
+                currentBlock = value;
+            }
+        }
+
+        private class VSManager : Manager
+        {
+            private Action<String> checkOutAction;
+            private Action<Func<FileInfo, bool>, IEnumerable<Block>> projectSyncAction;
+            private IVsQueryEditQuerySave2 queryEditSave;
+
+            /// <summary>
+            /// 
+            /// </summary>
+            public override String DefaultProjectNamespace
+            {
+                get
+                {
+                    return templateProjectItem.ContainingProject.Properties.Item("DefaultNamespace").Value.ToString();
+                }
+            }
+
+            /// <summary>
+            /// 
+            /// </summary>
+            public override String GetCustomToolNamespace(string fileName)
+            {
+                return dte.Solution.FindProjectItem(fileName).Properties.Item("CustomToolNamespace").Value.ToString();
+            }
+
+            /// <summary>
+            /// 
+            /// </summary>
+            public override void Process(bool split)
+            {
+                base.Process(split);
+                projectSyncAction.EndInvoke(projectSyncAction.BeginInvoke(filterToDelete, generatedFileNames, null, null));
+            }
+
+            /// <summary>
+            /// 
+            /// </summary>
+            public override bool FileOkToWrite(String fileName)
+            {
+                CheckoutFileIfRequired(fileName);
+                return base.FileOkToWrite(fileName);
+            }
+
+            protected override void CreateFile(String fileName, String content)
+            {
+                try
+                {
+                    if (IsFileContentDifferent(fileName, content))
+                    {
+                        CheckoutFileIfRequired(fileName);
+                        File.WriteAllText(fileName, content);
+                    }
+                }
+                catch (Exception e)
+                {
+                    throw new Exception(e.Message + @"\t for the file : " + fileName, e);
+                }
+            }
+
+            internal VSManager(ITextTemplatingEngineHost host, StringBuilder template)
+                : base(host, template)
+            {
+
+                var hostServiceProvider = (IServiceProvider)host;
+
+                if (hostServiceProvider == null)
+                    throw new ArgumentNullException("Could not obtain IServiceProvider");
+
+                dte = (EnvDTE.DTE)hostServiceProvider.GetService(typeof(EnvDTE.DTE));
+                if (dte == null)
+                    throw new ArgumentNullException("Could not obtain DTE from host");
+
+                checkOutAction = (String fileName) => dte.SourceControl.CheckOutItem(fileName);
+                projectSyncAction = (Func<FileInfo, bool> filterToDelete, IEnumerable<Block> fileNames) => ProjectSync(filterToDelete, fileNames);
+                queryEditSave = (IVsQueryEditQuerySave2)hostServiceProvider.GetService(typeof(SVsQueryEditQuerySave));
+
+                this.templateProjectItem = this.dte.Solution.FindProjectItem(host.TemplateFile);
+                this.ContainingProject = this.templateProjectItem.ContainingProject;
+
+            }
+
+            private static void ProjectSync(Func<FileInfo, bool> filterToDelete, IEnumerable<Block> keepFileNames)
+            {
+
+                var keepFileNameSet = new HashSet<String>(keepFileNames.Select(c => c.Fullname).ToList());
+
+                foreach (Block block in keepFileNames)
+                {
+
+                    string filename1 = string.Empty;
+                    var projectFiles = new Dictionary<String, EnvDTE.ProjectItem>();
+
+                    //System.Diagnostics.Debugger.Break();
+
+                    if (block.ParentProject == null)
+                    {
+
+                        filename1 = block.ParentProjectItem.get_FileNames(0);
+                        var originalFilePrefix = Path.GetFileNameWithoutExtension(filename1) + ".";
+
+                        // On enumere le contenu du repertoire
+                        foreach (EnvDTE.ProjectItem projectItem in block.ParentProjectItem.ProjectItems)
+                        {
+                            string filename = projectItem.get_FileNames(0);
+                            projectFiles.Add(filename, projectItem);
+                        }
+
+                        // Remove unused items from the project
+                        foreach (var pair in projectFiles)
+                            if (!keepFileNameSet.Contains(pair.Key) && !(Path.GetFileNameWithoutExtension(pair.Key) + ".").StartsWith(originalFilePrefix))
+                                if (filterToDelete(new FileInfo(pair.Key)))
+                                    pair.Value.Delete();
+
+                        // Add missing files to the project
+                        foreach (String fileName in keepFileNameSet)
+                            if (!projectFiles.ContainsKey(fileName))
+                                block.ParentProjectItem.ProjectItems.AddFromFile(fileName);
+
+                    }
+                    else
+                    {
+
+                        filename1 = filename1 = new FileInfo(block.ParentProject.FileName).Directory.FullName;
+                        var originalFilePrefix = Path.GetFileNameWithoutExtension(filename1) + ".";
+
+                        // On enumere le contenu du repertoire
+                        foreach (EnvDTE.ProjectItem projectItem in block.ParentProject.ProjectItems)
+                        {
+                            string filename = projectItem.get_FileNames(0);
+                            projectFiles.Add(filename, projectItem);
+                        }
+
+                        // Remove unused items from the project
+                        foreach (var pair in projectFiles)
+                            if (!keepFileNameSet.Contains(pair.Key) && !(Path.GetFileNameWithoutExtension(pair.Key) + ".").StartsWith(originalFilePrefix))
+                                if (filterToDelete(new FileInfo(pair.Key)))
+                                    pair.Value.Delete();
+
+                        // Add missing files to the project
+                        foreach (String fileName in keepFileNameSet)
+                            if (!projectFiles.ContainsKey(fileName))
+                                block.ParentProject.ProjectItems.AddFromFile(fileName);
+
+                    }
+
+                }
+
+            }
+
+            private void CheckoutFileIfRequired(String fileName)
+            {
+                if (queryEditSave != null)
+                {
+                    uint pfEditVerdict;
+                    queryEditSave.QuerySaveFile(fileName, 0, null, out pfEditVerdict);
+                }
+                else
+                {
+                    var sc = dte.SourceControl;
+                    if (sc != null && sc.IsItemUnderSCC(fileName) && !sc.IsItemCheckedOut(fileName))
+                        checkOutAction.EndInvoke(checkOutAction.BeginInvoke(fileName, null, null));
+                }
+            }
+        }
+
+    }
+// end : C:\Users\gael_Pc\Documents\GitHub\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\Manager\Manager.cs
+
+// start : C:\Users\gael_Pc\Documents\GitHub\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\Manager\ManagerScope.cs
+    public class ManagerScope : IDisposable
+    {
+
+        private static Manager manager;
+
+        /// <summary>
+        /// constructor
+        /// </summary>
+        public ManagerScope()
+        {
+            manager = Manager.Create(ProjectHelper.serviceProvider as ITextTemplatingEngineHost, ProjectHelper._generationEnvironment);
+        }
+
+
+        public void SetFilterToDelete(Func<FileInfo, bool> filterToDelete)
+        {
+
+            manager.filterToDelete = filterToDelete;
+
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public IDisposable StartHeader()
+        {
+            return new HeaderScope(manager);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public IDisposable StartFooter()
+        {
+            return new FooterScope(manager);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public void Dispose()
+        {
+            manager.Process(true);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public ScriptFileScope NewFile(string filename)
+        {
+            return new ScriptFileScope(manager, filename);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public ScriptFileScope NewFile(string filename, NodeItemFolder folder)
+        {
+            return new ScriptFileScope(manager, filename, folder);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public ScriptFileScope NewFile(string filename, NodeProject project)
+        {
+            return new ScriptFileScope(manager, filename, project);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public NodeProject GetCurrentProject()
+        {
+            var p = manager.GetCurrentProject();
+            NodeProject result = new NodeProject(p);
+            return result;
+            //var sln = ProjectHelper.GetContext().Solution();
+            //NodeProject prj = sln.GetProjects(c => c.Name == p.Name).FirstOrDefault();
+            //return prj;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public NodeProject GetProject(string projectName)
+        {
+            var sln = ProjectHelper.GetContext().Solution();
+            NodeProject prj = sln.GetProjects(c => c.Name == projectName).FirstOrDefault();
+            return prj;
+        }
+
+    }
+// end : C:\Users\gael_Pc\Documents\GitHub\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\Manager\ManagerScope.cs
+
+// start : C:\Users\gael_Pc\Documents\GitHub\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\Manager\ScriptFileScope.cs
+    public class ScriptFileScope : IDisposable
+    {
+
+        private Manager manager;
+        private Block block;
+
+        internal ScriptFileScope(object manager, string name)
+        {
+            string _name = AppliPatternToFilname(name);
+            this.manager = manager as Manager;
+            block = this.manager.StartNewFile(_name);
+        }
+
+        internal ScriptFileScope(object manager, string name, NodeItemFolder folder)
+        {
+            string _name = AppliPatternToFilname(name);
+            this.manager = manager as Manager;
+            block = this.manager.StartNewFile(_name, folder);
+        }
+
+        internal ScriptFileScope(object manager, string name, NodeProject project)
+        {
+            string _name = AppliPatternToFilname(name);
+            this.manager = manager as Manager;
+            block = this.manager.StartNewFile(_name, project);
+        }
+
+        private string AppliPatternToFilname(string name)
+        {
+
+            string _name;
+
+            string e = Path.GetExtension(name);
+            string mask = ".generated" + e;
+
+            if (!name.EndsWith(mask))
+            {
+                e = mask;
+                _name = Path.ChangeExtension(name, e);
+            }
+            else
+                _name = name;
+
+            return _name;
+        }
+
+        public void Dispose()
+        {
+            manager.EndBlock();
+        }
+
+        public String Name { get { return this.block.Name; } }
+
+        public string OutputPath { get { return this.block.OutputPath; } }
+
+        public string Fullname { get { return this.block.Fullname; } }
+
+        public EnvDTE.ProjectItem ParentProjectItem { get { return this.block.ParentProjectItem; } }
+
+        public EnvDTE.Project ParentProject { get { return this.block.ParentProject; } }
+
+    }
+// end : C:\Users\gael_Pc\Documents\GitHub\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\Manager\ScriptFileScope.cs
+
+// start : C:\Users\gael_Pc\Documents\GitHub\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\Manager\HeaderScope.cs
+    class HeaderScope : IDisposable
+    {
+
+        private Manager manager;
+
+        public HeaderScope(Manager manager)
+        {
+            this.manager = manager;
+            manager.StartHeader();
+        }
+
+        public void Dispose()
+        {
+            manager.EndBlock();
+        }
+
+    }
+// end : C:\Users\gael_Pc\Documents\GitHub\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\Manager\HeaderScope.cs
+
+// start : C:\Users\gael_Pc\Documents\GitHub\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\Manager\FooterScope.cs
+    class FooterScope : IDisposable
+    {
+
+        private Manager manager;
+
+        public FooterScope(Manager manager)
+        {
+            this.manager = manager;
+            manager.StartFooter();
+        }
+
+        public void Dispose()
+        {
+            manager.EndBlock();
+        }
+
+    }
+// end : C:\Users\gael_Pc\Documents\GitHub\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\Manager\FooterScope.cs
+
 // start : C:\Users\gael_Pc\Documents\GitHub\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\Codes\ParamInfo.cs
     [System.Diagnostics.DebuggerDisplay("parameter {Name}")]
     /// <summary>
@@ -6604,6 +7188,22 @@
 
     }
 // end : C:\Users\gael_Pc\Documents\GitHub\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\Codes\ParamInfo.cs
+
+// start : C:\Users\gael_Pc\Documents\GitHub\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\Manager\ScopeHelper.cs
+    public static class ScopeHelper
+    {
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public static ManagerScope StartManager()
+        {
+            ManagerScope m = new ManagerScope();
+            return m;
+        }
+
+    }
+// end : C:\Users\gael_Pc\Documents\GitHub\t4-SolutionManager\src\VisualStudio.ParsingSolution\ParsingSolution\Manager\ScopeHelper.cs
 
 
  #>

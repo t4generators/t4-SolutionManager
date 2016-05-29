@@ -65,7 +65,7 @@ namespace VisualStudio.ParsingSolution
         {
             if (name == null)
                 throw new ArgumentNullException("name");
-            CurrentBlock = new Block { Name = name, OutputPath = Path.GetDirectoryName(project.FullPath), ParentProjectItem = templateProjectItem, ParentProject = project.Source };
+            CurrentBlock = new Block { Name = name, OutputPath = Path.GetDirectoryName(project.FullPath), ParentProjectItem = templateProjectItem, ParentProject = project.Project };
             return CurrentBlock;
         }
 
@@ -247,7 +247,7 @@ namespace VisualStudio.ParsingSolution
                 return base.FileOkToWrite(fileName);
             }
 
-            protected virtual void CreateFile(String fileName, String content)
+            protected override void CreateFile(String fileName, String content)
             {
                 try
                 {

@@ -646,39 +646,43 @@
 		/// <typeparam name="T"></typeparam>
 		/// <param name="filter">The filter.</param>
 		/// <returns></returns>
-		public virtual IEnumerable<T> GetItem<T>(Func<T, bool> filter) 
-			where T : NodeSolutionItem
-		{
+public virtual IEnumerable<T> GetItem<T>(Func<T, bool> filter)
+            where T : NodeSolutionItem
+        {
 
-			if (project == null)
-				yield break;
+            if (project == null)
+                yield break;
 
-			var items = project.ProjectItems;
-			if (items != null)
-			{
-				foreach (EnvDTE.ProjectItem s in project.ProjectItems)
-				{
+            var items = project.ProjectItems;
+            if (items != null)
+            {
+                foreach (EnvDTE.ProjectItem s in project.ProjectItems)
+                {
 
-					NodeSolutionItem fld = null;
+                    NodeSolutionItem fld = null;
 
-					EnvDTE.Project proj = s.SubProject as EnvDTE.Project;
+                    EnvDTE.Project proj = s.SubProject as EnvDTE.Project;
 
-					if (proj != null && !string.IsNullOrEmpty(proj.FullName))
-					{
-						fld = new NodeProject(proj);
-					}
+                    if (proj != null && !string.IsNullOrEmpty(proj.FullName))
+                        fld = new NodeProject(proj);
 
-					else if (s.Kind == "{66A26720-8FB5-11D2-AA7E-00C04F688DDE}" && proj != null)
-						fld = new NodeFolderSolution(s as EnvDTE.Project);
+                    else if (s.Kind == "{66A26720-8FB5-11D2-AA7E-00C04F688DDE}" && proj != null)
+                        fld = new NodeFolderSolution(s.SubProject);
 
-					else if (s.Kind == "{66A26722-8FB5-11D2-AA7E-00C04F688DDE}" && proj !=null)
-						fld = new NodeFolderSolution(s as EnvDTE.Project);
+                    else if (s.Kind == "{66A26722-8FB5-11D2-AA7E-00C04F688DDE}" && proj !=null)
+                        fld = new NodeFolderSolution(s.SubProject);
 
-					else if (s.Kind == "{EA6618E8-6E24-4528-94BE-6889FE16485C}" && proj != null)
-						fld = new NodeVirtualFolder(s as EnvDTE.Project);
+                    else if (s.Kind == "{EA6618E8-6E24-4528-94BE-6889FE16485C}" && proj != null)
+                        fld = new NodeVirtualFolder(s as EnvDTE.Project);
 
-					else
-						fld = ProjectHelper.CreateNodeItem(s);
+                    //if (project.Kind == "{66A26720-8FB5-11D2-AA7E-00C04F688DDE}" && proj != null)
+                    //    fld = new NodeFolderSolution(project);
+
+                    //else if (project.Kind == "{66A2671D-8FB5-11D2-AA7E-00C04F688DDE}" && proj != null)  // is not the same that last test
+                    //    fld = new NodeFolderSolution(project);
+
+                    else
+                        fld = ProjectHelper.CreateNodeItem(s);
 
 
                     if (fld != null)
@@ -692,11 +696,11 @@
                             yield return i2 as T;
                     }
 
-				}
+                }
 
-			}
+            }
 
-		}
+        }
 
 		/// <summary>
 		/// return the kind of the object
@@ -1041,19 +1045,19 @@
 				foreach (EnvDTE.Project project in prjs)
 				{
 
-					NodeSolutionItem fld = null;
+                    NodeSolutionItem fld = null;
 
-					if (project.Kind == "{66A26720-8FB5-11D2-AA7E-00C04F688DDE}")
-						fld = new NodeFolderSolution(project);
+                    if (project.Kind == "{66A26720-8FB5-11D2-AA7E-00C04F688DDE}")
+                        fld = new NodeFolderSolution(project);
 
-					else if (project.Kind == "{66A26720-8FB5-11D2-AA7E-00C04F688DDE}")  // is not the same that last test
-						fld = new NodeFolderSolution(project);
+                    else if (project.Kind == "{66A2671D-8FB5-11D2-AA7E-00C04F688DDE}")  // is not the same that last test
+                        fld = new NodeFolderSolution(project);
 
-					else if (project.Kind == "{EA6618E8-6E24-4528-94BE-6889FE16485C}")
-						fld = new NodeVirtualFolder(project);
+                    else if (project.Kind == "{EA6618E8-6E24-4528-94BE-6889FE16485C}")
+                        fld = new NodeVirtualFolder(project);
 
-					else
-						fld = new NodeProject(project);
+                    else
+                        fld = new NodeProject(project);
 
 			var f = fld as T;
                     if (f != null)
