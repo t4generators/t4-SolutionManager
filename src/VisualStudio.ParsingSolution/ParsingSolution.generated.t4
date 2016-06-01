@@ -29,6 +29,7 @@
 <#@ import namespace="System" #>
 <#@ import namespace="System.Collections.Generic" #>
 <#@ import namespace="System.Diagnostics.Contracts" #>
+<#@ import namespace="System.Globalization" #>
 <#@ import namespace="System.IO" #>
 <#@ import namespace="System.Linq" #>
 <#@ import namespace="System.Reflection" #>
@@ -2576,8 +2577,6 @@
         public IEnumerable<Assembly> ReferencesAssemblies()
         {
 
-            OutputWriter wr = new OutputWriter();
-
             VSProject vsProject = project.Object as VSProject;
             foreach (Reference item in vsProject.References)
             {
@@ -2596,10 +2595,7 @@
                         {
                             ass = Assembly.LoadFile(path);
                         }
-                        catch (Exception e)
-                        {
-                            wr.WriteLine(e);
-                        }
+                        catch (Exception e) { }
 
                         if (ass != null)
                             yield return ass;
@@ -7493,7 +7489,7 @@
                         if (c == ' ' || c == '+')
                             break;
 
-                            sb.Append(c);
+                        sb.Append(c);
 
                     }
 
@@ -7529,8 +7525,10 @@
         public string Culture { get; private set; }
 
         public string PublicKeyToken { get; private set; }
+        public int GenericRank { get; private set; }
+        public bool IsGeneric { get; private set; }
 
-        public List<ParsedAssemblyQualifiedName> GenericParameters = new List<ParsedAssemblyQualifiedName>();
+        private List<ParsedAssemblyQualifiedName> _genericParameters = new List<ParsedAssemblyQualifiedName>();
         public Lazy<string> CSharpStyleName;
         public Lazy<string> VBNetStyleName;
 
@@ -7588,7 +7586,6 @@
 
         }
 
-
         private void Parse(string AssemblyQualifiedName)
         {
 
@@ -7600,6 +7597,25 @@
             for (int i = 0; i < AssemblyQualifiedName.Length; ++i)
             {
                 char c = AssemblyQualifiedName[i];
+                if (c == '`')
+                {
+                    string count = string.Empty;
+                    for (int j = i + 1; j < AssemblyQualifiedName.Length; j++)
+                    {
+                        char c2 = AssemblyQualifiedName[j];
+                        if (char.IsDigit(c2))
+                            count += c2;
+                        else
+                            break;
+                    }
+                    int _count = 0;
+                    if (int.TryParse(count, out _count))
+                    {
+                        this.IsGeneric = true;
+                        this.GenericRank = _count;
+                    }
+                }
+
                 if (c == '[')
                 {
                     if (AssemblyQualifiedName[i + 1] == ']') // Array type.
@@ -7619,7 +7635,7 @@
                     {
                         currentBlock.parsedAssemblyQualifiedName = new ParsedAssemblyQualifiedName(AssemblyQualifiedName.Substring(currentBlock.iStart, i - currentBlock.iStart));
                         if (bcount == 2)
-                            this.GenericParameters.Add(currentBlock.parsedAssemblyQualifiedName);
+                            this._genericParameters.Add(currentBlock.parsedAssemblyQualifiedName);
                     }
                     currentBlock = currentBlock.parentBlock;
                     --bcount;
@@ -7630,7 +7646,6 @@
                     break;
                 }
             }
-
 
             this.TypeName = AssemblyQualifiedName.Substring(0, index);
 
@@ -7646,24 +7661,15 @@
                 this.IsPointer = true;
             }
 
-            this.CSharpStyleName = new Lazy<string>(
-                () =>
-                {
-                    return this.LanguageStyle("<", ">");
-                });
+            this.CSharpStyleName = new Lazy<string>(() => { return this.LanguageStyle("<", ">"); });
 
-            this.VBNetStyleName = new Lazy<string>(
-                () =>
-                {
-                    return this.LanguageStyle("(Of ", ")");
-                });
+            this.VBNetStyleName = new Lazy<string>(() => { return this.LanguageStyle("(Of ", ")"); });
 
             this.AssemblyDescriptionString = AssemblyQualifiedName.Substring(index + 2);
 
             {
-                List<string> parts = AssemblyDescriptionString.Split(',')
-                                                                 .Select(x => x.Trim())
-                                                                 .ToList();
+                List<string> parts = AssemblyDescriptionString.Split(',').Select(x => x.Trim())
+                                                                         .ToList();
                 this.Version = LookForPairThenRemove(parts, "Version");
                 this.Culture = LookForPairThenRemove(parts, "Culture");
                 this.Path = LookForPairThenRemove(parts, "Path");
@@ -7691,18 +7697,23 @@
                     return null; // Not found.
                 });
 
-
         }
 
+        public void AddGeneric(string typeName3)
+        {
+            if (this._genericParameters.Count >= this.GenericRank)
+                throw new InvalidOperationException("The type is allready full and can't accept more generic parameter.");
+            this._genericParameters.Add(new ParsedAssemblyQualifiedName(typeName3));
+        }
 
         internal string LanguageStyle(string prefix, string suffix)
         {
-            if (this.GenericParameters.Count > 0)
+            if (this._genericParameters.Count > 0)
             {
                 StringBuilder sb = new StringBuilder(this.TypeName.Substring(0, this.TypeName.IndexOf('`')));
                 sb.Append(prefix);
                 bool pendingElement = false;
-                foreach (var param in this.GenericParameters)
+                foreach (var param in this._genericParameters)
                 {
                     if (pendingElement)
                         sb.Append(", ");
@@ -7782,16 +7793,24 @@
             if (this.IsArray)
                 AppendArray(sb);
 
-            else if (this.GenericParameters.Any())
+            else if (this.IsGeneric)
             {
+                int _countGeneric = 0;
                 sb.Append("<");
                 string comma = string.Empty;
-                foreach (var item in this.GenericParameters)
+                foreach (var item in this._genericParameters)
                 {
                     sb.Append(comma);
                     sb.Append(item.ToCSharp(rule));
                     comma = ", ";
+                    _countGeneric++;
                 }
+
+                comma = ",";
+
+                for (int i = _countGeneric +1; i < this.GenericRank; i++)
+                    sb.Append(comma);
+
                 sb.Append(">");
             }
 
@@ -7801,14 +7820,16 @@
 
         }
 
+        public IEnumerable<ParsedAssemblyQualifiedName> GenericParameters { get { return this._genericParameters; } }
+
         private void AppendArray(StringBuilder sb)
         {
-            
-                sb.Append("[");
-                for (int i = 1; i < this.RankArray; i++)
-                    sb.Append(",");
-                sb.Append("]");
-            
+
+            sb.Append("[");
+            for (int i = 1; i < this.RankArray; i++)
+                sb.Append(",");
+            sb.Append("]");
+
         }
 
         private static void ReduceSystem(Type type, StringBuilder sb)
@@ -7881,7 +7902,6 @@
         }
 
         private static string _dot = ".";
-
     }
     public enum FormatRule
     {
@@ -7913,6 +7933,8 @@
 
         private List<TypeNameCSharpParser> _list = new List<TypeNameCSharpParser>();
         private int _rank = 0;
+        private bool _isGeneric;
+        private int _genericRank = 0;
 
         public TypeNameCSharpParser(string type)
         {
@@ -7951,10 +7973,12 @@
 
                     case '<':
                         i++;
+                        this._isGeneric = true;
                         p = i;
                         t.Name = s.ToString();
                         var t2 = new TypeNameCSharpParser();
-                        t.Add(t2);
+                        t.AddGeneric(t2);
+                        this._genericRank++;
                         Parse(type, t2, ref p);
                         i = p;
 
@@ -7969,11 +7993,12 @@
                             if (c != ',')
                                 goto deb;
 
-                            while ((c = type[p]) == ',')
+                            while ((c = type[p]) == ',')    // Parse the list of generic arguments
                             {
+                                this._genericRank++;
                                 p++;
                                 t2 = new TypeNameCSharpParser();
-                                t.Add(t2);
+                                t.AddGeneric(t2);
                                 Parse(type, t2, ref p);
                                 i = p;
                                 if (i >= type.Length)
@@ -8012,7 +8037,6 @@
                     case '\r':
                     case '\n':
                         break;
-
 
                     case '0':
                     case '1':
@@ -8106,9 +8130,15 @@
             }
         }
 
-        private void Add(TypeNameCSharpParser t2)
+        private void AddGeneric(TypeNameCSharpParser argument)
         {
-            this._list.Add(t2);
+            this._list.Add(argument);
+        }
+
+        public void SetGeneric(int index, string argument)
+        {
+            this._list.RemoveAt(index);
+            this._list.Insert(index, new TypeNameCSharpParser(argument));
         }
 
         /// <summary>
@@ -8121,10 +8151,11 @@
         /// </summary>
         public string Name { get; private set; }
 
+        public int RankGeneric { get { return this._genericRank; } }
         /// <summary>
         /// 
         /// </summary>
-        public bool IsGeneric { get { return this.ElementItems.Any(); } }
+        public bool IsGeneric { get { return this._isGeneric; } }
 
         /// <summary>
         /// 
@@ -8167,6 +8198,7 @@
 
                 s.Append("<");
                 bool a = false;
+                int _countGeneric = 0;
 
                 foreach (var item in this.ElementItems)
                 {
@@ -8174,7 +8206,11 @@
                         s.Append(", ");
                     s.Append(item.ToString());
                     a = true;
+                    _countGeneric++;
                 }
+
+                for (int i = _countGeneric + 1; i < this._genericRank; i++)
+                    s.Append(",");
 
                 s.Append(">");
 

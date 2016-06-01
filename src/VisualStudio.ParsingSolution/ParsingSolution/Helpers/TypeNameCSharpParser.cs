@@ -17,6 +17,8 @@ namespace VisualStudio.ParsingSolution
 
         private List<TypeNameCSharpParser> _list = new List<TypeNameCSharpParser>();
         private int _rank = 0;
+        private bool _isGeneric;
+        private int _genericRank = 0;
 
         public TypeNameCSharpParser(string type)
         {
@@ -55,10 +57,12 @@ namespace VisualStudio.ParsingSolution
 
                     case '<':
                         i++;
+                        this._isGeneric = true;
                         p = i;
                         t.Name = s.ToString();
                         var t2 = new TypeNameCSharpParser();
-                        t.Add(t2);
+                        t.AddGeneric(t2);
+                        this._genericRank++;
                         Parse(type, t2, ref p);
                         i = p;
 
@@ -73,11 +77,12 @@ namespace VisualStudio.ParsingSolution
                             if (c != ',')
                                 goto deb;
 
-                            while ((c = type[p]) == ',')
+                            while ((c = type[p]) == ',')    // Parse the list of generic arguments
                             {
+                                this._genericRank++;
                                 p++;
                                 t2 = new TypeNameCSharpParser();
-                                t.Add(t2);
+                                t.AddGeneric(t2);
                                 Parse(type, t2, ref p);
                                 i = p;
                                 if (i >= type.Length)
@@ -116,7 +121,6 @@ namespace VisualStudio.ParsingSolution
                     case '\r':
                     case '\n':
                         break;
-
 
                     case '0':
                     case '1':
@@ -210,9 +214,15 @@ namespace VisualStudio.ParsingSolution
             }
         }
 
-        private void Add(TypeNameCSharpParser t2)
+        private void AddGeneric(TypeNameCSharpParser argument)
         {
-            this._list.Add(t2);
+            this._list.Add(argument);
+        }
+
+        public void SetGeneric(int index, string argument)
+        {
+            this._list.RemoveAt(index);
+            this._list.Insert(index, new TypeNameCSharpParser(argument));
         }
 
         /// <summary>
@@ -225,10 +235,11 @@ namespace VisualStudio.ParsingSolution
         /// </summary>
         public string Name { get; private set; }
 
+        public int RankGeneric { get { return this._genericRank; } }
         /// <summary>
         /// 
         /// </summary>
-        public bool IsGeneric { get { return this.ElementItems.Any(); } }
+        public bool IsGeneric { get { return this._isGeneric; } }
 
         /// <summary>
         /// 
@@ -271,6 +282,7 @@ namespace VisualStudio.ParsingSolution
 
                 s.Append("<");
                 bool a = false;
+                int _countGeneric = 0;
 
                 foreach (var item in this.ElementItems)
                 {
@@ -278,7 +290,11 @@ namespace VisualStudio.ParsingSolution
                         s.Append(", ");
                     s.Append(item.ToString());
                     a = true;
+                    _countGeneric++;
                 }
+
+                for (int i = _countGeneric + 1; i < this._genericRank; i++)
+                    s.Append(",");
 
                 s.Append(">");
 

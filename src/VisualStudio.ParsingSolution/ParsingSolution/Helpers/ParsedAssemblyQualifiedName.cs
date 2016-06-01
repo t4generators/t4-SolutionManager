@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -81,7 +82,7 @@ namespace VisualStudio.ParsingSolution
                         if (c == ' ' || c == '+')
                             break;
 
-                            sb.Append(c);
+                        sb.Append(c);
 
                     }
 
@@ -117,8 +118,10 @@ namespace VisualStudio.ParsingSolution
         public string Culture { get; private set; }
 
         public string PublicKeyToken { get; private set; }
+        public int GenericRank { get; private set; }
+        public bool IsGeneric { get; private set; }
 
-        public List<ParsedAssemblyQualifiedName> GenericParameters = new List<ParsedAssemblyQualifiedName>();
+        private List<ParsedAssemblyQualifiedName> _genericParameters = new List<ParsedAssemblyQualifiedName>();
         public Lazy<string> CSharpStyleName;
         public Lazy<string> VBNetStyleName;
 
@@ -176,7 +179,6 @@ namespace VisualStudio.ParsingSolution
 
         }
 
-
         private void Parse(string AssemblyQualifiedName)
         {
 
@@ -188,6 +190,25 @@ namespace VisualStudio.ParsingSolution
             for (int i = 0; i < AssemblyQualifiedName.Length; ++i)
             {
                 char c = AssemblyQualifiedName[i];
+                if (c == '`')
+                {
+                    string count = string.Empty;
+                    for (int j = i + 1; j < AssemblyQualifiedName.Length; j++)
+                    {
+                        char c2 = AssemblyQualifiedName[j];
+                        if (char.IsDigit(c2))
+                            count += c2;
+                        else
+                            break;
+                    }
+                    int _count = 0;
+                    if (int.TryParse(count, out _count))
+                    {
+                        this.IsGeneric = true;
+                        this.GenericRank = _count;
+                    }
+                }
+
                 if (c == '[')
                 {
                     if (AssemblyQualifiedName[i + 1] == ']') // Array type.
@@ -207,7 +228,7 @@ namespace VisualStudio.ParsingSolution
                     {
                         currentBlock.parsedAssemblyQualifiedName = new ParsedAssemblyQualifiedName(AssemblyQualifiedName.Substring(currentBlock.iStart, i - currentBlock.iStart));
                         if (bcount == 2)
-                            this.GenericParameters.Add(currentBlock.parsedAssemblyQualifiedName);
+                            this._genericParameters.Add(currentBlock.parsedAssemblyQualifiedName);
                     }
                     currentBlock = currentBlock.parentBlock;
                     --bcount;
@@ -218,7 +239,6 @@ namespace VisualStudio.ParsingSolution
                     break;
                 }
             }
-
 
             this.TypeName = AssemblyQualifiedName.Substring(0, index);
 
@@ -234,24 +254,15 @@ namespace VisualStudio.ParsingSolution
                 this.IsPointer = true;
             }
 
-            this.CSharpStyleName = new Lazy<string>(
-                () =>
-                {
-                    return this.LanguageStyle("<", ">");
-                });
+            this.CSharpStyleName = new Lazy<string>(() => { return this.LanguageStyle("<", ">"); });
 
-            this.VBNetStyleName = new Lazy<string>(
-                () =>
-                {
-                    return this.LanguageStyle("(Of ", ")");
-                });
+            this.VBNetStyleName = new Lazy<string>(() => { return this.LanguageStyle("(Of ", ")"); });
 
             this.AssemblyDescriptionString = AssemblyQualifiedName.Substring(index + 2);
 
             {
-                List<string> parts = AssemblyDescriptionString.Split(',')
-                                                                 .Select(x => x.Trim())
-                                                                 .ToList();
+                List<string> parts = AssemblyDescriptionString.Split(',').Select(x => x.Trim())
+                                                                         .ToList();
                 this.Version = LookForPairThenRemove(parts, "Version");
                 this.Culture = LookForPairThenRemove(parts, "Culture");
                 this.Path = LookForPairThenRemove(parts, "Path");
@@ -279,18 +290,23 @@ namespace VisualStudio.ParsingSolution
                     return null; // Not found.
                 });
 
-
         }
 
+        public void AddGeneric(string typeName3)
+        {
+            if (this._genericParameters.Count >= this.GenericRank)
+                throw new InvalidOperationException("The type is allready full and can't accept more generic parameter.");
+            this._genericParameters.Add(new ParsedAssemblyQualifiedName(typeName3));
+        }
 
         internal string LanguageStyle(string prefix, string suffix)
         {
-            if (this.GenericParameters.Count > 0)
+            if (this._genericParameters.Count > 0)
             {
                 StringBuilder sb = new StringBuilder(this.TypeName.Substring(0, this.TypeName.IndexOf('`')));
                 sb.Append(prefix);
                 bool pendingElement = false;
-                foreach (var param in this.GenericParameters)
+                foreach (var param in this._genericParameters)
                 {
                     if (pendingElement)
                         sb.Append(", ");
@@ -370,16 +386,24 @@ namespace VisualStudio.ParsingSolution
             if (this.IsArray)
                 AppendArray(sb);
 
-            else if (this.GenericParameters.Any())
+            else if (this.IsGeneric)
             {
+                int _countGeneric = 0;
                 sb.Append("<");
                 string comma = string.Empty;
-                foreach (var item in this.GenericParameters)
+                foreach (var item in this._genericParameters)
                 {
                     sb.Append(comma);
                     sb.Append(item.ToCSharp(rule));
                     comma = ", ";
+                    _countGeneric++;
                 }
+
+                comma = ",";
+
+                for (int i = _countGeneric +1; i < this.GenericRank; i++)
+                    sb.Append(comma);
+
                 sb.Append(">");
             }
 
@@ -389,14 +413,16 @@ namespace VisualStudio.ParsingSolution
 
         }
 
+        public IEnumerable<ParsedAssemblyQualifiedName> GenericParameters { get { return this._genericParameters; } }
+
         private void AppendArray(StringBuilder sb)
         {
-            
-                sb.Append("[");
-                for (int i = 1; i < this.RankArray; i++)
-                    sb.Append(",");
-                sb.Append("]");
-            
+
+            sb.Append("[");
+            for (int i = 1; i < this.RankArray; i++)
+                sb.Append(",");
+            sb.Append("]");
+
         }
 
         private static void ReduceSystem(Type type, StringBuilder sb)
@@ -469,7 +495,6 @@ namespace VisualStudio.ParsingSolution
         }
 
         private static string _dot = ".";
-
     }
 
     public enum FormatRule

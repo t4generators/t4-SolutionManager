@@ -7,6 +7,16 @@ namespace VisualStudio.ParsingSolution.Tests
     public class UnitTest2
     {
 
+        [TestMethod]
+        public void TestGenericTypeNotFull()
+        {
+            var typeName = typeof(System.Collections.Generic.List<>).AssemblyQualifiedName;
+            ParsedAssemblyQualifiedName parser = new ParsedAssemblyQualifiedName(typeName);
+            var typeResult = parser.ToCSharp();
+            TypeNameCSharpParser p2 = new TypeNameCSharpParser(typeResult);
+            var typeResult2 = p2.ToString();
+            Assert.AreEqual(typeResult, typeResult2);
+        }
 
         [TestMethod]
         public void TestTypeStringStandard()
@@ -64,6 +74,16 @@ namespace VisualStudio.ParsingSolution.Tests
             Assert.AreEqual(typeResult, typeResult2);
         }
 
+        [TestMethod]
+        public void TestTypeGenericNullable2()
+        {
+            var typeName = typeof(Nullable<>).AssemblyQualifiedName;
+            ParsedAssemblyQualifiedName parser = new ParsedAssemblyQualifiedName(typeName);
+            var typeResult = parser.ToCSharp();
+            TypeNameCSharpParser p2 = new TypeNameCSharpParser(typeResult);
+            var typeResult2 = p2.ToString();
+            Assert.AreEqual(typeResult, typeResult2);
+        }
 
     }
 }

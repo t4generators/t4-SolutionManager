@@ -1,5 +1,6 @@
 ﻿using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.Collections.Generic;
 
 namespace VisualStudio.ParsingSolution.Tests
 {
@@ -8,6 +9,32 @@ namespace VisualStudio.ParsingSolution.Tests
     {
 
         #region string
+
+        [TestMethod]
+        public void TestTypeNotFull()
+        {
+            var typeName = typeof(Tuple<,>).AssemblyQualifiedName;
+            ParsedAssemblyQualifiedName parser = new ParsedAssemblyQualifiedName(typeName);
+            var typeResult = parser.ToCSharp();
+            Assert.AreEqual("System.Tuple<,>", typeResult);
+        }
+
+        [TestMethod]
+        public void TestTypeNotFullAndCompletedAfter()
+        {
+            var typeName = typeof(List<int>).AssemblyQualifiedName;
+            var typeName2 = typeof(List<>).AssemblyQualifiedName;
+            var typeName3 = typeof(int).AssemblyQualifiedName;
+
+            ParsedAssemblyQualifiedName parser = new ParsedAssemblyQualifiedName(typeName);
+
+            ParsedAssemblyQualifiedName parser2 = new ParsedAssemblyQualifiedName(typeName2);
+            parser2.AddGeneric(typeName3);
+
+            var r1 = parser.ToCSharp();
+            var r2 = parser2.ToCSharp();
+            Assert.AreEqual(r1, r2);
+        }
 
         [TestMethod]
         public void TestTypeStringStandard()
