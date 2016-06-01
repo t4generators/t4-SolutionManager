@@ -69,14 +69,14 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>c:\Program Files (x86)\Microsoft Visual Studio 14.0\VSSDK\VisualStudioIntegration\Common\Assemblies\v4.0\Microsoft.VisualStudio.Shell.Design.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.CSharp" />    
+    <Reference Include="Microsoft.CSharp" />
     <Reference Include="Microsoft.VisualStudio.Shell.Interop" />
     <Reference Include="Microsoft.VisualStudio.Shell.Interop.8.0" />
     <Reference Include="Microsoft.VisualStudio.Shell.Interop.9.0" />
     <Reference Include="Microsoft.VisualStudio.TextManager.Interop, Version=7.1.40304.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>c:\Program Files (x86)\Microsoft Visual Studio 14.0\VSSDK\VisualStudioIntegration\Common\Assemblies\v2.0\Microsoft.VisualStudio.TextManager.Interop.dll</HintPath>
-    </Reference>    
+    </Reference>
     <Reference Include="Microsoft.VisualStudio.TextTemplating.Interfaces.10.0, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
@@ -97,8 +97,16 @@
       <DependentUpon>GenerateFromProject.t4</DependentUpon>
     </Compile>
     <Compile Include="NativeMethods.cs" />
-    <Compile Include="Helpers\ParsedAssemblyQualifiedName.cs" />
+    <Compile Include="ParsingSolution\Helpers\ParsedAssemblyQualifiedName.cs" />
+    <Compile Include="ParsingSolution\Codes\CodeConstructorInfo.cs" />
     <Compile Include="ParsingSolution\Constants.cs" />
+    <Compile Include="ParsingSolution\Manager\Block.cs" />
+    <Compile Include="ParsingSolution\Manager\FooterScope.cs" />
+    <Compile Include="ParsingSolution\Manager\HeaderScope.cs" />
+    <Compile Include="ParsingSolution\Manager\Manager.cs" />
+    <Compile Include="ParsingSolution\Manager\ManagerScope.cs" />
+    <Compile Include="ParsingSolution\Manager\ScopeHelper.cs" />
+    <Compile Include="ParsingSolution\Manager\ScriptFileScope.cs" />
     <Compile Include="Shell\OutputWriter.cs" />
     <Compile Include="ParsingSolution\Codes\AttributeArgumentInfo.cs" />
     <Compile Include="ParsingSolution\Codes\AttributeInfo.cs" />

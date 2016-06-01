@@ -16,7 +16,7 @@ namespace VisualStudio.ParsingSolution.Projects.Codes
         public CodeMemberInfo(BaseInfo parent, CodeElement2 item)
             : base(parent, item)
         {
-            Parent = parent;
+            Parent = parent;            
         }
 
         /// <summary>

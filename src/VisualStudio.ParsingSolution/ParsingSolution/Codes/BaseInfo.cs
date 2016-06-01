@@ -21,10 +21,10 @@ namespace VisualStudio.ParsingSolution.Projects.Codes
             this.IsCodeType = item.IsCodeType;
             this.Root = parent;
             this.Source = item;
-            this.Project = new NodeProject(item.ProjectItem.ContainingProject);
 
             try
             {
+                this.Project = new NodeProject(item.ProjectItem.ContainingProject);
                 this.Location = new LocationInfo(item.StartPoint, item.EndPoint);
             }
             catch (Exception)
@@ -59,7 +59,7 @@ namespace VisualStudio.ParsingSolution.Projects.Codes
         /// <value>
         /// The source.
         /// </value>
-        protected CodeElement2 Source { get; private set; }
+        public CodeElement2 Source { get; private set; }
 
         /// <summary>
         /// Namespace
@@ -280,7 +280,7 @@ namespace VisualStudio.ParsingSolution.Projects.Codes
         /// <summary>
         /// 
         /// </summary>
-        protected virtual void InitializeConstructors(List<CodeFunctionInfo> contructors)
+        protected virtual void InitializeConstructors(List<CodeConstructorInfo> contructors)
         {
 
         }

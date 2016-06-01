@@ -72,16 +72,16 @@ namespace VisualStudio.ParsingSolution
 
                         if (c == '`')
                         {
-                            sb.Append(c);
-                            while (char.IsDigit(c = _name[++i]))
-                                sb.Append(c);
+                            //    sb.Append(c);
+                            //    while (char.IsDigit(c = _name[++i]))
+                            //        sb.Append(c);
                             break;
                         }
 
                         if (c == ' ' || c == '+')
                             break;
 
-                        sb.Append(c);
+                            sb.Append(c);
 
                     }
 
@@ -95,16 +95,27 @@ namespace VisualStudio.ParsingSolution
         }
 
         public bool IsValid { get; private set; }
+
         public string AssemblyDescriptionString { get; private set; }
+
         public string TypeName { get; private set; }
+
         public string Path { get; private set; }
+
         public bool IsRef { get; private set; }
+
         public bool IsArray { get; private set; }
+
         public int RankArray { get; private set; }
+
         public bool IsPointer { get; private set; }
+
         public string ShortAssemblyName { get; private set; }
+
         public string Version { get; private set; }
+
         public string Culture { get; private set; }
+
         public string PublicKeyToken { get; private set; }
 
         public List<ParsedAssemblyQualifiedName> GenericParameters = new List<ParsedAssemblyQualifiedName>();
@@ -121,7 +132,41 @@ namespace VisualStudio.ParsingSolution
 
             try
             {
+
                 Parse(AssemblyQualifiedName);
+                var __n = this.Name;
+
+                if (__n.EndsWith("]"))
+                {
+
+                    this.IsArray = true;
+                    __n = __n.Substring(0, __n.Length - 1);
+                    this.RankArray++;
+
+                    while (true)
+                    {
+                        if (__n.EndsWith(","))
+                        {
+                            __n = __n.Substring(0, __n.Length - 1);
+                            this.RankArray++;
+                        }
+                        else if (__n.EndsWith("["))
+                        {
+                            __n = __n.Substring(0, __n.Length - 1);
+                            break;
+                        }
+                        else if (__n.Length == 0)
+                            break;
+                    }
+
+                    _name = null;
+                    if (!string.IsNullOrEmpty(this.Namespace))
+                        this.TypeName = this.Namespace + ".";
+
+                    this.TypeName += __n;
+
+                }
+
                 IsValid = true;
             }
             catch (Exception)
@@ -188,28 +233,6 @@ namespace VisualStudio.ParsingSolution
                 this.TypeName = this.TypeName.Substring(0, this.TypeName.Length - 1);
                 this.IsPointer = true;
             }
-
-            //if (this.TypeName.EndsWith("]"))
-            //{
-            //    this.IsArray = true;
-            //    this.TypeName = this.TypeName.Substring(0, this.TypeName.Length - 1);
-            //    this.RankArray++;
-
-            //    while (true)
-            //    {
-            //        if (this.TypeName.EndsWith(","))
-            //        {
-            //            this.TypeName = this.TypeName.Substring(0, this.TypeName.Length - 1);
-            //            this.RankArray++;
-            //        }
-            //        else if (this.TypeName.EndsWith("["))
-            //        {
-            //            this.TypeName = this.TypeName.Substring(0, this.TypeName.Length - 1);
-            //            break;
-            //        }
-            //    }
-
-            //}
 
             this.CSharpStyleName = new Lazy<string>(
                 () =>
@@ -321,8 +344,138 @@ namespace VisualStudio.ParsingSolution
         }
 #endif
 
+
+        public string ToCSharp(FormatRule rule = FormatRule.None)
+        {
+
+            string result;
+            Type type;
+            StringBuilder sb = new StringBuilder((Namespace.Length + Name.Length) * 5);
+
+            if (!string.IsNullOrEmpty(this.Namespace))
+            {
+                sb.Append(this.Namespace);
+                sb.Append(_dot);
+            }
+
+            sb.Append(this.Name);
+
+            if (rule == FormatRule.System)
+            {
+                type = Type.GetType(sb.ToString());
+                if (type != null)
+                    ReduceSystem(type, sb);
+            }
+
+            if (this.IsArray)
+                AppendArray(sb);
+
+            else if (this.GenericParameters.Any())
+            {
+                sb.Append("<");
+                string comma = string.Empty;
+                foreach (var item in this.GenericParameters)
+                {
+                    sb.Append(comma);
+                    sb.Append(item.ToCSharp(rule));
+                    comma = ", ";
+                }
+                sb.Append(">");
+            }
+
+            result = sb.ToString();
+
+            return result;
+
+        }
+
+        private void AppendArray(StringBuilder sb)
+        {
+            
+                sb.Append("[");
+                for (int i = 1; i < this.RankArray; i++)
+                    sb.Append(",");
+                sb.Append("]");
+            
+        }
+
+        private static void ReduceSystem(Type type, StringBuilder sb)
+        {
+            if (type == typeof(string))
+            {
+                sb.Clear();
+                sb.Append("string");
+            }
+            else if (type == typeof(decimal))
+            {
+                sb.Clear();
+                sb.Append("decimal");
+
+            }
+            else if (type == typeof(float))
+            {
+                sb.Clear();
+                sb.Append("float");
+
+            }
+            else if (type == typeof(long))
+            {
+                sb.Clear();
+                sb.Append("long");
+
+            }
+            else if (type == typeof(int))
+            {
+                sb.Clear();
+                sb.Append("int");
+
+            }
+            else if (type == typeof(long))
+            {
+                sb.Clear();
+                sb.Append("long");
+
+            }
+            else if (type == typeof(short))
+            {
+                sb.Clear();
+                sb.Append("short");
+
+            }
+            else if (type == typeof(double))
+            {
+                sb.Clear();
+                sb.Append("double");
+
+            }
+            else if (type == typeof(uint))
+            {
+                sb.Clear();
+                sb.Append("uint");
+
+            }
+            else if (type == typeof(ulong))
+            {
+                sb.Clear();
+                sb.Append("ulong");
+
+            }
+            else if (type == typeof(ushort))
+            {
+                sb.Clear();
+                sb.Append("ushort");
+
+            }
+        }
+
+        private static string _dot = ".";
+
     }
 
-
+    public enum FormatRule
+    {
+        None,
+        System,
+    }
 
 }

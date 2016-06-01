@@ -92,7 +92,7 @@ namespace VisualStudio.ParsingSolution.Projects.Codes
         private List<CodePropertyInfo> _properties;
         private List<CodeEventInfo> _events;
         private List<AttributeInfo> _attributes;
-        private List<CodeFunctionInfo> _constructors;
+        private List<CodeConstructorInfo> _constructors;
         private List<CodeFieldInfo> _fields;
 
         /// <summary>
@@ -149,21 +149,24 @@ namespace VisualStudio.ParsingSolution.Projects.Codes
         /// Gets the properties.
         /// </summary>
         /// <returns></returns>
-        public IEnumerable<CodeFunctionInfo> GetConstructors()
+        public IEnumerable<CodeConstructorInfo> GetConstructors()
         {
 
             if (_constructors == null)
             {
 
-                _constructors = new List<CodeFunctionInfo>();
+                _constructors = new List<CodeConstructorInfo>();
                 CodeClass2 i = item;
 
                 while (i != null)
                 {
 
-                    var _members = i.Members.OfType<CodeFunction2>()
-                        .Where(f => f.FunctionKind == vsCMFunction.vsCMFunctionConstructor && AcceptMethod(f))
-                        .Select(c => ObjectFactory.Instance.CreateMethod(this, c))
+                    var _members1 = i.Members.OfType<CodeFunction2>()
+                        .Where(f => f.FunctionKind == vsCMFunction.vsCMFunctionConstructor)
+                        .ToList();
+
+                    var _members = _members1.Where(f => AcceptConstructor(f))
+                        .Select(c => ObjectFactory.Instance.CreateConstructor(this, c))
                         .Where(d => d != null)
                         .ToList();
 
@@ -440,7 +443,19 @@ namespace VisualStudio.ParsingSolution.Projects.Codes
         {
             return method.FunctionKind == vsCMFunction.vsCMFunctionFunction;
         }
-        
+
+        protected virtual bool AcceptConstructor(CodeFunction2 method)
+        {
+            return method.Name == this.Name 
+                && method.FunctionKind == vsCMFunction.vsCMFunctionConstructor;
+        }
+
+        protected virtual bool AcceptDestructor(CodeFunction2 method)
+        {
+            return method.FunctionKind == vsCMFunction.vsCMFunctionDestructor;
+        }
+
+
         /// <summary>
         /// 
         /// </summary>

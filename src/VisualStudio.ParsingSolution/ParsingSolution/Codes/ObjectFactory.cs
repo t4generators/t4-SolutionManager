@@ -134,6 +134,14 @@ namespace VisualStudio.ParsingSolution.Projects.Codes
         /// <summary>
         /// 
         /// </summary>
+        public virtual CodeConstructorInfo CreateConstructor(BaseInfo parent, CodeFunction2 item)
+        {
+            return new CodeConstructorInfo(parent, item);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
         public virtual AttributeArgumentInfo CreateAttributeArgument(EnvDTE80.CodeAttributeArgument item)
         {
             return new AttributeArgumentInfo(item);
