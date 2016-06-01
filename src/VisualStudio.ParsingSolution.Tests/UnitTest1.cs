@@ -7,7 +7,6 @@ namespace VisualStudio.ParsingSolution.Tests
     public class UnitTest1
     {
 
-
         #region string
 
         [TestMethod]

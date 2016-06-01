@@ -64,7 +64,6 @@ namespace VisualStudio.ParsingSolution.Projects.Codes
 
         }
 
-
         /// <summary>
         /// List the generics arguments if the class is generic 
         /// </summary>
@@ -75,7 +74,18 @@ namespace VisualStudio.ParsingSolution.Projects.Codes
                 if (this._genericArguments == null)
                 {
                     if (this.IsGeneric)
-                        this._genericArguments = ProjectHelper.ParseGenericArguments(this.item.FullName, this.Parent.LocalPath, this.item.StartPoint.AbsoluteCharOffset);
+                    {
+                        Int32 s = 0;
+                        try
+                        {
+                            s = this.item.StartPoint.AbsoluteCharOffset;
+                        }
+                        catch (Exception)
+                        {
+
+                        }
+                        this._genericArguments = ProjectHelper.ParseGenericArguments(this.item.FullName, this.Parent.LocalPath, s);
+                    }
                     else
                         this._genericArguments = new GenericArguments();
                 }
@@ -454,7 +464,6 @@ namespace VisualStudio.ParsingSolution.Projects.Codes
         {
             return method.FunctionKind == vsCMFunction.vsCMFunctionDestructor;
         }
-
 
         /// <summary>
         /// 

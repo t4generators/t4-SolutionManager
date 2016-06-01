@@ -97,6 +97,7 @@
       <DependentUpon>GenerateFromProject.t4</DependentUpon>
     </Compile>
     <Compile Include="NativeMethods.cs" />
+    <Compile Include="ParsingSolution\Helpers\TypeNameCSharpParser.cs" />
     <Compile Include="ParsingSolution\Helpers\ParsedAssemblyQualifiedName.cs" />
     <Compile Include="ParsingSolution\Codes\CodeConstructorInfo.cs" />
     <Compile Include="ParsingSolution\Constants.cs" />

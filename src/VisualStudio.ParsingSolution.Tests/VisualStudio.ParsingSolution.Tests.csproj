@@ -53,6 +53,10 @@
     <Compile Include="..\VisualStudio.ParsingSolution\ParsingSolution\Helpers\ParsedAssemblyQualifiedName.cs">
       <Link>ParsedAssemblyQualifiedName.cs</Link>
     </Compile>
+    <Compile Include="..\VisualStudio.ParsingSolution\ParsingSolution\Helpers\TypeNameCSharpParser.cs">
+      <Link>TypeNameCSharpParser.cs</Link>
+    </Compile>
+    <Compile Include="UnitTest2.cs" />
     <Compile Include="UnitTest1.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
